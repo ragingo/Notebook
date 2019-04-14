@@ -1,0 +1,39 @@
+﻿<Window x:Class="Explorer.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+		xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+		xmlns:e_v_main="clr-namespace:Explorer.ViewModel.MainWindow"
+		xmlns:gala_cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
+		xmlns:sys="clr-namespace:System;assembly=mscorlib"
+		Title="MainWindow" Height="350" Width="525">
+	<Window.Resources>
+	</Window.Resources>
+
+	<Window.DataContext>
+		<e_v_main:MainWindowViewModel />
+	</Window.DataContext>
+
+	<Grid>
+		<TreeView x:Name="treeView" ItemsSource="{Binding Path=Tree.Drives}" TreeViewItem.Expanded="TreeView_Expanded">
+			<TreeView.ItemTemplate>
+				<HierarchicalDataTemplate ItemsSource="{Binding Path=Children}">
+					<StackPanel Orientation="Horizontal">
+						<Image Source="{Binding Path=Icon}" Width="16" Height="16" Margin="0,0,3,0" />
+						<TextBlock Text="{Binding Path=Name}" />
+					</StackPanel>
+				</HierarchicalDataTemplate>
+			</TreeView.ItemTemplate>
+			<TreeView.ItemContainerStyle>
+				<Style TargetType="TreeViewItem">
+					<Setter Property="Visibility" Value="Visible" />
+					<Style.Triggers>
+						<DataTrigger Binding="{Binding Path=Name}" Value="{x:Static sys:String.Empty}">
+							<Setter Property="Visibility" Value="Collapsed" />
+						</DataTrigger>
+					</Style.Triggers>
+				</Style>
+			</TreeView.ItemContainerStyle>
+		</TreeView>
+	</Grid>
+</Window>

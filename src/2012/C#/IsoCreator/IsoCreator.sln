@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IsoCreatorCLI", "IsoCreator\IsoCreatorCLI.csproj", "{8E445BBC-3FE6-4796-92EF-86FA65D13A18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IsoCreatorForWPF", "IsoCreatorForWPF\IsoCreatorForWPF.csproj", "{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Explorer", "Explorer\Explorer.csproj", "{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Debug|Any CPU.Build.0 = Debug|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Debug|x86.ActiveCfg = Debug|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Debug|x86.Build.0 = Debug|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Release|Any CPU.ActiveCfg = Release|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Release|Mixed Platforms.Build.0 = Release|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Release|x86.ActiveCfg = Release|x86
+		{8E445BBC-3FE6-4796-92EF-86FA65D13A18}.Release|x86.Build.0 = Release|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Debug|Any CPU.Build.0 = Debug|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Debug|x86.ActiveCfg = Debug|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Debug|x86.Build.0 = Debug|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Release|Any CPU.ActiveCfg = Release|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Release|Mixed Platforms.Build.0 = Release|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Release|x86.ActiveCfg = Release|x86
+		{00D1C17E-D23A-4CAA-B7FF-0A8C0911718C}.Release|x86.Build.0 = Release|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Debug|Any CPU.Build.0 = Debug|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Debug|x86.ActiveCfg = Debug|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Debug|x86.Build.0 = Debug|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Release|Any CPU.ActiveCfg = Release|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Release|Mixed Platforms.Build.0 = Release|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Release|x86.ActiveCfg = Release|x86
+		{88AC2AC4-9BA3-487A-ABF3-AD1067D8A6E6}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
