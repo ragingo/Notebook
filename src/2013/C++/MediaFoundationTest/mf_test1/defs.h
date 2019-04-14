@@ -1,0 +1,2 @@
+
+#define WM_APP_MEDIA_EVENT (WM_APP + 1)
