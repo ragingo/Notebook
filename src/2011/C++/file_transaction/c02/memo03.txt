@@ -1,0 +1,119 @@
+
+#ifndef __TRANSACTIONMANAGER_H__
+#define __TRANSACTIONMANAGER_H__
+#endif
+
+#pragma once
+#include <Windows.h>
+#include <ktmw32.h>
+#include <tchar.h>
+#include <atlbase.h>
+#include <atlfile.h>
+
+namespace Sample
+{
+	using namespace ATL;
+
+	class TransactionManager
+	{
+	private:
+		HANDLE m_hTransaction;
+	public:
+		explicit TransactionManager(BOOL autoCreateTransaction = TRUE) :
+			m_hTransaction(NULL)
+		{
+			if(autoCreateTransaction)
+			{
+				Create();
+			}
+		}
+		~TransactionManager()
+		{
+			if(m_hTransaction != NULL)
+			{
+				Commit();
+			}
+			Close();
+		}
+		HANDLE GetHandle() const
+		{
+			return m_hTransaction;
+		}
+		BOOL Create()
+		{
+			SECURITY_ATTRIBUTES attrs = {0};
+			m_hTransaction = ::CreateTransaction(&attrs, 0, 0, 0, 0, 0, NULL);
+			return m_hTransaction != NULL;
+		}
+		BOOL Close()
+		{
+			if(m_hTransaction == NULL)
+			{
+				return FALSE;
+			}
+			if(!::CloseHandle(m_hTransaction))
+			{
+				return FALSE;
+			}
+			m_hTransaction = NULL;
+			return TRUE;
+		}
+		BOOL Commit()
+		{
+			if(m_hTransaction == NULL)
+			{
+				return FALSE;
+			}
+			return ::CommitTransaction(m_hTransaction);
+		}
+		BOOL Rollback()
+		{
+			if(m_hTransaction == NULL)
+			{
+				return FALSE;
+			}
+			return ::RollbackTransaction(m_hTransaction);
+		}
+	};
+
+	class File
+	{
+	private:
+		TransactionManager *m_pTransactionManager;
+		LPCTSTR m_lpFileName;
+		HANDLE m_hFile;
+	public:
+		File(LPCTSTR lpFileName, TransactionManager *pTransactionManager = NULL) :
+		  m_pTransactionManager(pTransactionManager), m_lpFileName(lpFileName), m_hFile(NULL)
+		{
+			ATLASSERT(lstrlen(lpFileName) != 0);
+		}
+		void Create(
+			DWORD dwDesiredAccess, DWORD dwShareMode, 
+			LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, 
+			DWORD dwFlagsAndAttributes, HANDLE hTemplateFile, 
+			PUSHORT pusMiniVersion, PVOID  lpExtendedParameter)
+		{
+			if(m_hFile != NULL)
+			{
+				return;
+			}
+			if(m_pTransactionManager != NULL)
+			{
+				m_hFile = ::CreateFileTransacted(
+					m_lpFileName, dwDesiredAccess, dwShareMode,
+					lpSecurityAttributes, dwCreationDisposition,
+					dwFlagsAndAttributes, hTemplateFile, m_pTransactionManager->GetHandle(),
+					pusMiniVersion, lpExtendedParameter);
+			}
+			else
+			{
+				m_hFile = ::CreateFile(
+					m_lpFileName, dwDesiredAccess, dwShareMode,
+					lpSecurityAttributes, dwCreationDisposition,
+					dwFlagsAndAttributes, hTemplateFile);
+			}
+		}
+	};
+}
+

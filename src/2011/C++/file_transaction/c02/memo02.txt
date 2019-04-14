@@ -1,0 +1,104 @@
+
+#undef __cplusplus
+
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <memory.h>
+//#include <ctype.h>
+//#include <limits.h>
+//#include <conio.h>
+
+#define CONTAINER_NAME(type) Container$##type##$
+#define CONTAINER(type) \
+	typedef struct CONTAINER_NAME(type) \
+	{ \
+		void (*ctor)(struct CONTAINER_NAME(type) *This); \
+		type* buffer; \
+		unsigned long begin_idx; \
+		unsigned long end_idx; \
+		unsigned long count; \
+		unsigned long size; \
+		unsigned short element_size; \
+		type* (*begin)(struct CONTAINER_NAME(type) *This); \
+		type* (*end)(struct CONTAINER_NAME(type) *This); \
+	} CONTAINER_NAME(type); \
+	static void CONTAINER_NAME(type)##_ctor(CONTAINER_NAME(type) *This) \
+	{ \
+		This->begin_idx = 0UL; \
+		This->end_idx = 0UL; \
+		This->count = 0UL; \
+		This->size = 0UL; \
+		This->element_size = 0UL; \
+	} \
+	static type* CONTAINER_NAME(type)##_begin(CONTAINER_NAME(type) *This) \
+	{ \
+		return &This->buffer[This->begin_idx]; \
+	} \
+	static type* CONTAINER_NAME(type)##_end(CONTAINER_NAME(type) *This) \
+	{ \
+		return &This->buffer[This->end_idx]; \
+	} \
+	void CONTAINER_NAME(type)##_create_instance(CONTAINER_NAME(type) *This) \
+	{ \
+		This->ctor  = &##CONTAINER_NAME(type)##_ctor; \
+		This->begin = &##CONTAINER_NAME(type)##_begin; \
+		This->end   = &##CONTAINER_NAME(type)##_end; \
+		This->ctor(This); \
+	}
+
+#define VECTOR_NAME(type) Vector$##type##$
+#define VECTOR(type) \
+	typedef struct VECTOR_NAME(type) \
+	{ \
+		CONTAINER_NAME(type) base;\
+	} VECTOR_NAME(type); \
+	void VECTOR_NAME(type)##_create_instance(VECTOR_NAME(type) *This) \
+	{ \
+		CONTAINER_NAME(type)##_create_instance(&This->base); \
+	}
+
+typedef unsigned long ulong;
+CONTAINER(ulong)
+VECTOR(ulong)
+
+#define FOR_EACH(Container, Func) \
+{ \
+	unsigned long idx = 0; \
+	for(; idx < Container.count; idx++) \
+	{ \
+		Func(Container.buffer[idx]); \
+	} \
+}
+
+void display(unsigned long  a)
+{
+	printf("%ld ", a);
+}
+
+int main()
+{
+	Vector$ulong$ v;
+	Vector$ulong$_create_instance(&v);
+
+	//v.base.buffer = (unsigned long*)malloc(10);
+
+	//{
+	//	int i=0;
+	//	for(;i<10;i++)
+	//	{
+	//		v.base.buffer[i] = i*i;
+	//	}
+	//	v.base.end_idx = 9;
+	//	v.base.count = 10;
+	//}
+
+
+	//FOR_EACH(v.base, display);
+	//free(v.base.buffer);
+	return 0;
+}

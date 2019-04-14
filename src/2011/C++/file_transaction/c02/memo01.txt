@@ -1,0 +1,118 @@
+
+#undef __cplusplus
+
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <memory.h>
+//#include <ctype.h>
+//#include <limits.h>
+//#include <conio.h>
+
+
+void getdata(char **buf)
+{
+	char *tbl[] = {
+		"a",
+		"bb",
+		"ccc",
+		"dd",
+		"e"
+	};
+	char **p = buf;
+	int i;
+
+	buf = (char**)malloc(sizeof(char*) * 5);
+	for(i=0; i<5; i++)
+	{
+		int len = strlen(tbl[i]);
+		int size = sizeof(char) * len + 1;
+		buf[i] = (char*)malloc(size);
+		strcpy_s(&buf[i][0], size, tbl[i]);
+		buf[i][len] = '\0';
+	}
+	for(i=0; i<5; i++)
+	{
+		printf("%s\r\n", buf[i]);
+	}
+}
+
+void getdata2(char **buf)
+{
+	char *p = (char*)malloc(sizeof(char) * 2 + 1);
+	p[0] = 'a';
+	p[1] = 'b';
+	p[2] = '\0';
+	*buf = p;
+	puts(p);
+	puts(*buf);
+}
+
+void getdata3(char ***buf, int *count)
+{
+	char **p = (char**)malloc(sizeof(char*) * 2);
+	p[0] = (char*)malloc(sizeof(char) * 2 + 1);
+	p[1] = (char*)malloc(sizeof(char) * 2 + 1);
+	strcpy(p[0], "12");
+	p[0][sizeof(char) * 2] = '\0';
+	strcpy(p[1], "ab");
+	p[1][sizeof(char) * 2] = '\0';
+	*buf = p;
+
+	*count = 2;
+}
+
+int main()
+{
+	//char *buf = (char*)NULL;
+	char **buf = (char**)NULL;
+	int count;
+	int i;
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+	getdata3(&buf, &count);
+	for(i=0; i<count; i++)
+	{
+		puts(buf[i]);
+		free(buf[i]);
+	}
+	free(buf);
+
+	//char **buf;
+	//char *tbl[] = {
+	//	"a",
+	//	"bb",
+	//	"ccc",
+	//	"dd",
+	//	"e"
+	//};
+	//int i;
+
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+	//buf = (char**)malloc(sizeof(char*) * 5);
+	//for(i=0; i<5; i++)
+	//{
+	//	int len = strlen(tbl[i]);
+	//	int size = sizeof(char) * len + 1;
+	//	buf[i] = (char*)malloc(size);
+	//	strcpy_s(&buf[i][0], size, tbl[i]);
+	//	buf[i][len] = '\0';
+	//}
+	//for(i=0; i<5; i++)
+	//{
+	//	printf("%s\r\n", buf[i]);
+	//}
+
+	//for(i=0; i<5; i++)
+	//{
+	//	free(buf[i]);
+	//}
+	//free(buf);
+
+	return 0;
+}
