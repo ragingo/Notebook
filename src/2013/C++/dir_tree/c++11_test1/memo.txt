@@ -1,0 +1,190 @@
+
+#include "stdafx.h"
+
+class DirectoryNode;
+
+class FileSystemNode : public boost::enable_shared_from_this<FileSystemNode>
+{
+public:
+	typedef std::vector<boost::shared_ptr<FileSystemNode>> CollectionType;
+	typedef boost::shared_ptr<FileSystemNode> ElementType;
+
+protected:
+	bool _isDirectory;
+	std::wstring _name;
+	boost::weak_ptr<FileSystemNode> _parent;
+	FileSystemNode::CollectionType _children;
+
+public:
+	inline bool IsDirectory() const
+	{
+		return _isDirectory;
+	}
+	inline int GetLevel() const
+	{
+		auto p = _parent.lock();
+		return (p == nullptr) ? 0 : p->GetLevel() + 1;
+	}
+	inline std::wstring GetName() const
+	{
+		return _name;
+	}
+	inline void SetName(const std::wstring& name)
+	{
+		_name = name;
+	}
+	inline std::wstring GetFullName() const
+	{
+		auto p = _parent.lock();
+		return (p == nullptr) ? GetName() : p->GetFullName() + L"\\" + GetName();
+	}
+	std::vector<ElementType> GetChildren() const
+	{
+		return _children;
+	}
+	virtual void AddChild(const ElementType node)
+	{
+		node->_parent = shared_from_this();
+		_children.push_back(node);
+	}
+	template<typename T> T* Get() const
+	{
+		return (T*)this;
+	}
+};
+
+class DirectoryNode : public FileSystemNode
+{
+private:
+public:
+	DirectoryNode()
+	{
+		_isDirectory = true;
+	}
+};
+
+class FileNode : public FileSystemNode
+{
+private:
+	_ULonglong _size;
+public:
+	FileNode()
+	{
+		_isDirectory = false;
+	}
+	_ULonglong GetSize() const
+	{
+		return _size;
+	}
+	void SetSize(const _ULonglong& size)
+	{
+		_size = size;
+	}
+};
+
+void DumpTree(const FileSystemNode::ElementType node, bool isFlat)
+{
+	auto children = node->GetChildren();
+	int level = node->GetLevel();
+
+	if (isFlat)
+	{
+		if (node->IsDirectory())
+		{
+			std::wcout << node->GetFullName() << std::endl;
+		}
+		else
+		{
+			std::wcout << node->GetFullName() << L"(" << node->Get<FileNode>()->GetSize() << L" bytes)" << std::endl;
+		}
+	}
+	else
+	{
+		//std::wstringstream indent_stream;
+		//indent_stream << std::left << std::setw(level * 4) << (level == 0 ? L"" : L" ");
+		//std::wstring indent = indent_stream.str();
+
+		std::wstring indent(level * 4, ' ');
+		if (node->IsDirectory())
+		{
+			std::wcout << indent << node->GetName() << std::endl;
+		}
+		else
+		{
+			std::wcout << indent << node->GetName() << L"(" << node->Get<FileNode>()->GetSize() << L" bytes)" << std::endl;
+		}
+	}
+
+	boost::for_each(children, [&](FileSystemNode::ElementType child) -> void {
+		DumpTree(child, isFlat);
+	});
+}
+
+void CreateTree(const FileSystemNode::ElementType& node, const std::wstring& entry)
+{
+	FileSystemNode::ElementType child;
+	auto path = std::tr2::sys::wpath(entry);
+
+	if (std::tr2::sys::is_directory(path))
+	{
+		child = FileSystemNode::ElementType(new DirectoryNode());
+		node->AddChild(child);
+		child->SetName(entry);
+
+		std::tr2::sys::wdirectory_iterator begin(path);
+		std::tr2::sys::wdirectory_iterator end;
+		auto range = boost::make_iterator_range(begin, end);
+
+		std::for_each(range.begin(), range.end(), 
+			[&](const std::tr2::sys::wdirectory_entry& ent) -> void {
+				CreateTree(child, entry + L"/" + ent.path().string());
+			}
+		);
+	}
+	else
+	{
+		child = FileSystemNode::ElementType(new FileNode());
+		node->AddChild(child);
+		child->SetName(entry);
+		child->Get<FileNode>()->SetSize(std::tr2::sys::file_size(path));
+	}
+}
+
+
+int wmain(int argc, wchar_t* argv[])
+{
+	_wsetlocale(0, L"");
+
+	const std::wstring root(L"C:\\Users\\Public");
+
+	FileSystemNode::ElementType root_node(new DirectoryNode());
+	root_node->SetName(root);
+
+	CreateTree(root_node, root);
+
+	DumpTree(root_node, false);
+
+
+	//std::tr2::sys::wrecursive_directory_iterator begin(root);
+	//std::tr2::sys::wrecursive_directory_iterator end;
+	//auto range = boost::make_iterator_range(begin, end);
+
+	//std::vector<std::wstring> items;
+	//std::for_each(range.begin(), range.end(),
+	//	[&] (const std::tr2::sys::wdirectory_entry& p) -> void {
+	//		items.push_back(p.path());
+	//	}
+	//);
+
+	//boost::sort(items);
+
+	//boost::for_each(items, [](const std::wstring& item) -> void {
+	//	std::wcout << item << std::endl;
+	//});
+
+	//DumpTree(root_node, true);
+
+
+	return 0;
+}
+
