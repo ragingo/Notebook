@@ -1,0 +1,108 @@
+﻿<Window x:Class="WpfTest2.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Window1" Height="527" Width="783" Loaded="Window_Loaded">
+
+    <Window.Resources>
+
+        <!--Mesh-->
+        <MeshGeometry3D x:Key="Diamond">
+            <!--Positions="1 0 0, 0 1 0, -1 0 0, 0 -1 0, 0 0 1"-->
+            <MeshGeometry3D.Positions>
+                <Point3D> 1  0  0</Point3D>
+                <Point3D> 0  1  0</Point3D>
+                <Point3D>-1  0  0</Point3D>
+                <Point3D> 0 -1  0</Point3D>
+                <Point3D> 0  0  1</Point3D>
+                <Point3D> 0  0 -1</Point3D>
+            </MeshGeometry3D.Positions>
+            <!--TriangleIndices="0 1 4, 1 2 4, 2 3 4, 3 0 4"-->
+            <MeshGeometry3D.TriangleIndices>
+                <Int32Collection>
+                    0, 1, 4,
+                    1, 2, 4,
+                    2, 3, 4,
+                    3, 0, 4,
+                    0, 5, 1,
+                    1, 5, 2,
+                    2, 5, 3,
+                    3, 5, 0
+                </Int32Collection>
+            </MeshGeometry3D.TriangleIndices>
+        </MeshGeometry3D>
+
+        <!--Material-->
+        <DiffuseMaterial x:Key="LightBlueMaterial">
+            <DiffuseMaterial.Brush>
+                <SolidColorBrush Color="LightBlue"/>
+            </DiffuseMaterial.Brush>
+        </DiffuseMaterial>
+
+
+    </Window.Resources>
+
+    <Window.Content>
+
+        <Viewport3D Name="viewport" ClipToBounds="True" Margin="302,153,302,172" 
+                    MouseDown="viewport_MouseDown" 
+                    MouseUp="viewport_MouseUp"
+                    MouseMove="viewport_MouseMove">
+            <!--Event Triggers-->
+            <Viewport3D.Triggers>
+                <EventTrigger RoutedEvent="Viewport3D.Loaded">
+                    <BeginStoryboard Name="around">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="cameraRot" 
+                                             Storyboard.TargetProperty="Angle"
+                                             From="0" To="360" RepeatBehavior="Forever" AutoReverse="False" Duration="0:0:0.5"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="Viewport3D.MouseEnter">
+                    <PauseStoryboard BeginStoryboardName="around"/>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="Viewport3D.MouseLeave">
+                    <ResumeStoryboard BeginStoryboardName="around"/>
+                </EventTrigger>
+            </Viewport3D.Triggers>
+
+            <!--Camera-->
+            <Viewport3D.Camera>
+                <PerspectiveCamera Position="0,0,15" FieldOfView="10" LookDirection="0,0,-1" UpDirection="0,1,0">
+                    <PerspectiveCamera.Transform>
+                        <RotateTransform3D>
+                            <RotateTransform3D.Rotation>
+                                <AxisAngleRotation3D x:Name="cameraRot" Axis="0,1,0" Angle="0"/>
+                            </RotateTransform3D.Rotation>
+                        </RotateTransform3D>
+                    </PerspectiveCamera.Transform>
+                </PerspectiveCamera>
+            </Viewport3D.Camera>
+
+            <!--Model-->
+            <ModelVisual3D>
+                <ModelVisual3D.Content>
+                    <GeometryModel3D Geometry="{StaticResource Diamond}" Material="{StaticResource LightBlueMaterial}">
+                        <GeometryModel3D.Transform>
+                            <TranslateTransform3D OffsetX="0.2" OffsetY="0.2"/>
+                            <!--<RotateTransform3D CenterY="1"/>-->
+                        </GeometryModel3D.Transform>
+                    </GeometryModel3D>
+                </ModelVisual3D.Content>
+            </ModelVisual3D>
+
+            <!--Light-->
+            <ModelVisual3D>
+                <ModelVisual3D.Content>
+                    <Model3DGroup>
+                        <AmbientLight Color="#404040"/>
+                        <DirectionalLight Color="#ff0000" Direction="-1,-1, 0"/>
+                        <DirectionalLight Color="#0000ff" Direction="-1, 0, 0"/>
+                        <DirectionalLight Color="#00ff00" Direction=" 1,-1, 0"/>
+                    </Model3DGroup>
+                </ModelVisual3D.Content>
+            </ModelVisual3D>
+        </Viewport3D>
+        
+    </Window.Content>
+</Window>
