@@ -1,0 +1,41 @@
+﻿<Window x:Class="ClassSelector.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:my="clr-namespace:ClassSelector"
+		xmlns:m="clr-namespace:System.Management;assembly=System.Management"
+		Title="MainWindow" Height="448" Width="688"
+		WindowState="Maximized">
+	
+	<Window.Resources>
+		<my:WmiNamespaceConverter x:Key="wmiNamespaceConverter"/>
+	</Window.Resources>
+	
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="192*" />
+			<ColumnDefinition Width="474*" />
+		</Grid.ColumnDefinitions>
+		<TreeView Name="treeView" Margin="0,0,0,2" ItemsSource="{Binding}" SelectedItemChanged="treeView_SelectedItemChanged">
+			<TreeView.ItemTemplate>
+				<HierarchicalDataTemplate DataType="{x:Type m:ManagementPath}"
+										  ItemsSource="{Binding Path=., Converter={StaticResource wmiNamespaceConverter}}">
+					<TextBlock Text="{Binding Path=Path}"/>
+				</HierarchicalDataTemplate>
+			</TreeView.ItemTemplate>
+		</TreeView>
+		<DataGrid AutoGenerateColumns="True" Margin="12,55,2,2" Name="dataGrid" Grid.Column="1" AlternatingRowBackground="AliceBlue"
+				  CanUserAddRows="False" CanUserSortColumns="true" CanUserDeleteRows="False"
+				  HorizontalScrollBarVisibility="Auto"
+				  EnableColumnVirtualization="True" EnableRowVirtualization="True"
+				  RowDetailsVisibilityMode="VisibleWhenSelected"
+				  ItemsSource="{Binding Mode=OneWay}" RowHeaderWidth="20" SelectionMode="Single" MouseDoubleClick="dataGrid_MouseDoubleClick">
+			<DataGrid.Columns>
+				<DataGridTextColumn Binding="{Binding Path=.}" Header="データ" Width="300*" ClipboardContentBinding="{Binding}" IsReadOnly="True"/>
+			</DataGrid.Columns>
+		</DataGrid>
+		<ComboBox Height="24" Margin="25,13,0,0" Name="cmbClassName" VerticalAlignment="Top" Grid.Column="1"
+				  ItemsSource="{Binding Path=.}" SelectionChanged="cmbClassName_SelectionChanged" HorizontalAlignment="Left" Width="355" />
+		<GridSplitter Grid.Column="1" HorizontalAlignment="Left" Name="gridSplitter1" Width="11" Margin="0,0,0,2" />
+		<Button Content="Cancel" Grid.Column="1" Height="23" HorizontalAlignment="Right" Margin="0,13,12,0" Name="btnCancel" VerticalAlignment="Top" Width="75" Click="btnCancel_Click" />
+	</Grid>
+</Window>

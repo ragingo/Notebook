@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence
+	version="1.0"
+	xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
+	
+	<persistence-unit name="test_20100430233756">
+		<provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
+		<class>Holidays</class>
+		<class>EntityBase</class>
+		<class>Emp</class>
+		<class>Dept</class>
+		<class>Salgrade</class>
+		
+		<properties>
+			<property name="openjpa.jdbc.DBDictionary" value="Oracle" />
+			<property name="javax.persistence.lock.timeout" value="0"/>
+			<property name="openjpa.Log" value="DefaultLevel=WARN,SQL=TRACE" />
+			<property name="openjpa.ConnectionDriverName" value="oracle.jdbc.OracleDriver" />
+			<property name="openjpa.ConnectionURL" value="jdbc:oracle:thin:@localhost:1521:db1" />
+			<property name="openjpa.ConnectionUserName" value="sakuragi" />
+			<property name="openjpa.ConnectionPassword" value="sakuragi" />
+		</properties>
+	</persistence-unit>
+
+</persistence>

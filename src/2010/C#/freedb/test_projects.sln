@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cddb", "test_projects\cddb.csproj", "{E3BB2CF8-138F-45DF-80CC-D937A746698C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "test\test.csproj", "{80AB17BC-7DC5-4BE5-AE17-3523D98EEB89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E3BB2CF8-138F-45DF-80CC-D937A746698C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3BB2CF8-138F-45DF-80CC-D937A746698C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3BB2CF8-138F-45DF-80CC-D937A746698C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3BB2CF8-138F-45DF-80CC-D937A746698C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80AB17BC-7DC5-4BE5-AE17-3523D98EEB89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80AB17BC-7DC5-4BE5-AE17-3523D98EEB89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80AB17BC-7DC5-4BE5-AE17-3523D98EEB89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80AB17BC-7DC5-4BE5-AE17-3523D98EEB89}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SpecExplorer.ActivityCompletionStatus) = preSolution
+		SpecExplorer.ActivityCompletionStatus = 
+	EndGlobalSection
+EndGlobal
