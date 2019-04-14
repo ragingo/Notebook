@@ -1,0 +1,43 @@
+﻿<Window x:Class="SakuraUtils.TaskManager.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:SakuraUtils.TaskManager"
+		Title="MainWindow" Height="350" Width="525">
+	<Window.DataContext>
+		<local:TaskManager />
+	</Window.DataContext>
+	<Window.Resources>
+		<Style TargetType="DataGrid">
+			<Style.Setters>
+				<Setter Property="IsReadOnly" Value="True" />
+				<Setter Property="CanUserAddRows" Value="False" />
+				<Setter Property="CanUserDeleteRows" Value="False" />
+				<Setter Property="AutoGenerateColumns" Value="False" />
+			</Style.Setters>
+		</Style>
+	</Window.Resources>
+	<Grid>
+		<TabControl Name="tabControl">
+			<TabItem Header="Application" Name="tabItemApp">
+				<Grid>
+					<DataGrid ItemsSource="{Binding Path=Applications, Mode=TwoWay}">
+						<DataGrid.Columns>
+							<DataGridTextColumn Header="Task" Binding="{Binding Path=Task}" Width="200" />
+							<DataGridTextColumn Header="State" Binding="{Binding Path=State}" Width="80" />
+						</DataGrid.Columns>
+					</DataGrid>
+				</Grid>
+			</TabItem>
+			<TabItem Header="Process" Name="tabItemProc">
+				<Grid>
+					<DataGrid ItemsSource="{Binding Path=Processes, Mode=TwoWay}">
+						<DataGrid.Columns>
+							<DataGridTextColumn Header="ImageName" Binding="{Binding Path=ImageName}" Width="100" />
+							<DataGridTextColumn Header="PID" Binding="{Binding Path=PID}" Width="100" />
+						</DataGrid.Columns>
+					</DataGrid>
+				</Grid>
+			</TabItem>
+		</TabControl>
+	</Grid>
+</Window>

@@ -1,0 +1,28 @@
+﻿<Window x:Class="chart_test3.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:charting="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit"
+		xmlns:local="clr-namespace:chart_test3"
+		Title="MainWindow" Height="350" Width="525">
+	<Window.Resources>
+		<local:DateTimeToDoubleConverter x:Key="dateTimeToDoubleConverter" />
+	</Window.Resources>
+	<Grid>
+		<charting:Chart>
+			<charting:StackedBarSeries>
+				<charting:SeriesDefinition ItemsSource="{Binding}"
+										   IndependentValueBinding="{Binding Path=Title}"
+										   DependentValueBinding="{Binding Path=From, Converter={StaticResource dateTimeToDoubleConverter}}"
+										   Visibility="Collapsed">
+				</charting:SeriesDefinition>
+				<charting:SeriesDefinition ItemsSource="{Binding}" 
+										   IndependentValueBinding="{Binding Path=Title}"
+										   DependentValueBinding="{Binding Path=To, Converter={StaticResource dateTimeToDoubleConverter}}">
+				</charting:SeriesDefinition>
+			</charting:StackedBarSeries>
+			<charting:Chart.Axes>
+				<charting:DateTimeAxis IntervalType="Days" Orientation="X" />
+			</charting:Chart.Axes>
+		</charting:Chart>
+	</Grid>
+</Window>

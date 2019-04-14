@@ -1,0 +1,18 @@
+﻿<Window x:Class="chart_test2.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:chart_test2"
+		Title="MainWindow" Height="350" Width="525">
+	<Grid>
+		<DatePicker Height="25" HorizontalAlignment="Left" Margin="12,12,0,0" Name="datePickerFrom" VerticalAlignment="Top" Width="115" />
+		<DatePicker Height="25" HorizontalAlignment="Left" Margin="133,12,0,0" Name="datePickerTo" VerticalAlignment="Top" Width="115" />
+		<Slider Height="23" Margin="254,14,0,0" Name="slider" VerticalAlignment="Top"
+				Interval="1" TickFrequency="1" TickPlacement="BottomRight" Minimum="0" Maximum="30"
+				SmallChange="1" LargeChange="1" HorizontalAlignment="Left" Width="190" IsSnapToTickEnabled="True" />
+		<TextBlock Text="{Binding Path=Value, ElementName=slider}" Height="21" Margin="450,14,0,0" Name="txtValue" VerticalAlignment="Top" HorizontalAlignment="Left" Width="41" />
+		<local:ChartBox x:Name="chartbox" Margin="12,43,12,12"
+						MinDateTime="{Binding Path=SelectedDate, ElementName=datePickerFrom}"
+						MaxDateTime="{Binding Path=SelectedDate, ElementName=datePickerTo}"
+						AxisInterval="{Binding Path=Value, ElementName=slider}" />
+	</Grid>
+</Window>

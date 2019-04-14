@@ -1,0 +1,7 @@
+
+
+; IronSchemeTest
+
+; clear
+(define (clear)(clr-static-call System.Console Clear))
+

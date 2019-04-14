@@ -1,0 +1,24 @@
+﻿<Window x:Class="chart_test4.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		Title="MainWindow" Height="350" Width="525" xmlns:ig="http://schemas.infragistics.com/xaml">
+	<Grid Name="grid">
+		<!--<ig:XamDataChart Margin="12,12,12,6" Name="xamDataChart1">
+			<ig:XamDataChart.Axes>
+				<ig:CategoryXAxis x:Name="xmRangeColumnXAxis" ItemsSource="{Binding}" Label="{}{Index}" />
+				<ig:NumericYAxis x:Name="xmRangeColumnYAxis"  />
+			</ig:XamDataChart.Axes>
+			<ig:XamDataChart.Series>
+				<ig:RangeColumnSeries MarkerType="None" 
+										  ItemsSource="{Binding Path=From}" 
+										  HighMemberPath="High" LowMemberPath="Low" 
+										  XAxis="{Binding ElementName=xmRangeColumnXAxis}" 
+										  YAxis="{Binding ElementName=xmRangeColumnYAxis}">
+				</ig:RangeColumnSeries>
+				<ig:RangeColumnSeries MarkerType="None" ItemsSource="{Binding Path=To}" HighMemberPath="High" LowMemberPath="Low" XAxis="{Binding ElementName=xmRangeColumnXAxis}" YAxis="{Binding ElementName=xmRangeColumnYAxis}">
+				</ig:RangeColumnSeries>
+			</ig:XamDataChart.Series>
+		</ig:XamDataChart>-->
+		<!--<ig:XamScheduleView Margin="12,0" Name="xamScheduleView1" VerticalAlignment="Top" Grid.Row="1" Height="135" />-->
+	</Grid>
+</Window>
