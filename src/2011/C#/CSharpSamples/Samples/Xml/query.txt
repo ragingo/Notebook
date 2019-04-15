@@ -1,0 +1,1 @@
+﻿//purchaseOrder/items/item/@partNum[.='872-AA' or .='926-AA']

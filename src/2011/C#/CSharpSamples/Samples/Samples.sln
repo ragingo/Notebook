@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSConsoleSamples", "Samples\CSConsoleSamples.csproj", "{AF1C4575-C9E4-4704-8388-D81F5AEC3976}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppConsoleSamples", "CppConsoleSamples\CppConsoleSamples.vcxproj", "{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Memo", "Memo", "{D0C625B7-E897-4AFB-AFD6-FE1CE0EDE3FB}"
+	ProjectSection(SolutionItems) = preProject
+		msg_build.bat = msg_build.bat
+		msg_test.mc = msg_test.mc
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{475F8C2A-AFCA-4BDA-A90A-262BEE451421}"
+	ProjectSection(SolutionItems) = preProject
+		log4net.dll = log4net.dll
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x86 = Debug|x86
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Debug|Win32.ActiveCfg = Debug|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Debug|x86.ActiveCfg = Debug|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Debug|x86.Build.0 = Debug|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Release|Mixed Platforms.Build.0 = Release|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Release|Win32.ActiveCfg = Release|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Release|x86.ActiveCfg = Release|x86
+		{AF1C4575-C9E4-4704-8388-D81F5AEC3976}.Release|x86.Build.0 = Release|x86
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Debug|Win32.Build.0 = Debug|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Debug|x86.ActiveCfg = Debug|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Release|Win32.ActiveCfg = Release|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Release|Win32.Build.0 = Release|Win32
+		{5E1FD84F-12F2-4EF0-A122-1DF2053DE416}.Release|x86.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

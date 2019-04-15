@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<QueryList>
+	<Query Id='0' Path='Security'>
+		<Select Path='Security'>
+			*[System[(EventID=4624 or EventID=4634)] and
+			EventData[Data[@Name='LogonType']='2' or Data[@Name='LogonType']='3']]
+		</Select>
+	</Query>
+</QueryList>
