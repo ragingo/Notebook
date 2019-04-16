@@ -1,0 +1,8 @@
+﻿<Window x:Class="CarManagementSystem.Views.WorkHistoryView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="作業履歴" Height="600" Width="800">
+    <Grid>
+        
+    </Grid>
+</Window>

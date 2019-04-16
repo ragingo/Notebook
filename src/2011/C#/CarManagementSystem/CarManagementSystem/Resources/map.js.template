@@ -1,0 +1,32 @@
+﻿<html>
+<head>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ja"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	var map = new google.maps.Map($('#canvas')[0], {
+		mapTypeId: google.maps.MapTypeId.ROADMAP,
+		scaleControl: true,
+		zoom: 16
+	});
+	var marker = new google.maps.Marker({ map: map });
+	var geocoder = new google.maps.Geocoder();
+	var req = { 'address': $('#address').text() };
+
+	geocoder.geocode(req, function(results, status) {
+		if (status != google.maps.GeocoderStatus.OK) {
+			return;
+		}
+		var location = results[0].geometry.location;
+		map.setCenter(location);
+		marker.setPosition(location);
+	});
+});
+</script>
+</head>
+<body>
+	<div id='canvas' style='width:100%;height=100%'></div>
+	<div id='address' style='display:none'>@address</div>
+</body>
+</html>
+

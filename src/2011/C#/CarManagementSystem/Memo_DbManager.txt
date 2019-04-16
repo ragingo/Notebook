@@ -1,0 +1,118 @@
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data.Common;
+using System.Data.Linq;
+using System.Diagnostics;
+using System.Linq;
+
+namespace CarManagementSystem.Models
+{
+	public interface IDbManager<T>
+		where T : class
+	{
+		void Insert(T obj);
+		void Update(T obj);
+		void Delete(T obj);
+		IEnumerable<T> GetData();
+		IEnumerable<T> GetData(Func<T, bool> predicate);
+	}
+
+	public class DbManager<T> : IDbManager<T>, IDisposable
+		where T : class
+	{
+		private bool _disposed = false;
+		private DataContext _ctx;
+		private Table<T> _table;
+		private static readonly string DatabaseName =
+			ConfigurationManager.AppSettings["DefaultDbName"];
+		private static readonly string Provider =
+			ConfigurationManager.AppSettings["DefaultDbProvider"];
+		private static readonly DbProviderFactory ProviderFactory =
+			DbProviderFactories.GetFactory(Provider);
+		private static readonly string ConnectionString =
+			ConfigurationManager.ConnectionStrings[DatabaseName].ConnectionString;
+
+		public DbManager()
+		{
+			var conn = ProviderFactory.CreateConnection();
+			conn.ConnectionString = ConnectionString;
+			_ctx = new DataContext(conn);
+			TraceQuery();
+		}
+
+		[Conditional("DEBUG")]
+		[DebuggerStepThrough]
+		private void TraceQuery()
+		{
+			_ctx.Log = Console.Out;
+		}
+
+		~DbManager()
+		{
+			Dispose(false);
+		}
+
+		public void Insert(T obj)
+		{
+			if (_table == null)
+			{
+				GetData().ToList();
+			}
+			_table.InsertOnSubmit(obj);
+			_ctx.SubmitChanges();
+		}
+
+		public void Update(T obj)
+		{
+			if (_table == null)
+			{
+				return;
+			}
+			_ctx.SubmitChanges();
+		}
+
+		public void Delete(T obj)
+		{
+			if (_table == null)
+			{
+				return;
+			}
+			_table.DeleteOnSubmit(obj);
+			_ctx.SubmitChanges();
+		}
+
+		public IEnumerable<T> GetData()
+		{
+			return GetData(null);
+		}
+
+		public IEnumerable<T> GetData(Func<T, bool> predicate)
+		{
+			_table = _ctx.GetTable<T>();
+			if (predicate != null)
+			{
+				return _table.Where(predicate);
+			}
+			return _table;
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing)
+		{
+			if (!_disposed)
+			{
+				if (disposing)
+				{
+					Dispose();
+				}
+			}
+			_disposed = true;
+		}
+	}
+}

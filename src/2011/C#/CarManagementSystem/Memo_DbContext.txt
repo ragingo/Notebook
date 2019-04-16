@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<configuration>
+	<appSettings>
+		<add key="DefaultDbName" value="CmsDbContext" />
+		<add key="DefaultDbProvider" value="System.Data.SQLite" />
+	</appSettings>
+	<startup useLegacyV2RuntimeActivationPolicy="true">
+		<supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0" />
+	</startup>
+	<connectionStrings>
+		<clear />
+		<add name="CmsDbContext" connectionString="Data Source=d:\cms.db" providerName="System.Data.SQLite" />
+	</connectionStrings>
+	<system.data>
+		<DbProviderFactories>
+			<remove invariant="System.Data.SQLite" />
+			<add name="SQLite Data Provider" invariant="System.Data.SQLite" description=".Net Framework Data Provider for SQLite" 
+				 type="System.Data.SQLite.SQLiteFactory, System.Data.SQLite, Version=1.0.66.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139" />
+		</DbProviderFactories>
+	</system.data>
+</configuration>
+
+Coc : 規約は設定に勝る
+コンテキスト名を接続文字列名と同じにする事で、下記の様な処理は不要
+
+class CmsDbContext : DbContext
+{
+	//private static readonly DbConnection connection;
+
+	//static CmsDbContext()
+	//{
+	//    var name = ConfigurationManager.AppSettings["DefaultDbName"];
+	//    var providerName = ConfigurationManager.AppSettings["DefaultDbProvider"];
+	//    var factory = DbProviderFactories.GetFactory(providerName);
+	//    connection = factory.CreateConnection();
+	//    connection.ConnectionString = ConfigurationManager.ConnectionStrings[name].ConnectionString;
+	//}
+
+	//public CmsDbContext() : base(connection, true)
+	//{
+	//}
+
+	public DbSet<Customer> Customers
+	{
+		get;
+		set;
+	}
+}

@@ -1,0 +1,69 @@
+﻿<Window x:Class="CarManagementSystem.Views.CustomerManagementView"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+		xmlns:vm="clr-namespace:CarManagementSystem.ViewModels"
+		xmlns:ctrl="clr-namespace:CarManagementSystem.Controls"
+		xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+		xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+		Height="600" Width="800"
+		Title="顧客情報">
+	<Window.Resources>
+		<vm:CustomerValueConverter x:Key="customerValueConverter" />
+	</Window.Resources>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="266*" />
+			<RowDefinition Height="190*" />
+		</Grid.RowDefinitions>
+		<DataGrid ItemsSource="{Binding Path=Customers}" SelectedItem="{Binding Path=SelectedCustomer, Mode=TwoWay}" Margin="12,12,12,41" Name="gridCustomer" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+			<DataGrid.Columns>
+				<DataGridTextColumn Width="150" Header="氏名" Binding="{Binding Path=Name, Mode=TwoWay}" IsReadOnly="True" />
+				<DataGridTextColumn Width="150" Header="ふりがな" Binding="{Binding Path=Furigana}" IsReadOnly="True" />
+				<DataGridTextColumn Width="100" Header="郵便番号" Binding="{Binding Path=ZipCode}" IsReadOnly="True" />
+				<DataGridTextColumn Width="150" Header="住所" Binding="{Binding Path=Address}" IsReadOnly="True" />
+				<DataGridTextColumn Width="100" Header="電話番号" Binding="{Binding Path=Phone}" IsReadOnly="True" />
+				<DataGridTextColumn Width="150" Header="メモ" Binding="{Binding Path=Memo}" IsReadOnly="True" />
+			</DataGrid.Columns>
+		</DataGrid>
+		<Button Content="登録" Command="{Binding Path=AddCommand}" HorizontalAlignment="Left" Margin="12,0,0,12" Name="button1" Width="75" Height="23" VerticalAlignment="Bottom" />
+		<Button Content="修正" Command="{Binding Path=ModifyCommand}" CommandParameter="{Binding Path=SelectedCustomer}" HorizontalAlignment="Left" Margin="93,0,0,12" Name="button2" Width="75" Height="23" VerticalAlignment="Bottom" />
+		<Button Content="削除" Command="{Binding Path=DeleteCommand}" CommandParameter="{Binding Path=SelectedCustomer}" Margin="174,0,0,12" Name="button3" HorizontalAlignment="Left" Width="75" Height="23" VerticalAlignment="Bottom" />
+		<GridSplitter BorderBrush="Black" BorderThickness="1" Height="6" HorizontalAlignment="Stretch" Name="gridSplitter1" VerticalAlignment="Bottom" />
+		<TabControl Grid.Row="1" Name="tabControl1">
+			<TabItem Header="車両一覧" Name="tabItem1">
+				<Grid>
+					<DataGrid ItemsSource="{Binding Path=Cars}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Name="gridCar">
+						<DataGrid.Columns>
+							<DataGridTextColumn Binding="{Binding Path=StoredDate, StringFormat=yyyy/MM/dd}" Header="入庫日" IsReadOnly="True" Width="100" />
+							<DataGridTextColumn Binding="{Binding Path=Number}" Header="車両番号" IsReadOnly="True" Width="150" />
+							<DataGridTextColumn Binding="{Binding Path=Name}" Header="車名" IsReadOnly="True" Width="150" />
+							<DataGridTextColumn Binding="{Binding Path=Color}" Header="色" IsReadOnly="True" Width="50" />
+							<DataGridTextColumn Binding="{Binding Path=TireSize}" Header="装着タイヤサイズ" IsReadOnly="True" Width="150" />
+							<DataGridTextColumn Binding="{Binding Path=Memo}" Header="メモ" IsReadOnly="True" Width="150" />
+						</DataGrid.Columns>
+					</DataGrid>
+				</Grid>
+			</TabItem>
+			<TabItem Header="作業履歴" Name="tabItem2">
+				<Grid>
+					<DataGrid ItemsSource="{Binding Path=WorkHistories}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Name="dataGrid3">
+						<DataGrid.Columns>
+							<DataGridTextColumn Binding="{Binding Path=CarStoredDate, StringFormat=yyyy/MM/dd}" Header="入庫日" IsReadOnly="True" Width="100" />
+							<DataGridTextColumn Binding="{Binding Path=Work}" Header="作業内容" IsReadOnly="True" Width="200" />
+							<DataGridTextColumn Binding="{Binding Path=Size}" Header="サイズ" IsReadOnly="True" Width="100" />
+							<DataGridTextColumn Binding="{Binding Path=Quantity}" Header="数量" IsReadOnly="True" Width="100" />
+							<DataGridTextColumn Binding="{Binding Path=UnitCost}" Header="単価" IsReadOnly="True" Width="100" />
+							<DataGridTextColumn Binding="{Binding Path=DistanceTraveled}" Header="走行距離" IsReadOnly="True" Width="100" />
+						</DataGrid.Columns>
+					</DataGrid>
+				</Grid>
+			</TabItem>
+			<TabItem Header="GoogleMap" Name="tabItem3">
+				<Grid>
+					<WebBrowser Source="about:blank" ctrl:WebBrowserExtentions.Document="{Binding Path=SelectedItem, ElementName=gridCustomer, Converter={StaticResource customerValueConverter}}" Grid.Row="1" Name="webBrowser" />
+				</Grid>
+			</TabItem>
+		</TabControl>
+	</Grid>
+</Window>

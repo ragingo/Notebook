@@ -1,0 +1,50 @@
+﻿<Window x:Class="CarManagementSystem.Views.CarManagementView"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+		Height="600" Width="800"
+		Title="車両情報"
+		>
+	<Grid AllowDrop="False">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="228*" />
+			<RowDefinition Height="196*" />
+			<RowDefinition Height="137*" />
+		</Grid.RowDefinitions>
+		<Border AllowDrop="False" BorderBrush="#FFDB8C8C" BorderThickness="1" Height="171" Margin="9,9,0,0" Name="border1" VerticalAlignment="Top" Grid.Row="1" HorizontalAlignment="Left" Width="171">
+			<Image AllowDrop="True" Height="150" Name="image" Stretch="Fill" Width="150" />
+		</Border>
+		<TextBlock AllowDrop="False" Height="24" Margin="27,84,0,0" Name="textBlock1" Text="ドロップして画像を登録" VerticalAlignment="Top" HorizontalAlignment="Left" Width="137" Grid.Row="1" Foreground="#FF484545" />
+		<DataGrid ItemsSource="{Binding Path=Cars}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="0,0,1,46" Name="dataGrid2">
+			<DataGrid.Columns>
+				<DataGridTextColumn Binding="{Binding Path=StoredDate, StringFormat=yyyy/MM/dd}" Header="入庫日" IsReadOnly="True" Width="100" />
+				<DataGridTextColumn Binding="{Binding Path=Number}" Header="車両番号" IsReadOnly="True" Width="150" />
+				<DataGridTextColumn Binding="{Binding Path=Name}" Header="車名" IsReadOnly="True" Width="150" />
+				<DataGridTextColumn Binding="{Binding Path=Color}" Header="色" IsReadOnly="True" Width="50" />
+				<DataGridTextColumn Binding="{Binding Path=TireSize}" Header="装着タイヤサイズ" IsReadOnly="True" Width="150" />
+				<DataGridTextColumn Binding="{Binding Path=Memo}" Header="メモ" IsReadOnly="True" Width="150" />
+			</DataGrid.Columns>
+		</DataGrid>
+		<GridSplitter BorderBrush="Black" BorderThickness="1" Height="6" Name="gridSplitter1" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" />
+		<DataGrid AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="0,0,1,0" Name="dataGrid3" Grid.Row="2">
+			<DataGrid.Columns>
+				<DataGridTextColumn Binding="{Binding Path=StoredDate, StringFormat=yyyy/MM/dd}" Header="入庫日" IsReadOnly="True" Width="100" />
+				<DataGridTextColumn Binding="{Binding Path=Work}" Header="作業内容" IsReadOnly="True" Width="200" />
+				<DataGridTextColumn Binding="{Binding Path=Size}" Header="サイズ" IsReadOnly="True" Width="100" />
+				<DataGridTextColumn Binding="{Binding Path=Quantity}" Header="数量" IsReadOnly="True" Width="100" />
+				<DataGridTextColumn Binding="{Binding Path=UnitCost}" Header="単価" IsReadOnly="True" Width="100" />
+				<DataGridTextColumn Binding="{Binding Path=DistanceTraveled}" Header="走行距離" IsReadOnly="True" Width="100" />
+			</DataGrid.Columns>
+		</DataGrid>
+		<Button Command="{Binding Path=SelectCustomerCommand}" Content="顧客選択" Grid.Row="1" Height="23" Margin="0,146,12,0" Name="button1" VerticalAlignment="Top" HorizontalAlignment="Right" Width="86" />
+		<TextBlock Text="{Binding Path=SelectedCustomer.Name}" Height="23" HorizontalAlignment="Left" Margin="198,74,0,0" Name="txtCustomerName" VerticalAlignment="Top" Width="409" Grid.Row="1" />
+		<TextBlock Text="{Binding Path=SelectedCustomer.ZipCode}" Height="23" HorizontalAlignment="Left" Margin="198,20,0,0" Name="txtZipCode" VerticalAlignment="Top" Width="72" Grid.Row="1" />
+		<TextBlock Text="{Binding Path=SelectedCustomer.Address}" Height="48" Margin="286,20,0,0" Name="txtAddress" VerticalAlignment="Top" Grid.Row="1" TextWrapping="Wrap" HorizontalAlignment="Left" Width="321" />
+		<TextBlock Text="{Binding Path=SelectedCustomer.Phone}" Height="23" HorizontalAlignment="Left" Margin="198,103,0,0" Name="txtPhone" VerticalAlignment="Top" Width="104" Grid.Row="1" />
+		<Button Command="{Binding Path=AddCommand}" Height="23" HorizontalAlignment="Left" Margin="9,0,0,17" Content="登録" Name="btnAdd" VerticalAlignment="Bottom" Width="75" />
+		<Button Command="{Binding Path=ModifyCommand}" CommandParameter="{Binding Path=SelectedItem, ElementName=dataGrid}" Content="修正" Height="23" HorizontalAlignment="Left" Margin="89,0,0,17" Name="button2" VerticalAlignment="Bottom" Width="75" />
+		<Button Command="{Binding Path=DeleteCommand}" CommandParameter="{Binding Path=SelectedItem, ElementName=dataGrid}" Content="削除" Height="23" HorizontalAlignment="Left" Margin="170,0,0,17" Name="button3" VerticalAlignment="Bottom" Width="75" />
+		<GridSplitter BorderBrush="Black" BorderThickness="1" Height="6" HorizontalAlignment="Stretch" Name="gridSplitter2" VerticalAlignment="Bottom" Grid.Row="1" />
+	</Grid>
+</Window>
