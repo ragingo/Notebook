@@ -1,0 +1,41 @@
+﻿@{
+    ViewBag.Title = "活動履歴";
+}
+@model YakinikuClub.ViewModels.History.HistoryListViewModel
+     
+<h2>活動履歴</h2>
+@if (Request.IsAuthenticated)
+{
+ <script type="text/javascript">
+    jQuery(function ($) {
+      $("#history_list").tablesorter({
+        widgets: ['zebra']
+      });
+    });
+  </script>
+  <table id="history_list" class="tablesorter">
+    <thead>
+        <tr>
+          <th class="header times">回数</th>
+          <th class="header start">開始</th>
+          <th class="header end">終了</th>
+          <th class="header shop_name">店名</th>
+          <th class="header shop_location">場所</th>
+          <th class="header memo">備考</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var row in Model.Histories)
+    {
+      <tr>
+        <td>@row.Times</td>
+        <td>@row.StartDate.ToString("yyyy/MM/dd HH:mm")</td>
+        <td>@row.EndDate.ToString("yyyy/MM/dd HH:mm")</td>
+        <td>@row.Shop.ShopName</td>
+        <td>@row.Shop.Address</td>
+        <td>@row.Memo</td>
+      </tr>
+    }
+    </tbody>
+  </table>
+}

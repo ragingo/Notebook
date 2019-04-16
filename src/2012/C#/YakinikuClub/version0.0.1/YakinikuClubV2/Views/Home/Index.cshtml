@@ -1,0 +1,50 @@
+@{
+    ViewBag.Title = "焼肉部";
+}
+
+@section featured {
+<section class="featured">
+  <div class="content-wrapper">
+    <hgroup class="title">
+      <h1>@ViewBag.Title</h1>
+    </hgroup>
+    <p>おいしい焼肉店の情報を基に活動しています！</p>
+  </div>
+</section>
+}
+
+<section class="features">
+@if (Request.IsAuthenticated)
+{
+  <section class="feature">
+    <img src="~/Images/plan.png" alt="" />
+    <h3>予定</h3>
+  </section>
+  <section class="feature">
+    <img src="~/Images/history.png" alt="" />
+    <h3>履歴</h3>
+  </section>
+  <section class="feature">
+    <img src="~/Images/review.png" alt="" />
+    <h3>クチコミ＆評価</h3>
+  </section>
+  <br>
+  <section class="feature">
+    <img src="~/Images/member.png" alt="" />
+    <h3>部員</h3>
+  </section>
+  <section class="feature">
+    <img src="~/Images/admin.png" alt="" />
+    <h3>管理</h3>
+  </section>
+}
+else
+{
+  <section class="feature">
+    <img src="~/Images/login.png" alt="ログイン" onclick="window.location.href='@Url.Action("Login", "Account")'" />
+    <h3>@Html.ActionLink("ログイン", "Login", "Account")</h3>
+    <br />
+    <h3>@Html.ActionLink("未登録の方はこちら", "Register", "Account")</h3>
+  </section>
+}
+</section>

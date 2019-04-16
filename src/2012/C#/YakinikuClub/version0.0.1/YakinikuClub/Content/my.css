@@ -1,0 +1,82 @@
+﻿/* -------------------- top -------------------- */
+#top_map
+{
+	width: 100%;
+	height: 500px;
+}
+/* -------------------- history -------------------- */
+#history_list .times
+{
+	width: 50px;
+}
+#history_list .start
+{
+	width: 150px;
+}
+#history_list .end
+{
+	width: 150px;
+}
+#history_list .shop_name
+{
+	width: 300px;
+}
+#history_list .shop_location
+{
+	width: 300px;
+}
+#history_list .memo
+{
+	width: 300px;
+}
+/* -------------------- plan -------------------- */
+#plan_list .times
+{
+	width: 50px;
+}
+#plan_list .start
+{
+	width: 150px;
+}
+#plan_list .end
+{
+	width: 150px;
+}
+#plan_list .shop_name
+{
+	width: 300px;
+}
+#plan_list .shop_location
+{
+	width: 300px;
+}
+#plan_list .memo
+{
+	width: 300px;
+}
+/* -------------------- member -------------------- */
+#member_list .nickname
+{
+	width: 200px;
+}
+#member_list .lastname
+{
+	width: 150px;
+}
+#member_list .firstname
+{
+	width: 150px;
+}
+#member_list .age
+{
+	width: 50px;
+}
+#member_list .role
+{
+	width: 60px;
+}
+#member_list .memo
+{
+	width: 300px;
+}
+/* -------------------- general -------------------- */

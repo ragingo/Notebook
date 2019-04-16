@@ -1,0 +1,34 @@
+﻿@model YakinikuClub.ViewModels.ManagementViewModel
+
+  <script type="text/javascript">
+    jQuery(function ($) {
+      $("#plan_list").tablesorter({
+        widgets: ['zebra']
+      });
+    });
+  </script>
+  <table id="plan_list" class="tablesorter">
+    <thead>
+        <tr>
+          <th class="header times">回数</th>
+          <th class="header start">開始</th>
+          <th class="header end">終了</th>
+          <th class="header shop_name">店名</th>
+          <th class="header shop_location">場所</th>
+          <th class="header memo">備考</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var row in Model.ClubActivityList.ClubActivities)
+    {
+      <tr>
+        <td>@row.Times</td>
+        <td>@row.StartDate.ToString("yyyy/MM/dd HH:mm")</td>
+        <td>@row.EndDate.ToString("yyyy/MM/dd HH:mm")</td>
+        <td>@row.Shop.ShopName</td>
+        <td>@row.Shop.Address</td>
+        <td>@Html.Raw(string.Join("\n", row.Memo, row.Shop.Memo).Trim('\n').Replace("\n", "<br />"))</td>
+      </tr>
+    }
+    </tbody>
+  </table>

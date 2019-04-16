@@ -1,0 +1,42 @@
+﻿@{
+  ViewBag.Title = "メンバー";
+}
+
+@model YakinikuClub.ViewModels.Member.MemberListViewModel
+
+<h2>メンバー一覧</h2>
+@if (Request.IsAuthenticated)
+{
+ <script type="text/javascript">
+   jQuery(function ($) {
+     $("#member_list").tablesorter({
+       widgets: ['zebra']
+     });
+   });
+  </script>
+  <table id="member_list" class="tablesorter">
+    <thead>
+        <tr>
+          <th class="nickname">アカウント</th>
+          <th class="lastname">姓</th>
+          <th class="firstname">名</th>
+          <th class="age">年齢</th>
+          <th class="role">権限</th>
+          <th class="memo">備考</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var row in Model.Members)
+    {
+      <tr>
+        <td>@row.NickName</td>
+        <td>@row.LastName</td>
+        <td>@row.FirstName</td>
+        <td>@row.Age</td>
+        <td>@(row.IsAdministrator ? "管理者" : "一般")</td>
+        <td>@row.Memo</td>
+      </tr>
+    }
+    </tbody>
+  </table>
+}

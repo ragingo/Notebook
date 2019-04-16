@@ -1,0 +1,54 @@
+﻿@model YakinikuClub.ViewModels.ManagementViewModel
+
+@using (Html.BeginForm("Register", "ClubActivity", FormMethod.Post))
+{
+    <div>
+        <fieldset>
+            <legend>登録</legend>
+
+            <div class="editor-label">
+                @Html.LabelFor(m => m.ClubActivityRegister.Times)
+            </div>
+            <div class="editor-field">
+                @Html.TextBoxFor(m => m.ClubActivityRegister.Times)
+                @Html.ValidationMessageFor(m => m.ClubActivityRegister.Times)
+            </div>
+
+            <div class="editor-label">
+                @Html.LabelFor(m => m.ClubActivityRegister.StartDate)
+            </div>
+            <div class="editor-field">
+                @Html.TextBoxFor(m => m.ClubActivityRegister.StartDate, new { @class = "date" })
+                @Html.ValidationMessageFor(m => m.ClubActivityRegister.StartDate)
+            </div>
+
+            <div class="editor-label">
+                @Html.LabelFor(m => m.ClubActivityRegister.EndDate)
+            </div>
+            <div class="editor-field">
+                @Html.TextBoxFor(m => m.ClubActivityRegister.EndDate, new { @class = "date" })
+                @Html.ValidationMessageFor(m => m.ClubActivityRegister.EndDate)
+            </div>
+
+            <div class="editor-label">
+                @Html.LabelFor(m => m.ClubActivityRegister.Shops.First().ShopName)
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.ClubActivityRegister.Shops, new SelectList(Model.ClubActivityRegister.Shops, "Key", "ShopName"))
+                @Html.ValidationMessageFor(m => m.ClubActivityRegister.Shops.First().ShopName)
+            </div>
+
+            <div class="editor-label">
+                @Html.LabelFor(m => m.ClubActivityRegister.Memo)
+            </div>
+            <div class="editor-field">
+                @Html.TextBoxFor(m => m.ClubActivityRegister.Memo)
+                @Html.ValidationMessageFor(m => m.ClubActivityRegister.Memo)
+            </div>
+
+            <p>
+                <input type="submit" value="登録" />
+            </p>
+        </fieldset>
+    </div>
+}

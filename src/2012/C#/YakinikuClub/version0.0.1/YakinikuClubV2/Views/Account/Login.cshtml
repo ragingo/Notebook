@@ -1,0 +1,36 @@
+@model YakinikuClubV2.Models.Account.LoginModel
+
+@{
+    ViewBag.Title = "ログイン";
+}
+
+<hgroup class="title">
+    <h1>@ViewBag.Title</h1>
+</hgroup>
+
+@*<script type="text/javascript" src="~/Scripts/jquery.validate.min.js"></script>
+<script type="text/javascript" src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>*@
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true, "ログインに失敗しました。再試行して下さい。")
+
+    <fieldset>
+        <legend>Log in Form</legend>
+        <ol>
+            <li>
+                @Html.LabelFor(m => m.UserName)
+                @Html.TextBoxFor(m => m.UserName)
+                @Html.ValidationMessageFor(m => m.UserName)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.Password)
+                @Html.PasswordFor(m => m.Password)
+                @Html.ValidationMessageFor(m => m.Password)
+            </li>
+        </ol>
+        <input type="submit" value="ログイン" />
+    </fieldset>
+    <p>
+        @Html.ActionLink("登録", "Register") がまだの方はこちら
+    </p>
+}

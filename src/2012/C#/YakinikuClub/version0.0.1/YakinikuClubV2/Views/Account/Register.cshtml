@@ -1,0 +1,48 @@
+@model YakinikuClubV2.Models.Account.RegisterModel
+
+@{
+    ViewBag.Title = "•”ˆõ“o˜^";
+}
+
+<hgroup class="title">
+    <h1>@ViewBag.Title</h1>
+</hgroup>
+
+@*<script type="text/javascript" src="~/Scripts/jquery.validate.min.js"></script>
+<script type="text/javascript" src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>*@
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true, "•”ˆõ“o˜^‚É¸”s‚µ‚Ü‚µ‚½BÄs‚µ‚Ä‰º‚³‚¢B")
+
+    <fieldset>
+        <legend>“o˜^</legend>
+        <ol>
+            <li>
+                @Html.LabelFor(m => m.UserName)
+                @Html.TextBoxFor(m => m.UserName)
+                @Html.ValidationMessageFor(m => m.UserName)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.Email)
+                @Html.TextBoxFor(m => m.Email)
+                @Html.ValidationMessageFor(m => m.Email)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.Password)
+                @Html.PasswordFor(m => m.Password)
+                @Html.ValidationMessageFor(m => m.Password)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.ConfirmPassword)
+                @Html.PasswordFor(m => m.ConfirmPassword)
+                @Html.ValidationMessageFor(m => m.ConfirmPassword)
+            </li>
+            <li>
+                @Html.LabelFor(m => m.Watchword)
+                @Html.PasswordFor(m => m.Watchword)
+                @Html.ValidationMessageFor(m => m.Watchword)
+            </li>
+        </ol>
+        <input type="submit" value="“o˜^" />
+    </fieldset>
+}
