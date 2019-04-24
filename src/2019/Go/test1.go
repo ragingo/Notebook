@@ -79,6 +79,33 @@ func anyOf(items []int, pred func(int) bool) bool {
 	return ret
 }
 
+// swap
+func swap(a *int, b *int) {
+	t := *a
+	*a = *b
+	*b = t
+}
+
+// reverse
+func reverse(items []int) {
+	var j = len(items) - 1
+	for i := 0; i < len(items)/2; i++ {
+		swap(&items[i], &items[j-i])
+	}
+}
+
+func seqEquals(items1 []int, items2 []int) bool {
+	if len(items1) != len(items2) {
+		return false
+	}
+	for i := 0; i < len(items1); i++ {
+		if items1[i] != items2[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func main() {
 
 	{
@@ -110,5 +137,40 @@ func main() {
 		var pred = func(v int) bool { return v > 10 }
 		fmt.Printf("anyOf(%v, %#v) : %v\n", items, pred, anyOf(items, pred))
 	}
+	{
+		var items1 = seq(1, 9, 1)
+		var items2 = seq(1, 9, 1)
+		reverse(items2)
+		fmt.Printf("reverse(%v) : %v\n", items1, items2)
+	}
+	{
+		var items1 = seq(1, 9, 1)
+		var items2 = seq(1, 9, 1)
+		fmt.Printf("seqEquals(%v, %v) : %#v\n", items1, items2, seqEquals(items1, items2))
+	}
+	{
+		var items1 = seq(1, 9, 1)
+		var items2 = seq(2, 10, 1)
+		fmt.Printf("seqEquals(%v, %v) : %#v\n", items1, items2, seqEquals(items1, items2))
+	}
+	{
+		const a = iota
+		const b = iota
+		const c = iota
+		fmt.Printf("ioa : %d, %d, %d\n", a, b, c)
 
+		const (
+			d = iota
+			e = iota
+			f = iota
+		)
+		fmt.Printf("ioa : %d, %d, %d\n", d, e, f)
+
+		const (
+			g = iota
+			h
+			i
+		)
+		fmt.Printf("ioa : %d, %d, %d\n", g, h, i)
+	}
 }
