@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 )
 
@@ -269,10 +270,108 @@ func test3() {
 	}
 }
 
+// Integer struct
+type Integer struct {
+	Value interface{}
+}
+
+// ToString a
+func (instance *Integer) ToString() string {
+	return fmt.Sprintf("%d", instance.Value)
+}
+
+// ToHexString a
+func (instance *Integer) ToHexString() string {
+	switch instance.Value.(type) {
+	case int16, uint16:
+		return fmt.Sprintf("0x%04x", instance.Value)
+	case int, uint, int32, uint32:
+		return fmt.Sprintf("0x%08x", instance.Value)
+	case int64, uint64:
+		return fmt.Sprintf("0x%016x", instance.Value)
+	}
+	return ""
+}
+
+// ToBinaryString a
+func (instance *Integer) ToBinaryString() string {
+	return fmt.Sprintf("0b%b", instance.Value)
+}
+
+// GetInt32 get int32 value from Integer
+func (instance *Integer) GetInt32() int32 {
+	var v1 = instance.Value
+	var v2 = reflect.ValueOf(v1).Int()
+	return int32(v2)
+}
+
+// GetInt64 get int64 value from Integer
+func (instance *Integer) GetInt64() int64 {
+	var v1 = instance.Value
+	var v2 = reflect.ValueOf(v1).Int()
+	return v2
+}
+
+// GetBitCount a
+func (instance *Integer) GetBitCount() int32 {
+	return instance.GetInt32()
+}
+
+func pow(b int, e int) int {
+	var ret = 1
+	for i := 0; i < e; i++ {
+		ret *= b
+	}
+	return ret
+}
+
+func str2runes(str string) []rune {
+	return []rune(str)
+}
+
+func startsWith(str []rune, prefix []rune) bool {
+	if len(str) < len(prefix) {
+		return false
+	}
+	for i := 0; i < len(prefix); i++ {
+		if str[i] != prefix[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func bin2dec(bin string) int {
+	var bin2 = str2runes(bin)
+	if !startsWith(bin2, str2runes("0b")) {
+		return 0
+	}
+	bin2 = bin2[2:]
+	var ret = 0
+	var len = len(bin2) - 1
+	for i := 0; i < len; i++ {
+		var bit = int(bin2[i] - rune('0'))
+		ret += (bit * pow(2, len-i))
+	}
+	return ret
+}
+
+func test4() {
+	var i = Integer{Value: 14}
+	fmt.Printf("%#v\n", i.GetInt32())
+	fmt.Printf("%#v\n", i.GetInt64())
+	fmt.Printf("%#v\n", i.ToString())
+	fmt.Printf("%#v\n", i.ToHexString())
+	fmt.Printf("%#v\n", i.ToBinaryString())
+	fmt.Printf("%#v\n", pow(2, 8))
+	fmt.Printf("%#v\n", bin2dec("0b1110"))
+}
+
 func main() {
 
 	// test1()
 	// test2()
-	test3()
+	//test3()
+	test4()
 
 }
