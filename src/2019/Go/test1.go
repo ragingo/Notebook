@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 // sum
@@ -106,7 +107,9 @@ func seqEquals(items1 []int, items2 []int) bool {
 	return true
 }
 
-func main() {
+func test1() {
+
+	defer func() { fmt.Println("defer 1") }()
 
 	{
 		var n = 5
@@ -173,4 +176,63 @@ func main() {
 		)
 		fmt.Printf("ioa : %d, %d, %d\n", g, h, i)
 	}
+
+	{
+		defer func() { fmt.Println("defer 2") }()
+	}
+
+	defer func() { fmt.Println("defer 3") }()
+}
+
+type goroutineInfo struct {
+	routine func(state *goroutineState)
+}
+type goroutineState struct {
+	finish bool
+}
+
+func test2() {
+
+	var routineInfos []goroutineInfo
+	var routineStates []*goroutineState
+
+	routineInfos = append(routineInfos, goroutineInfo{
+		func(state *goroutineState) {
+			defer func() { fmt.Println("goroutine #0 finish") }()
+			fmt.Println("goroutine #0 start")
+			time.Sleep(2 * time.Second)
+			state.finish = true
+		}})
+	routineInfos = append(routineInfos, goroutineInfo{
+		func(state *goroutineState) {
+			defer func() { fmt.Println("goroutine #1 finish") }()
+			fmt.Println("goroutine #1 start")
+			time.Sleep(5 * time.Second)
+			state.finish = true
+		}})
+
+	for _, r := range routineInfos {
+		var state = new(goroutineState)
+		routineStates = append(routineStates, state)
+		go r.routine(state)
+	}
+
+	for {
+		var count = 0
+		for _, s := range routineStates {
+			if s.finish {
+				count++
+			}
+		}
+		if count == len(routineStates) {
+			break
+		}
+	}
+}
+
+func main() {
+
+	// test1()
+	test2()
+
 }
