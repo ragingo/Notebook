@@ -230,9 +230,49 @@ func test2() {
 	}
 }
 
+func test3() {
+
+	var routines []func(ch chan bool)
+
+	routines = append(routines,
+		func(ch chan bool) {
+			defer func() {
+				fmt.Println("goroutine #0 finish")
+			}()
+			fmt.Println("goroutine #0 start")
+			time.Sleep(2 * time.Second)
+			ch <- true
+		})
+	routines = append(routines,
+		func(ch chan bool) {
+			defer func() {
+				fmt.Println("goroutine #1 finish")
+			}()
+			fmt.Println("goroutine #1 start")
+			time.Sleep(5 * time.Second)
+			ch <- false
+		})
+
+	var channels []chan bool
+
+	for _, routine := range routines {
+		var channel = make(chan bool)
+		channels = append(channels, channel)
+		go routine(channel)
+	}
+
+	for _, ch := range channels {
+		select {
+		case r := <-ch:
+			fmt.Printf("received! %#v, %#v\n", ch, r)
+		}
+	}
+}
+
 func main() {
 
 	// test1()
-	test2()
+	// test2()
+	test3()
 
 }
