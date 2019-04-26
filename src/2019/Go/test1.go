@@ -347,7 +347,20 @@ func (instance *Integer) GetInt64() int64 {
 
 // GetBitCount a
 func (instance *Integer) GetBitCount() int32 {
-	return instance.GetInt32()
+	var val = instance.GetInt32()
+	var count = int32(0)
+	for {
+		var d = val >> 1
+		var m = val & 1
+		val = d
+		if m == 1 {
+			count++
+		}
+		if d == 0 {
+			break
+		}
+	}
+	return count
 }
 
 func pow(b int, e int) int {
@@ -413,12 +426,13 @@ func dec2bin(dec int) string {
 
 func test4() {
 	var i = Integer{Value: 14}
-	fmt.Printf("%#v\n", i.GetInt32())
-	fmt.Printf("%#v\n", i.GetInt64())
-	fmt.Printf("%#v\n", i.ToString())
-	fmt.Printf("%#v\n", i.ToHexString())
-	fmt.Printf("%#v\n", i.ToBinaryString())
-	fmt.Printf("%#v\n", pow(2, 8))
+	fmt.Printf("GetInt32: %#v\n", i.GetInt32())
+	fmt.Printf("GetInt64: %#v\n", i.GetInt64())
+	fmt.Printf("GetBitCount: %#v\n", i.GetBitCount())
+	fmt.Printf("ToString: %#v\n", i.ToString())
+	fmt.Printf("ToHexString: %#v\n", i.ToHexString())
+	fmt.Printf("ToBinaryString: %#v\n", i.ToBinaryString())
+	fmt.Printf("pow: %#v\n", pow(2, 8))
 	fmt.Printf("bin2dec: %#v\n", bin2dec("0b1110"))
 	fmt.Printf("dec2bin: %#v\n", dec2bin(14))
 }
