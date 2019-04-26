@@ -437,11 +437,20 @@ func test4() {
 	fmt.Printf("dec2bin: %#v\n", dec2bin(14))
 }
 
+func test5() {
+	{
+		var start = time.Now()
+		time.Sleep(2 * time.Second)
+		fmt.Printf("elapsed: %s\n", time.Since(start))
+	}
+}
+
 func main() {
 
 	// test1()
 	// test2()
-	//test3()
-	test4()
+	// test3()
+	// test4()
+	test5()
 
 }
