@@ -96,6 +96,7 @@ func reverse(items []int) {
 	}
 }
 
+// seqEquals
 func seqEquals(items1 []int, items2 []int) bool {
 	if len(items1) != len(items2) {
 		return false
@@ -108,55 +109,76 @@ func seqEquals(items1 []int, items2 []int) bool {
 	return true
 }
 
+// concat
+func concat(items1 []int, items2 []int) []int {
+	return append(items1, items2...)
+}
+
 func test1() {
 
 	defer func() { fmt.Println("defer 1") }()
 
+	// fact
 	{
 		var n = 5
 		fmt.Printf("fact(%d) : %d\n", n, fact(n))
 	}
+	// fib
 	{
 		var n = 7
 		fmt.Printf("fib(%d) : %d\n", n, fib(n))
 	}
+	// sum, avg
 	{
 		var items = seq(1, 10, 1)
 		fmt.Printf("sum(%v) : %d\n", items, sum(items))
 		fmt.Printf("avg(%v) : %f\n", items, avg(items))
 	}
+	// allOf, anyOf
 	{
 		var items = seq(1, 10, 1)
 		var pred = func(v int) bool { return v > 5 }
 		fmt.Printf("allOf(%v, %#v) : %v\n", items, pred, allOf(items, pred))
 		fmt.Printf("anyOf(%v, %#v) : %v\n", items, pred, anyOf(items, pred))
 	}
+	// allOf
 	{
 		var items = seq(6, 10, 1)
 		var pred = func(v int) bool { return v > 5 }
 		fmt.Printf("allOf(%v, %#v) : %v\n", items, pred, allOf(items, pred))
 	}
+	// anyOf
 	{
 		var items = seq(6, 10, 1)
 		var pred = func(v int) bool { return v > 10 }
 		fmt.Printf("anyOf(%v, %#v) : %v\n", items, pred, anyOf(items, pred))
 	}
+	// reverse
 	{
 		var items1 = seq(1, 9, 1)
 		var items2 = seq(1, 9, 1)
 		reverse(items2)
 		fmt.Printf("reverse(%v) : %v\n", items1, items2)
 	}
+	// seqEquals
 	{
 		var items1 = seq(1, 9, 1)
 		var items2 = seq(1, 9, 1)
 		fmt.Printf("seqEquals(%v, %v) : %#v\n", items1, items2, seqEquals(items1, items2))
 	}
+	// seqEquals
 	{
 		var items1 = seq(1, 9, 1)
 		var items2 = seq(2, 10, 1)
 		fmt.Printf("seqEquals(%v, %v) : %#v\n", items1, items2, seqEquals(items1, items2))
 	}
+	// concat
+	{
+		var items1 = seq(1, 10, 2)
+		var items2 = seq(2, 10, 2)
+		fmt.Printf("concat(%v, %v) : %#v\n", items1, items2, concat(items1, items2))
+	}
+	// iota
 	{
 		const a = iota
 		const b = iota
@@ -176,6 +198,17 @@ func test1() {
 			i
 		)
 		fmt.Printf("ioa : %d, %d, %d\n", g, h, i)
+	}
+	// slice
+	{
+		// insert
+		var items1 = seq(1, 10, 1)
+		items1 = append([]int{99}, items1...)
+		fmt.Printf("slice insert %#v\n", items1)
+
+		var items2 = seq(1, 10, 1)
+		items2 = append(items2[:0], append([]int{98}, items2[0:]...)...)
+		fmt.Printf("slice insert %#v\n", items2)
 	}
 
 	{
@@ -356,6 +389,28 @@ func bin2dec(bin string) int {
 	return ret
 }
 
+func rtoi(a rune) int {
+	return int(a - rune('0'))
+}
+
+func itor(i int) rune {
+	return rune(i) + rune('0')
+}
+
+func dec2bin(dec int) string {
+	var runes []rune
+	for {
+		var d = dec >> 1
+		var m = dec & 1
+		runes = append(runes[:0], append([]rune{itor(m)}, runes...)...)
+		dec = d
+		if d == 0 {
+			break
+		}
+	}
+	return "0b" + string(runes)
+}
+
 func test4() {
 	var i = Integer{Value: 14}
 	fmt.Printf("%#v\n", i.GetInt32())
@@ -364,7 +419,8 @@ func test4() {
 	fmt.Printf("%#v\n", i.ToHexString())
 	fmt.Printf("%#v\n", i.ToBinaryString())
 	fmt.Printf("%#v\n", pow(2, 8))
-	fmt.Printf("%#v\n", bin2dec("0b1110"))
+	fmt.Printf("bin2dec: %#v\n", bin2dec("0b1110"))
+	fmt.Printf("dec2bin: %#v\n", dec2bin(14))
 }
 
 func main() {
