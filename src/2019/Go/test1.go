@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"reflect"
 	"time"
 )
@@ -437,11 +438,109 @@ func test4() {
 	fmt.Printf("dec2bin: %#v\n", dec2bin(14))
 }
 
+// StopWatch struct
+type StopWatch struct {
+	StartTime   time.Time
+	ElapsedTime time.Duration
+}
+
+// Start a
+func (receiver *StopWatch) Start() {
+	receiver.StartTime = time.Now()
+}
+
+// Stop a
+func (receiver *StopWatch) Stop() {
+	receiver.ElapsedTime = time.Since(receiver.StartTime)
+}
+
+// Reset a
+func (receiver *StopWatch) Reset() {
+	receiver.StartTime = time.Time{}
+	receiver.ElapsedTime = time.Duration(0)
+}
+
 func test5() {
 	{
 		var start = time.Now()
 		time.Sleep(2 * time.Second)
 		fmt.Printf("elapsed: %s\n", time.Since(start))
+	}
+	{
+		var sw StopWatch
+		sw.Start()
+		time.Sleep(3 * time.Second)
+		sw.Stop()
+		fmt.Printf("start: %s\n", sw.StartTime)
+		fmt.Printf("elapsed: %s\n", sw.ElapsedTime)
+		sw.Reset()
+		fmt.Printf("start: %s\n", sw.StartTime)
+		fmt.Printf("elapsed: %s\n", sw.ElapsedTime)
+	}
+}
+
+func assert(ok bool) {
+	if !ok {
+		panic("error!")
+	}
+}
+
+func test6() {
+
+	var done = make(chan bool)
+
+	go func() {
+
+		defer func() {
+			println("closed!")
+			done <- true
+		}()
+
+		var addr *net.TCPAddr
+		var conn *net.TCPConn
+		var err error
+
+		// 名前解決
+		if addr, err = net.ResolveTCPAddr("tcp4", "google.com:80"); err != nil {
+			fmt.Printf("%s\n", err)
+			return
+		}
+		assert(addr != nil)
+
+		// 接続
+		if conn, err = net.DialTCP("tcp4", nil, addr); err != nil {
+			fmt.Printf("%s\n", err)
+			return
+		}
+		assert(conn != nil)
+		defer conn.Close()
+
+		const READ_BUF_SIZE = 128
+		assert(conn.SetReadBuffer(READ_BUF_SIZE) == nil)
+
+		// 送信
+		var req = "GET / HTTP/1.1 \r\n\r\n"
+		if _, err = conn.Write([]byte(req)); err != nil {
+			fmt.Printf("%s\n", err)
+			return
+		}
+
+		var buf = make([]byte, READ_BUF_SIZE)
+		for {
+			var len = 0
+			if len, err = conn.Read(buf); err != nil {
+				fmt.Printf("%s!!!\n", err)
+				break
+			}
+			if len > 0 {
+				fmt.Printf("%s\n", buf)
+			}
+		}
+	}()
+
+	select {
+	case <-done:
+		print("done.\n")
 	}
 }
 
@@ -451,6 +550,7 @@ func main() {
 	// test2()
 	// test3()
 	// test4()
-	test5()
+	// test5()
+	test6()
 
 }
