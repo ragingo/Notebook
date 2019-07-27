@@ -5,6 +5,7 @@ Index
 - [Index](#index)
 - [ファイル操作](#%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e6%93%8d%e4%bd%9c)
   - [連結](#%e9%80%a3%e7%b5%90)
+  - [カット](#%e3%82%ab%e3%83%83%e3%83%88)
   - [メタデータ](#%e3%83%a1%e3%82%bf%e3%83%87%e3%83%bc%e3%82%bf)
 - [トランスコード](#%e3%83%88%e3%83%a9%e3%83%b3%e3%82%b9%e3%82%b3%e3%83%bc%e3%83%89)
   - [ストリーム選択](#%e3%82%b9%e3%83%88%e3%83%aa%e3%83%bc%e3%83%a0%e9%81%b8%e6%8a%9e)
@@ -26,6 +27,14 @@ list.txt
 ```
 file /home/user1/absolute.mp4
 file relative.mp4
+```
+
+## カット
+
+https://trac.ffmpeg.org/wiki/Seeking
+
+```
+ffmpeg -i src.mp4 -ss 00:00:00 -t 00:00:01 dst.mp4
 ```
 
 ## メタデータ
