@@ -1,0 +1,203 @@
+<!-- 113 + 8 + 225 + 8 + 225 + 8 + 113 = 700px -->
+<html>
+
+<head>
+</head>
+
+<body>
+  <style>
+    .user-list {
+      position: relative;
+      top: 0px;
+      left: 0px;
+      width: 700px;
+      height: 150px;
+      border: 1px solid black;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      white-space: nowrap;
+    }
+
+    .carousel-body {
+      position: relative;
+      top: 0;
+      left: 0;
+    }
+
+    .carousel-item {
+      background: #aaa;
+      width: 225px;
+      height: 150px;
+      text-align: left;
+      display: inline-block;
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+
+    .carousel-item img {
+      width: 100px;
+      height: 100px;
+    }
+
+    .carousel-item button {
+      visibility: hidden;
+    }
+
+    .carousel-item:hover button {
+      visibility: visible;
+    }
+
+    .carousel-item.head {
+      margin-left: 40px;
+    }
+
+    .carousel-sticky {
+      position: sticky;
+      z-index: 1;
+      top: 0;
+      left: 0;
+    }
+
+    .prev,
+    .next {
+      position: absolute;
+      width: 30px;
+      height: 150px;
+      background-color: #00ffff77;
+    }
+
+    .prev {
+      left: 0px;
+    }
+
+    .next {
+      right: 0px;
+    }
+  </style>
+  <script>
+    const FIRST_ITEM_MARGIN_LEFT = 40;
+    const DEFAULT_ITEM_MARGIN = 8;
+
+    function refresh() {
+      const content = document.getElementsByClassName('user-list')[0];
+      const items = content.getElementsByClassName("carousel-item");
+      Array.from(items).forEach(x => x.getElementsByClassName("pos")[0].textContent = 'x : ' + x.getBoundingClientRect().x);
+    }
+
+    function movePrev() {
+      const content = document.getElementsByClassName('user-list')[0];
+      const items = content.getElementsByClassName("carousel-item");
+      const notDisplayItems = Array.from(items).filter(x => x.offsetLeft - content.scrollLeft < 0);
+      console.log(notDisplayItems);
+
+      if (notDisplayItems.length === 0) {
+        return;
+      }
+
+      const item = notDisplayItems[notDisplayItems.length - 1];
+      const margin = item.classList.contains('head') ? FIRST_ITEM_MARGIN_LEFT : DEFAULT_ITEM_MARGIN;
+      const left = content.scrollLeft - (margin + item.clientWidth);
+      content.scrollTo({ behavior: 'smooth', left: left });
+
+      refresh();
+    }
+
+    function moveNext() {
+      const content = document.getElementsByClassName('user-list')[0];
+      const items = content.getElementsByClassName("carousel-item");
+      const displayItems = Array.from(items).filter(x => x.offsetLeft - content.scrollLeft >= 0);
+      console.log(displayItems);
+
+      if (displayItems.length < 2) {
+        return;
+      }
+
+      if (displayItems.length >= 3) {
+        const item = displayItems[0];
+        const margin = item.classList.contains('head') ? FIRST_ITEM_MARGIN_LEFT : DEFAULT_ITEM_MARGIN;
+        const left = content.scrollLeft + margin + item.clientWidth;
+        content.scrollTo({ behavior: 'smooth', left: left });
+      }
+
+      refresh();
+    }
+
+    function initialize() {
+      let body = document.getElementsByClassName('carousel-body')[0];
+      body.innerHTML = '';
+
+      let items = createItems(10);
+      items[0].classList.add('head');
+      items.forEach(item => {
+        body.appendChild(item);
+      });
+
+      setTimeout(() => {
+        const content = document.getElementsByClassName('user-list')[0];
+        content.scrollTo({ behavior: 'smooth', left: 0 });
+      }, 100);
+    }
+
+    function createItems(num) {
+      const items = [];
+      if (num === 0) {
+        return items;
+      }
+
+      for (let i = 0; i < num; i++) {
+        items.push(
+          { name: `${i} さん`, desc: `${i} さんです${i} さんです`, thumbnail: 'https://avatars3.githubusercontent.com/u/4784032?s=400&u=6396a298b5fd2dab06a5736bc347afaad0b22101&v=4' },
+        );
+      }
+
+      const itemDoms = [];
+      items.forEach(item => {
+        let itemDom = createItemDom();
+        itemDom.getElementsByClassName("thumbnail")[0].setAttribute('src', item.thumbnail);
+        itemDom.getElementsByClassName("name")[0].textContent = item.name;
+        itemDom.getElementsByClassName("desc")[0].textContent = item.desc;
+        itemDoms.push(itemDom);
+      });
+
+      return itemDoms;
+    }
+
+    function createItemDom() {
+      let item = document.createElement("div");
+      item.className = "carousel-item";
+
+      let thumb = document.createElement('img');
+      thumb.className = "thumbnail";
+
+      let name = document.createElement('label');
+      name.className = "name";
+
+      let desc = document.createElement('label');
+      desc.className = "desc";
+
+      let pos = document.createElement('label');
+      pos.className = "pos";
+
+      item.appendChild(thumb);
+      item.appendChild(name);
+      item.appendChild(document.createElement('br'));
+      item.appendChild(desc);
+      item.appendChild(document.createElement('br'));
+      item.appendChild(pos);
+
+      return item;
+    }
+  </script>
+  <button class="reload" onclick="initialize()">初期化</button>
+  <button class="reload" onclick="refresh()">更新</button>
+  <div class="user-list">
+    <div class="carousel-sticky">
+      <button class="prev" onclick="movePrev()">◀</button>
+      <button class="next" onclick="moveNext()">▶</button>
+    </div>
+    <div class="carousel-body">
+    </div>
+  </div>
+</body>
+
+</html>
