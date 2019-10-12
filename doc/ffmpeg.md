@@ -56,8 +56,16 @@ ffmpeg -i src.mp3 -c:a copy -metadata album=AbcAlbum dst.mp3
 
 ### ダンプ出力
 
+#### mp3
+
 ```
 ffmpeg -i src.mp3 -f ffmetadata
+```
+
+#### mp4 ファイル名・映像ストリーム情報・音声ストリーム情報に絞って出力
+
+```
+ls -1d $(find .) | egrep "\.mp4$" | xargs -I% ffmpeg -i % 2>&1 | egrep "Input|Stream"
 ```
 
 
