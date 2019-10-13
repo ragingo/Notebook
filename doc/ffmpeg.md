@@ -64,10 +64,18 @@ ffmpeg -i src.mp3 -f ffmetadata
 
 #### mp4 ファイル名・映像ストリーム情報・音声ストリーム情報に絞って出力
 
-```
-ls -1d $(find .) | egrep "\.mp4$" | xargs -I% ffmpeg -i % 2>&1 | egrep "Input|Stream"
-```
+TODO: もっとシンプルに出来ないか調べる
 
+※ git bash
+```bash
+ls -1d $(find .) | egrep "\.mp4$" | xargs -I% ffmpeg -i % 2>&1 | egrep "Input|Stream" > dump.txt
+```
+↓ Stream Video h264 でエンコードされたファイルの名前だけ取り出すサンプル
+
+※ git bash
+```bash
+egrep "Stream.+Video: h264" dump.txt -B1 | egrep "Input.+" | sed -r "s/^Input.+from ['](.+\.mp4)[']:/\1/"
+```
 
 # トランスコード
 
