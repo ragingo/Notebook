@@ -49,10 +49,22 @@ ffmpeg -i src.mp3 -id3v2_version 2 dst.mp3 -y
 
 ### 書き換え
 
+##### mp3
+
 ```
 ffmpeg -i src.mp3 -c:a copy -metadata TALB=AbcAlbum dst.mp3
 ffmpeg -i src.mp3 -c:a copy -metadata album=AbcAlbum dst.mp3
 ```
+
+#### mp4
+
+##### tbn 変更
+
+```
+ffmpeg -i src.mp4 -c copy -video_track_timescale 30 dst.mp4
+```
+
+※ tbn の値が 90kHz とか大きいと、 Android VLC Player で再生できない、若しくは再生開始までに数分掛かる。狂っている場合は事前に直しておく。
 
 ### ダンプ出力
 
