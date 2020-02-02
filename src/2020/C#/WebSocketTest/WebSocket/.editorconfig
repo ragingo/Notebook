@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# CA1307: StringComparison を指定します
+dotnet_diagnostic.CA1307.severity = none
+
+# CA5350: 脆弱な暗号アルゴリズムを使用しない
+dotnet_diagnostic.CA5350.severity = none
