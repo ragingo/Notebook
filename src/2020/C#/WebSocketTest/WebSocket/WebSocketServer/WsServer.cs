@@ -40,15 +40,11 @@ namespace WebSocketServer
             var client = await _listener.AcceptTcpClientAsync();
             _stream = client.GetStream();
 
-            bool a = false;
-
             while (true)
             {
                 if (!_stream.DataAvailable)
                 {
-                    if (!a)
                     {
-                        a = true;
                         var bytes = new List<byte>();
                         var data = Encoding.UTF8.GetBytes("yahoooo");
                         var header = WsHeader.Create(true, OpCode.Text, data.Length);
@@ -56,7 +52,7 @@ namespace WebSocketServer
                         bytes.AddRange(data);
                         var arr = bytes.ToArray();
                         await _stream.WriteAsync(arr, 0, arr.Length).ConfigureAwait(false);
-                        await _stream.FlushAsync().ConfigureAwait(false);
+                        await Task.Delay(1000).ConfigureAwait(false);
                     }
                     continue;
                 }
