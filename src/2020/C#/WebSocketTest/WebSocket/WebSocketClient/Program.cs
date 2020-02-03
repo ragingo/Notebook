@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace WebSocketClient
+﻿namespace WebSocketClient
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
         }
     }

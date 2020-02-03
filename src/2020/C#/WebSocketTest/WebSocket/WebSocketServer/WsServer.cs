@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -34,7 +32,7 @@ namespace WebSocketServer
             _listener = new TcpListener(address, port);
             _listener.Start();
 
-            await Process();
+            await Process().ConfigureAwait(false);
         }
 
         public void SendMessage(string msg)
@@ -44,14 +42,14 @@ namespace WebSocketServer
 
         private async Task Process()
         {
-            var client = await _listener.AcceptTcpClientAsync();
+            var client = await _listener.AcceptTcpClientAsync().ConfigureAwait(false);
             _stream = client.GetStream();
 
             while (true)
             {
                 if (!_stream.DataAvailable)
                 {
-                    await ProcessSendQueue();
+                    await ProcessSendQueue().ConfigureAwait(false);
                     continue;
                 }
 
@@ -110,65 +108,55 @@ namespace WebSocketServer
             Console.WriteLine("--------------------------------------------------");
             Console.WriteLine(string.Join(" ", buf.Select(x => x.ToString("X2"))));
 
-            byte fields1 = buf[0];
-            int fin = fields1 >> 7;
-            int rsv1 = (int)(fields1 >> 6 & 0x01);
-            int rsv2 = (int)(fields1 >> 5 & 0x01);
-            int rsv3 = (int)(fields1 >> 4 & 0x01);
-            int opcode = (int)(fields1 & 0x0f);
-            Console.WriteLine($"fin: {fin}, rsv1: {rsv1}, rsv2: {rsv2}, rsv3: {rsv3}, opcode: {opcode}");
+            var header = WsHeader.Parse(buf);
+            Console.WriteLine(header);
 
-            byte fields2 = buf[1];
-            int mask = fields2 >> 7;
-            int payloadLen = (fields2 & 0x7f);
-            Console.WriteLine($"mask: {mask}, payloadLen: {payloadLen}");
-
-            switch ((OpCode)opcode)
+            switch (header.OpCode)
             {
                 case OpCode.Text:
-                    OnTextFrameReceived(buf, payloadLen, mask == 1);
+                    OnTextFrameReceived(buf, header);
                     break;
             }
         }
 
-        private void OnTextFrameReceived(byte[] buf, int payloadLen, bool mask)
+        private void OnTextFrameReceived(byte[] buf, WsHeader header)
         {
-            if (payloadLen <= 125)
+            if (header.PayloadLength <= 125)
             {
-                if (mask)
+                if (header.Mask)
                 {
                     var decodedValues = new List<byte>();
                     byte[] maskKey = new[] { buf[2], buf[3], buf[4], buf[5] }; // TODO: span slice でもっと見やすく
                     for (int i = 6; i < buf.Length; i++)
                     {
                         byte e = buf[i];
-                        byte m = maskKey[(i-6) % 4];
+                        byte m = maskKey[(i - 6) % 4];
                         decodedValues.Add((byte)(e ^ m));
                     }
                     Console.WriteLine($"decoded (hex): {string.Join(" ", decodedValues.Select(x => x.ToString("X2")))}");
                     Console.WriteLine($"decoded (str): {Encoding.UTF8.GetString(decodedValues.ToArray())}");
                 }
             }
-            else if (payloadLen == 126)
+            else if (header.PayloadLength == 126)
             {
                 // TODO: 
             }
-            else if (payloadLen == 127)
+            else if (header.PayloadLength == 127)
             {
                 // TODO: 
             }
         }
 
-        private async Task ProcessSendQueue()
+        private Task ProcessSendQueue()
         {
             if (_sendQueue.Count == 0)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             if (!_sendQueue.TryDequeue(out string str))
             {
-                return;
+                return Task.CompletedTask;
             }
 
             var bytes = new List<byte>();
@@ -177,7 +165,7 @@ namespace WebSocketServer
             bytes.AddRange(header.ToBinary());
             bytes.AddRange(data);
             var arr = bytes.ToArray();
-            await _stream.WriteAsync(arr, 0, arr.Length).ConfigureAwait(false);
+            return _stream.WriteAsync(arr, 0, arr.Length);
         }
 
     }

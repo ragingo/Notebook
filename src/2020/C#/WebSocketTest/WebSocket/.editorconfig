@@ -5,3 +5,9 @@ dotnet_diagnostic.CA1307.severity = none
 
 # CA5350: 脆弱な暗号アルゴリズムを使用しない
 dotnet_diagnostic.CA5350.severity = none
+
+# CA1303: ローカライズされるパラメーターとしてリテラルを渡さない
+dotnet_diagnostic.CA1303.severity = none
+
+# CA1305: IFormatProvider を指定します
+dotnet_diagnostic.CA1305.severity = none

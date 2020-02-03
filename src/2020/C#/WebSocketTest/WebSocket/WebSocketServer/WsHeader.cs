@@ -48,5 +48,10 @@ namespace WebSocketServer
             bytes[1] = (byte)PayloadLength;
             return bytes;
         }
+
+        public override string ToString()
+        {
+            return $"fin: {Fin}, rcv1: {Rcv1}, rcv2: {Rcv2}, rcv3: {Rcv3}, opcode: {OpCode}, mask: {Mask}, payloadLength: {PayloadLength}";
+        }
     }
 }
