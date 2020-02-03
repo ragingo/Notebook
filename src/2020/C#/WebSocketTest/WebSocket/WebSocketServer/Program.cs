@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -9,6 +11,7 @@ using System.Threading.Tasks;
 namespace WebSocketServer
 {
     // https://developer.mozilla.org/ja/docs/Web/API/WebSockets_API/Writing_WebSocket_server
+    // https://developer.mozilla.org/ja/docs/WebSockets-840092-dup/Writing_WebSocket_servers
     // https://triple-underscore.github.io/RFC6455-ja.html
     class Program
     {
@@ -65,6 +68,8 @@ namespace WebSocketServer
                 }
                 else
                 {
+                    Console.WriteLine("--------------------------------------------------");
+                    Console.WriteLine(string.Join(" ", buf.Select(x => x.ToString("X2"))));
                     //Console.WriteLine(data);
                     byte fields1 = buf[0];
                     int fin = fields1 >> 7;
@@ -78,6 +83,29 @@ namespace WebSocketServer
                     int mask = fields2 >> 7;
                     int payloadLen = (fields2 & 0x7f);
                     Console.WriteLine($"mask: {mask}, payloadLen: {payloadLen}");
+
+                    if (payloadLen <= 125)
+                    {
+                        if (mask == 1)
+                        {
+                            var decodedValue = new List<byte>();
+                            byte[] maskKey = new[] { buf[2], buf[3], buf[4], buf[5] };
+                            for (int i = 6; i < buf.Length; i++)
+                            {
+                                decodedValue.Add((byte)(buf[i] ^ maskKey[i % 4]));
+                            }
+                            // TODO: 毎回デコード結果が違う。調べる。
+                            Console.WriteLine(string.Join(" ", decodedValue.Select(x => x.ToString("X2"))));
+                        }
+                    }
+                    else if (payloadLen == 126)
+                    {
+                        // TODO: 
+                    }
+                    else if (payloadLen == 127)
+                    {
+                        // TODO: 
+                    }
                 }
             }
         }
