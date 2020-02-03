@@ -43,10 +43,39 @@ namespace WebSocketServer
 
         public byte[] ToBinary()
         {
-            var bytes = new byte[2];
-            bytes[0] = (byte)(((Fin ? 1 : 0) << 7) | (byte)OpCode);
-            bytes[1] = (byte)PayloadLength;
-            return bytes;
+            if (PayloadLength <= 125)
+            {
+                var bytes = new byte[2];
+                bytes[0] = (byte)(((Fin ? 1 : 0) << 7) | (byte)OpCode);
+                bytes[1] = (byte)PayloadLength;
+                return bytes;
+            }
+            else if (PayloadLength == 126)
+            {
+                short len = (short)PayloadLength;
+                var bytes = new byte[2 + 2];
+                bytes[0] = (byte)(((Fin ? 1 : 0) << 7) | (byte)OpCode);
+                bytes[1] = 126;
+                bytes[2] = (byte)(len & 0xff00 >> 8);
+                bytes[3] = (byte)(len & 0x00ff);
+                return bytes;
+            }
+            else
+            {
+                long len = PayloadLength;
+                var bytes = new byte[2 + 8];
+                bytes[0] = (byte)(((Fin ? 1 : 0) << 7) | (byte)OpCode);
+                bytes[1] = 127;
+                bytes[2] = (byte)(len >> 56);
+                bytes[3] = (byte)((len >> 48) & 0xff);
+                bytes[4] = (byte)((len >> 40) & 0xff);
+                bytes[5] = (byte)((len >> 32) & 0xff);
+                bytes[6] = (byte)((len >> 24) & 0xff);
+                bytes[7] = (byte)((len >> 16) & 0xff);
+                bytes[8] = (byte)((len >> 8) & 0xff);
+                bytes[9] = (byte)((len >> 0) & 0xff);
+                return bytes;
+            }
         }
 
         public override string ToString()

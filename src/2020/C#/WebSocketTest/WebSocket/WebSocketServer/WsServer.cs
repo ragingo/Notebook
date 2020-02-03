@@ -120,6 +120,10 @@ namespace WebSocketServer
                 case OpCode.Text:
                     OnTextFrameReceived(buf, header);
                     break;
+
+                case OpCode.Close:
+                    OnCloseReceived();
+                    break;
             }
         }
 
@@ -151,6 +155,11 @@ namespace WebSocketServer
             }
         }
 
+        private void OnCloseReceived()
+        {
+            Console.WriteLine("onClose");
+        }
+
         private async Task ProcessSendQueue()
         {
             if (_sendQueue.Count == 0)
@@ -164,7 +173,7 @@ namespace WebSocketServer
             }
 
             var bytes = new List<byte>();
-            var data = Encoding.UTF8.GetBytes(str.Substring(0, 100)); // TODO: ヘッダを正しく組み立ててないから今は最大125バイトまでかな。直す。
+            var data = Encoding.UTF8.GetBytes(str); // TODO: ヘッダを正しく組み立ててないみたいで、127バイト以上は動作していない。直す。
             var header = WsHeader.Create(true, OpCode.Text, data.Length);
             bytes.AddRange(header.ToBinary());
             bytes.AddRange(data);
