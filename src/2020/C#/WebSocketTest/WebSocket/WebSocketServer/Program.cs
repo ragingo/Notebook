@@ -12,7 +12,15 @@ namespace WebSocketServer
         static async Task Main()
         {
             var ws = new WsServer();
-            await ws.Listen(IPAddress.Parse("127.0.0.1"), 8080);
+            Task.Factory.StartNew(async () =>
+            {
+                for (int i = 0; i < 1000; i++)
+                {
+                    ws.SendMessage($"hello {i} !");
+                    await Task.Delay(1000);
+                }
+            });
+            await ws.Listen(IPAddress.Parse("127.0.0.1"), 8080).ConfigureAwait(false);
         }
     }
 }

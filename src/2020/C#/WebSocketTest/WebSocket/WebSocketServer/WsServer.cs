@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -22,6 +23,7 @@ namespace WebSocketServer
 
         private TcpListener _listener;
         private NetworkStream _stream;
+        private readonly ConcurrentQueue<string> _sendQueue = new ConcurrentQueue<string>();
 
         public WsServer()
         {
@@ -35,6 +37,11 @@ namespace WebSocketServer
             await Process();
         }
 
+        public void SendMessage(string msg)
+        {
+            _sendQueue.Enqueue(msg);
+        }
+
         private async Task Process()
         {
             var client = await _listener.AcceptTcpClientAsync();
@@ -44,16 +51,7 @@ namespace WebSocketServer
             {
                 if (!_stream.DataAvailable)
                 {
-                    {
-                        var bytes = new List<byte>();
-                        var data = Encoding.UTF8.GetBytes("yahoooo");
-                        var header = WsHeader.Create(true, OpCode.Text, data.Length);
-                        bytes.AddRange(header.ToBinary());
-                        bytes.AddRange(data);
-                        var arr = bytes.ToArray();
-                        await _stream.WriteAsync(arr, 0, arr.Length).ConfigureAwait(false);
-                        await Task.Delay(1000).ConfigureAwait(false);
-                    }
+                    await ProcessSendQueue();
                     continue;
                 }
 
@@ -160,5 +158,27 @@ namespace WebSocketServer
                 // TODO: 
             }
         }
+
+        private async Task ProcessSendQueue()
+        {
+            if (_sendQueue.Count == 0)
+            {
+                return;
+            }
+
+            if (!_sendQueue.TryDequeue(out string str))
+            {
+                return;
+            }
+
+            var bytes = new List<byte>();
+            var data = Encoding.UTF8.GetBytes(str);
+            var header = WsHeader.Create(true, OpCode.Text, data.Length);
+            bytes.AddRange(header.ToBinary());
+            bytes.AddRange(data);
+            var arr = bytes.ToArray();
+            await _stream.WriteAsync(arr, 0, arr.Length).ConfigureAwait(false);
+        }
+
     }
 }
