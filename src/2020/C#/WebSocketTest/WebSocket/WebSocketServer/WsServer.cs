@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,16 +14,6 @@ namespace WebSocketServer
 {
     class WsServer
     {
-        private enum OpCode
-        {
-            Continuation = 0,
-            Text = 1,
-            Binary = 2,
-            Close = 8,
-            Ping = 9,
-            Pong = 10,
-        }
-
         private const string CommonResponseHeader =
             "HTTP/1.1 101 Switching Protocols\r\n" +
             "Connection: Upgrade\r\n" +
@@ -58,13 +49,13 @@ namespace WebSocketServer
                     if (!a)
                     {
                         a = true;
-                        var d = new List<byte>();
-                        var b = Encoding.UTF8.GetBytes("yahoooo");
-                        d.Add((byte)(1 << 7 | 1));
-                        d.Add((byte)b.Length); // TODO: とりあえず、送信対象が短いから大丈夫
-                        d.AddRange(b);
-                        var e = d.ToArray();
-                        await _stream.WriteAsync(e, 0, e.Length).ConfigureAwait(false);
+                        var bytes = new List<byte>();
+                        var data = Encoding.UTF8.GetBytes("yahoooo");
+                        var header = WsHeader.Create(true, OpCode.Text, data.Length);
+                        bytes.AddRange(header.ToBinary());
+                        bytes.AddRange(data);
+                        var arr = bytes.ToArray();
+                        await _stream.WriteAsync(arr, 0, arr.Length).ConfigureAwait(false);
                         await _stream.FlushAsync().ConfigureAwait(false);
                     }
                     continue;
