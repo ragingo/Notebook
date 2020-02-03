@@ -84,6 +84,12 @@ namespace WebSocketServer
                     int payloadLen = (fields2 & 0x7f);
                     Console.WriteLine($"mask: {mask}, payloadLen: {payloadLen}");
 
+                    // text frame 以外は無視
+                    if (opcode != 1)
+                    {
+                        continue;
+                    }
+
                     if (payloadLen <= 125)
                     {
                         if (mask == 1)
@@ -92,10 +98,13 @@ namespace WebSocketServer
                             byte[] maskKey = new[] { buf[2], buf[3], buf[4], buf[5] };
                             for (int i = 6; i < buf.Length; i++)
                             {
-                                decodedValue.Add((byte)(buf[i] ^ maskKey[i % 4]));
+                                byte e = buf[i];
+                                byte m = maskKey[(i-6) % 4];
+                                Console.WriteLine($"encoded: {e.ToString("X2")}, mask: {m}, result: {(e ^ m).ToString("X2")}");
+                                decodedValue.Add((byte)(e ^ m));
                             }
-                            // TODO: 毎回デコード結果が違う。調べる。
-                            Console.WriteLine(string.Join(" ", decodedValue.Select(x => x.ToString("X2"))));
+                            Console.WriteLine($"decoded (hex): {string.Join(" ", decodedValue.Select(x => x.ToString("X2")))}");
+                            Console.WriteLine($"decoded (str): {Encoding.UTF8.GetString(decodedValue.ToArray())}");
                         }
                     }
                     else if (payloadLen == 126)
