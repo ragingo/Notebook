@@ -37,6 +37,10 @@ namespace WebSocketServer
 
         public void SendMessage(string msg)
         {
+            if (_stream == null)
+            {
+                return;
+            }
             _sendQueue.Enqueue(msg);
         }
 
@@ -147,25 +151,25 @@ namespace WebSocketServer
             }
         }
 
-        private Task ProcessSendQueue()
+        private async Task ProcessSendQueue()
         {
             if (_sendQueue.Count == 0)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             if (!_sendQueue.TryDequeue(out string str))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             var bytes = new List<byte>();
-            var data = Encoding.UTF8.GetBytes(str);
+            var data = Encoding.UTF8.GetBytes(str.Substring(0, 100)); // TODO: ヘッダを正しく組み立ててないから今は最大125バイトまでかな。直す。
             var header = WsHeader.Create(true, OpCode.Text, data.Length);
             bytes.AddRange(header.ToBinary());
             bytes.AddRange(data);
             var arr = bytes.ToArray();
-            return _stream.WriteAsync(arr, 0, arr.Length);
+            await _stream.WriteAsync(arr, 0, arr.Length).ConfigureAwait(false);
         }
 
     }

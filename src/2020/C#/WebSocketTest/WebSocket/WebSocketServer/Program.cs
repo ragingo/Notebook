@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace WebSocketServer
@@ -11,15 +13,40 @@ namespace WebSocketServer
         private static async Task Main()
         {
             var ws = new WsServer();
-            _ = Task.Run(async () =>
-            {
-                for (int i = 0; i < 1000; i++)
-                {
-                    ws.SendMessage($"hello {i} !");
-                    await Task.Delay(1000).ConfigureAwait(false);
-                }
-            }).ConfigureAwait(false);
+            _ = Task.Run(Work(ws)).ConfigureAwait(false);
             await ws.Listen(IPAddress.Parse("127.0.0.1"), 8080).ConfigureAwait(false);
+        }
+
+        private static Func<Task> Work(WsServer ws)
+        {
+            string path = @"C:\Program Files\Wireshark\tshark.exe";
+
+            var psi = new ProcessStartInfo(path, "-i 6");
+            psi.UseShellExecute = false;
+            psi.RedirectStandardError = false;
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardInput = false;
+            psi.CreateNoWindow = false;
+
+            var p = Process.Start(psi);
+            var reader = p.StandardOutput;
+
+            return async () =>
+            {
+                while (true)
+                {
+                    if (reader.EndOfStream)
+                    {
+                        await Task.Delay(100).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    string line = await reader.ReadLineAsync().ConfigureAwait(false);
+                    ws.SendMessage(line);
+
+                    await Task.Delay(50).ConfigureAwait(false);
+                }
+            };
         }
     }
 }
