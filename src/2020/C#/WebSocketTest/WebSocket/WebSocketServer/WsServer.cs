@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace WebSocketServer
 {
-        class WsServer
+    class WsServer
     {
         private enum OpCode
         {
@@ -49,10 +49,24 @@ namespace WebSocketServer
             var client = await _listener.AcceptTcpClientAsync();
             _stream = client.GetStream();
 
+            bool a = false;
+
             while (true)
             {
                 if (!_stream.DataAvailable)
                 {
+                    if (!a)
+                    {
+                        a = true;
+                        var d = new List<byte>();
+                        var b = Encoding.UTF8.GetBytes("yahoooo");
+                        d.Add((byte)(1 << 7 | 1));
+                        d.Add((byte)b.Length); // TODO: とりあえず、送信対象が短いから大丈夫
+                        d.AddRange(b);
+                        var e = d.ToArray();
+                        await _stream.WriteAsync(e, 0, e.Length).ConfigureAwait(false);
+                        await _stream.FlushAsync().ConfigureAwait(false);
+                    }
                     continue;
                 }
 
