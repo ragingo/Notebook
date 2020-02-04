@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace WebSocketServer
 {
@@ -17,11 +18,23 @@ namespace WebSocketServer
             await ws.Listen(IPAddress.Parse("127.0.0.1"), 8080).ConfigureAwait(false);
         }
 
+        private static Tuple<string, string> GetToolInfo()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return Tuple.Create(@"C:\Program Files\Wireshark\tshark.exe", "-i 6");
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return Tuple.Create("tshark", "-i 1");
+            }
+            throw new NotSupportedException();
+        }
+
         private static Func<Task> Work(WsServer ws)
         {
-            string path = @"C:\Program Files\Wireshark\tshark.exe";
-
-            var psi = new ProcessStartInfo(path, "-i 6");
+            var (path, args) = GetToolInfo();
+            var psi = new ProcessStartInfo(path, args);
             psi.UseShellExecute = false;
             psi.RedirectStandardError = false;
             psi.RedirectStandardOutput = true;
