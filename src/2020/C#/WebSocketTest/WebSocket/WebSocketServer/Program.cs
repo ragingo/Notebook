@@ -11,11 +11,13 @@ namespace WebSocketServer
     // https://triple-underscore.github.io/RFC6455-ja.html
     class Program
     {
+        private const int LISTEN_PORT = 8080;
+
         private static async Task Main()
         {
             var ws = new WsServer();
             _ = Task.Run(Work(ws)).ConfigureAwait(false);
-            await ws.Listen(IPAddress.Parse("127.0.0.1"), 8080).ConfigureAwait(false);
+            await ws.Listen(IPAddress.Parse("127.0.0.1"), LISTEN_PORT).ConfigureAwait(false);
         }
 
         private static Tuple<string, string> GetToolInfo()
@@ -26,7 +28,7 @@ namespace WebSocketServer
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                return Tuple.Create("tshark", "-i 1");
+                return Tuple.Create("tshark", $@"-i 1 -f ""port 80 or port 443""");
             }
             throw new NotSupportedException();
         }
