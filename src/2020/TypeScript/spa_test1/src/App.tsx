@@ -11,10 +11,14 @@ export const App = () => {
       console.log('ws opened');
     });
     sock.addEventListener('message', e => {
-      // console.log(e.data);
-      const newItem = e.data as string;
-      setItems([...items, newItem]);
+      onMessageReceived(e);
     });
+  }, []);
+  
+  const onMessageReceived = useCallback((e: MessageEvent) => {
+    console.log(e.data);
+    const newItem = e.data as string;
+    setItems(oldItems => [...oldItems, newItem]);
   }, [items]);
 
   const onClick = useCallback(() => {
@@ -24,9 +28,20 @@ export const App = () => {
   return (
     <div className="App">
       <button onClick={onClick}>send</button>
-      {items.map((item, i) => (
-        <div key={i}>{item}</div>
-      ))}
+      <table className="PacketList">
+        <thead className="PacketListHeader">
+          <tr>
+            <td>パケット一覧</td>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item, i) => (
+            <tr className="PacketListItem">
+              <td key={i}>{item}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
