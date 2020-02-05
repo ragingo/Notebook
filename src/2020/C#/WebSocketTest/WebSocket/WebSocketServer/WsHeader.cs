@@ -28,7 +28,7 @@ namespace WebSocketServer
             return header;
         }
 
-        public static WsHeader Create(bool fin, OpCode opCode, int PayloadLength)
+        public static WsHeader Create(bool fin, OpCode opCode, int payloadLength)
         {
             var header = new WsHeader();
             header.Fin = fin;
@@ -37,7 +37,7 @@ namespace WebSocketServer
             header.Rcv3 = 0;
             header.OpCode = opCode;
             header.Mask = false;
-            header.PayloadLength = PayloadLength;
+            header.PayloadLength = payloadLength;
             return header;
         }
 
@@ -50,13 +50,13 @@ namespace WebSocketServer
                 bytes[1] = (byte)PayloadLength;
                 return bytes;
             }
-            else if (PayloadLength == 126)
+            else if (PayloadLength <= 0xffff)
             {
                 short len = (short)PayloadLength;
                 var bytes = new byte[2 + 2];
                 bytes[0] = (byte)(((Fin ? 1 : 0) << 7) | (byte)OpCode);
                 bytes[1] = 126;
-                bytes[2] = (byte)(len & 0xff00 >> 8);
+                bytes[2] = (byte)((len & 0xff00) >> 8);
                 bytes[3] = (byte)(len & 0x00ff);
                 return bytes;
             }
