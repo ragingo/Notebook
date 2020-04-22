@@ -1,0 +1,17 @@
+{
+  "name": "ts1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "tsc-build": "node node_modules/ts3_8/bin/tsc",
+    "tsc-build-3_7": "node node_modules/ts3_7/bin/tsc",
+    "tsc-build-3_8": "node node_modules/ts3_8/bin/tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ts3_7": "npm:typescript@3.7.2",
+    "ts3_8": "npm:typescript@3.8.3"
+  }
+}
