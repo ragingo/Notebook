@@ -1,12 +1,14 @@
 ﻿#include "pch.h"
 #include "framework.h"
-#include "dx12.h"
+#include "resource.h"
+#include "DxApp.h"
 
 #define MAX_LOADSTRING 100
 
-// グローバル変数:
-WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキスト
-WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
+// グローバル変数
+WCHAR szTitle[MAX_LOADSTRING];       // タイトル バーのテキスト
+WCHAR szWindowClass[MAX_LOADSTRING]; // メイン ウィンドウ クラス名
+HWND g_hWnd = nullptr;
 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -22,16 +24,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
         return FALSE;
     }
 
+    DxApp dxApp;
+    dxApp.Initialize(g_hWnd);
+
     MSG msg;
 
     // メイン メッセージ ループ:
     while (GetMessage(&msg, nullptr, 0, 0) > 0) {
         DispatchMessage(&msg);
+        dxApp.Render();
     }
 
     return (int)msg.wParam;
 }
-
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -60,6 +65,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     if (!hWnd) {
         return FALSE;
     }
+
+    g_hWnd = hWnd;
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);

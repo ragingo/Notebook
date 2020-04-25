@@ -1,13 +1,15 @@
-﻿// pch.h: プリコンパイル済みヘッダー ファイルです。
-// 次のファイルは、その後のビルドのビルド パフォーマンスを向上させるため 1 回だけコンパイルされます。
-// コード補完や多くのコード参照機能などの IntelliSense パフォーマンスにも影響します。
-// ただし、ここに一覧表示されているファイルは、ビルド間でいずれかが更新されると、すべてが再コンパイルされます。
-// 頻繁に更新するファイルをここに追加しないでください。追加すると、パフォーマンス上の利点がなくなります。
+﻿#pragma once
 
-#ifndef PCH_H
-#define PCH_H
-
-// プリコンパイルするヘッダーをここに追加します
 #include "framework.h"
 
-#endif //PCH_H
+#include <cinttypes>
+#include <memory>
+
+#include <wrl.h>
+#include <d3d12.h>
+#include <d3dcompiler.h>
+#include <DirectXMath.h>
+#include <dxgi1_6.h>
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "dxgi.lib")
