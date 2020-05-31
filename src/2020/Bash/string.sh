@@ -18,8 +18,11 @@ substr() {
     local start=$2
     local len=$3
     local end=0
-
-    end=$((start + len))
+    if [ "$len" = "" ]; then
+        end=""
+    else
+        end=$((start + len))
+    fi
     start=$((start + 1))
     echo "$str" | cut -d' ' -f "$start-$end"
 }

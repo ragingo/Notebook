@@ -29,6 +29,10 @@ __offset="$BITMAPFILEHEADER_SIZE"
 BITMAPINFOHEADER_DATA=$(substr "$SRC_DATA" "$__offset" "$BITMAPINFOHEADER_SIZE")
 readonly BITMAPINFOHEADER_DATA
 
+__offset=$((__offset + BITMAPINFOHEADER_SIZE))
+IMAGE_DATA=$(substr "$SRC_DATA" "$__offset" "")
+readonly IMAGE_DATA
+
 
 calc_offsets() {
     local -n _sizes=$1
@@ -126,9 +130,32 @@ dump_bitmap_info_header() {
     done
 }
 
+draw_image() {
+    # 引数で指定できるようにする
+    local w=32
+    local h=32
+    local t=80
+
+    for ((row=0; row<h; row++)) do
+        for ((col=0; col<w; col++)) do
+            local v
+            local pos=$((h * row + col))
+            v=$(substr "$IMAGE_DATA" "$pos" 1)
+            if [ "$v" -lt "$t" ]; then
+                printf "□"
+            else
+                printf "■"
+            fi
+        done
+        echo ""
+    done
+}
 
 echo "===== BITMAPFILEHEADER ====="
 dump_bitmap_file_header
 
 echo "===== BITMAPINFOHEADER ====="
 dump_bitmap_info_header
+
+echo "===== IMAGE ====="
+draw_image
