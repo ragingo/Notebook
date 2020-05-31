@@ -98,6 +98,30 @@ dump_bitmap_info_header() {
             2 )
                 printf "height: %'d px\n" "$(u8x4_string_to_u32 "$val")"
                 ;;
+            3 )
+                printf "planes: %d\n" "$(u8x2_string_to_u32 "$val")"
+                ;;
+            4 )
+                printf "bitcount: %d\n" "$(u8x2_string_to_u32 "$val")"
+                ;;
+            5 )
+                printf "compression: %d\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+            6 )
+                printf "sizeimage: %'d B\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+            7 )
+                printf "x px/m: %'d\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+            8 )
+                printf "y px/m: %'d\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+            9 )
+                printf "clrused: %'d\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+            10 )
+                printf "cirimportant: %'d\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
         esac
     done
 }

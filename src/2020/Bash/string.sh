@@ -44,10 +44,12 @@ bin_to_dec_str() {
 
 export -f bin_to_dec_str
 
-u8x4_to_u32() {
+u8xn_to_u32() {
+    local n=$1
+    shift
     local arr=("$@")
     local sum=0
-    for ((i=0; i < 4; i++)) do
+    for ((i=0; i < n; i++)) do
         local e=$((i * 8))
         local v=${arr[$i]}
         sum=$(( sum + v * (2 ** e) ))
@@ -55,15 +57,46 @@ u8x4_to_u32() {
     echo "$sum"
 }
 
+export -f u8xn_to_u32
+
+u8x2_to_u32() {
+    u8xn_to_u32 2 "$@"
+}
+
+export -f u8x2_to_u32
+
+u8x4_to_u32() {
+    u8xn_to_u32 4 "$@"
+}
+
 export -f u8x4_to_u32
+
+u8xn_string_to_u32() {
+    local n=$1
+    local str=$2
+    local x=()
+    split x "$str"
+    local y
+    y=$(u8xn_to_u32 "$n" "${x[@]}")
+    echo "$y"
+}
+
+export -f u8xn_string_to_u32
+
+u8x2_string_to_u32() {
+    local str=$1
+    local x
+    x=$(u8xn_string_to_u32 2 "$str")
+    echo "$x"
+}
+
+export -f u8x2_string_to_u32
 
 u8x4_string_to_u32() {
     local str=$1
-    local x=()
-    split x "$str"
-    local y=0
-    y=$(u8x4_to_u32 "${x[@]}")
-    echo "$y"
+    local x
+    x=$(u8xn_string_to_u32 4 "$str")
+    echo "$x"
 }
 
 export -f u8x4_string_to_u32
