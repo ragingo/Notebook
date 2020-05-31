@@ -15,6 +15,21 @@ pwd
 readonly SRC_FILE_PATH=./catman.bmp
 readonly SRC_DATA=$(bin_to_dec_str "$SRC_FILE_PATH" | trim_spaces)
 
+# https://docs.microsoft.com/ja-jp/windows/win32/api/wingdi/ns-wingdi-bitmapfileheader
+readonly BITMAPFILEHEADER_SIZE=$((2 + 4 + 2 + 2 + 4))
+
+# https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
+readonly BITMAPINFOHEADER_SIZE=$((4 + 4 + 4 + 2 + 2 + 4 + 4 + 4 + 4 + 4 + 4))
+
+
+BITMAPFILEHEADER_DATA=$(substr "$SRC_DATA" 0 "$BITMAPFILEHEADER_SIZE")
+readonly BITMAPFILEHEADER_DATA
+
+__offset="$BITMAPFILEHEADER_SIZE"
+BITMAPINFOHEADER_DATA=$(substr "$SRC_DATA" "$__offset" "$BITMAPINFOHEADER_SIZE")
+readonly BITMAPINFOHEADER_DATA
+
+
 calc_offsets() {
     local -n _sizes=$1
     local -n _offsets=$2
@@ -35,21 +50,15 @@ calc_offsets() {
 }
 
 dump_bitmap_file_header() {
-    local data=$1
     local sizes=(2 4 2 2 4)
     local offsets=()
     local item_count=${#sizes[@]}
 
     calc_offsets sizes offsets
 
-    local ret=()
     for ((i=0; i < "$item_count"; i++)) do
         local val
-        val=$(substr "$data" "${offsets[$i]}" "${sizes[$i]}")
-
-        ret+=("$val")
-        # ↓ これでも配列に追加できる(標準出力を追加したい場合はこれじゃないとだめそう)
-        # mapfile -t -O "${#ret[@]}" ret < <(echo "$val")
+        val=$(substr "$BITMAPFILEHEADER_DATA" "${offsets[$i]}" "${sizes[$i]}")
 
         case "$i" in
             0 )
@@ -66,11 +75,36 @@ dump_bitmap_file_header() {
                 ;;
         esac
     done
-
-    echo "${ret[@]}"
 }
 
-# debug dump
-# echo "$SRC_DATA"
+dump_bitmap_info_header() {
+    local sizes=(4 4 4 2 2 4 4 4 4 4 4)
+    local offsets=()
+    local item_count=${#sizes[@]}
 
-dump_bitmap_file_header "$SRC_DATA"
+    calc_offsets sizes offsets
+
+    for ((i=0; i < "$item_count"; i++)) do
+        local val
+        val=$(substr "$BITMAPINFOHEADER_DATA" "${offsets[$i]}" "${sizes[$i]}")
+
+        case "$i" in
+            0 )
+                printf "size: %'d B\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+            1 )
+                printf "width: %'d px\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+            2 )
+                printf "height: %'d px\n" "$(u8x4_string_to_u32 "$val")"
+                ;;
+        esac
+    done
+}
+
+
+echo "===== BITMAPFILEHEADER ====="
+dump_bitmap_file_header
+
+echo "===== BITMAPINFOHEADER ====="
+dump_bitmap_info_header
