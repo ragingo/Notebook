@@ -36,7 +36,7 @@ export -f array_fill
 #######################################
 array_count() {
     local -n arr=$1
-    "${#arr[@]]}"
+    echo "${#arr[@]}"
 }
 
 export -f array_count

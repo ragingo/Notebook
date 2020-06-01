@@ -2,7 +2,7 @@
 
 set -eu
 
-cd "$(dirname "$0")"
+cd "$(dirname "${BASH_SOURCE:-$0}")"
 pwd
 
 # shellcheck disable=SC1091
@@ -135,17 +135,30 @@ draw_image() {
     local w=32
     local h=32
     local t=80
+    local src_img=()
+    local dst_img=()
 
-    for ((row=0; row<h; row++)) do
-        for ((col=0; col<w; col++)) do
-            local v
+    split src_img "$IMAGE_DATA"
+    array_fill dst_img $((w * h)) "□"
+
+    for ((row = 0; row < h; row++)) do
+        for ((col = 0; col < w; col++)) do
             local pos=$((h * row + col))
-            v=$(substr "$IMAGE_DATA" "$pos" 1)
-            if [ "$v" -lt "$t" ]; then
-                printf "□"
-            else
-                printf "■"
+            local v=${src_img[$pos]}
+
+            if [ "$v" -gt "$t" ]; then
+                dst_img[$pos]="■"
             fi
+        done
+    done
+
+    echo "converted."
+
+    for ((row = 0; row < h; row++)) do
+        for ((col = 0; col < w; col++)) do
+            local pos=$((h * row + col))
+            local v=${dst_img[$pos]}
+            printf "%s" "$v"
         done
         echo ""
     done
