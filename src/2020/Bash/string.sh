@@ -8,6 +8,23 @@ split() {
 
 export -f split
 
+dec_to_hex() {
+    local v=$1
+    printf "%x" "$v"
+}
+
+dec_to_bin() {
+    local v=$1
+    local hex
+    hex=$(printf "%x" "$v")
+    echo "\x$hex"
+}
+
+hex_to_dec() {
+    local v=$1
+    echo "$((0x$v))"
+}
+
 i_to_c() {
     local i=$1
     echo "$i" | awk '{ print("%c", $1) }'

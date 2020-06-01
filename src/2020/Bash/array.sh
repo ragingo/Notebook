@@ -40,3 +40,24 @@ array_count() {
 }
 
 export -f array_count
+
+#######################################
+# 配列の各要素にコールバック関数を適用する
+#
+# Globals:
+#   None
+# Arguments:
+#   $1: array
+#   $2: callback
+# Outputs:
+#   $1
+#######################################
+array_map() {
+    local -n arr=$1
+    local fn=$2
+    for ((i = 0; i < "${#arr[@]}"; i++)); do
+        arr[$i]=$($fn "${arr[$i]}")
+    done
+}
+
+export -f array_map

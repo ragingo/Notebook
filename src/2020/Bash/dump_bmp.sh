@@ -139,7 +139,7 @@ draw_image() {
     local dst_img=()
 
     split src_img "$IMAGE_DATA"
-    array_fill dst_img $((w * h)) "□"
+    array_fill dst_img $((w * h)) "0"
 
     for ((row = 0; row < h; row++)) do
         for ((col = 0; col < w; col++)) do
@@ -147,21 +147,37 @@ draw_image() {
             local v=${src_img[$pos]}
 
             if [ "$v" -gt "$t" ]; then
-                dst_img[$pos]="■"
+                dst_img[$pos]=255
             fi
         done
     done
 
     echo "converted."
 
-    for ((row = 0; row < h; row++)) do
-        for ((col = 0; col < w; col++)) do
-            local pos=$((h * row + col))
-            local v=${dst_img[$pos]}
-            printf "%s" "$v"
-        done
-        echo ""
-    done
+    # for ((row = 0; row < h; row++)) do
+    #     for ((col = 0; col < w; col++)) do
+    #         local pos=$((h * row + col))
+    #         local v=${dst_img[$pos]}
+    #         printf "%s" "$v"
+    #     done
+    #     echo ""
+    # done
+
+    local bfh=()
+    split bfh "$BITMAPFILEHEADER_DATA"
+    array_map bfh dec_to_bin
+
+    local bif=()
+    split bif "$BITMAPINFOHEADER_DATA"
+    array_map bif dec_to_bin
+
+    array_map dst_img dec_to_bin
+
+    {
+        echo -en "${bfh[@]}" | tr -d ' '
+        echo -en "${bif[@]}" | tr -d ' '
+        echo -en "${dst_img[@]}" | tr -d ' '
+    } > ./a.bmp
 }
 
 echo "===== BITMAPFILEHEADER ====="
@@ -172,3 +188,29 @@ dump_bitmap_info_header
 
 echo "===== IMAGE ====="
 draw_image
+
+test1() {
+    echo "$BITMAPFILEHEADER_DATA"
+
+    local hex=4d
+    echo "$hex"
+
+    local dec
+    dec="$(hex_to_dec "$hex")"
+    echo "$dec"
+
+    local hex2
+    hex2="$(dec_to_hex "$dec")"
+    echo "$hex2"
+
+    local bin
+    bin="$(dec_to_bin "$dec")"
+    echo -en "$bin" | od -c
+
+    local a=(66 77)
+    local b
+    b=$(array_map a dec_to_bin)
+    echo -en "${b[@]}" | od -c
+}
+
+# test1
