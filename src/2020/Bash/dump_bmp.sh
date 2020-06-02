@@ -136,38 +136,31 @@ dump_bitmap_info_header() {
     done
 }
 
-draw_image() {
+export_image() {
     # 引数で指定できるようにする
-    local w=32
-    local h=32
-    local t=80
+    local w=32  # width
+    local h=32  # height
+    local t=100 # threshold
+    local d=3   # depth
     local src_img=()
     local dst_img=()
 
     split src_img "$IMAGE_DATA"
-    array_fill dst_img $((w * h)) "0"
+    array_fill dst_img $((w * h * d)) "\x0"
 
-    for ((row = 0; row < h; row++)) do
-        for ((col = 0; col < w; col++)) do
-            local pos=$((h * row + col))
-            local v=${src_img[$pos]}
+    for ((i = 0; i < $((w * h * d)); i+=3)) do
+        local r=${src_img[$((i + 0))]}
+        local g=${src_img[$((i + 1))]}
+        local b=${src_img[$((i + 2))]}
 
-            if [ "$v" -gt "$t" ]; then
-                dst_img[$pos]=255
-            fi
-        done
+        if [ "$r" -lt "$t" ] || \
+           [ "$g" -lt "$t" ] || \
+           [ "$b" -lt "$t" ]; then
+            dst_img[$((i + 0))]="\xff"
+            dst_img[$((i + 1))]="\xff"
+            dst_img[$((i + 2))]="\xff"
+        fi
     done
-
-    echo "converted."
-
-    # for ((row = 0; row < h; row++)) do
-    #     for ((col = 0; col < w; col++)) do
-    #         local pos=$((h * row + col))
-    #         local v=${dst_img[$pos]}
-    #         printf "%s" "$v"
-    #     done
-    #     echo ""
-    # done
 
     local bfh=()
     split bfh "$BITMAPFILEHEADER_DATA"
@@ -177,12 +170,11 @@ draw_image() {
     split bif "$BITMAPINFOHEADER_DATA"
     array_map bif dec_to_bin
 
-    array_map dst_img dec_to_bin
-
+    local IFS=""
     {
-        echo -en "${bfh[@]}" | tr -d ' '
-        echo -en "${bif[@]}" | tr -d ' '
-        echo -en "${dst_img[@]}" | tr -d ' '
+        echo -en "${bfh[*]}"
+        echo -en "${bif[*]}"
+        echo -en "${dst_img[*]}"
     } > ./a.bmp
 }
 
@@ -193,30 +185,4 @@ echo "===== BITMAPINFOHEADER ====="
 dump_bitmap_info_header
 
 echo "===== IMAGE ====="
-draw_image
-
-test1() {
-    echo "$BITMAPFILEHEADER_DATA"
-
-    local hex=4d
-    echo "$hex"
-
-    local dec
-    dec="$(hex_to_dec "$hex")"
-    echo "$dec"
-
-    local hex2
-    hex2="$(dec_to_hex "$dec")"
-    echo "$hex2"
-
-    local bin
-    bin="$(dec_to_bin "$dec")"
-    echo -en "$bin" | od -c
-
-    local a=(66 77)
-    local b
-    b=$(array_map a dec_to_bin)
-    echo -en "${b[@]}" | od -c
-}
-
-# test1
+export_image
