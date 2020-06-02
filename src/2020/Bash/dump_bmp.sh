@@ -54,15 +54,18 @@ calc_offsets() {
 }
 
 dump_bitmap_file_header() {
+    local data=()
     local sizes=(2 4 2 2 4)
     local offsets=()
     local item_count=${#sizes[@]}
 
+    split data "$BITMAPFILEHEADER_DATA"
     calc_offsets sizes offsets
 
     for ((i=0; i < "$item_count"; i++)) do
-        local val
-        val=$(substr "$BITMAPFILEHEADER_DATA" "${offsets[$i]}" "${sizes[$i]}")
+        local idx="${offsets[$i]}"
+        local len="${sizes[$i]}"
+        local val="${data[*]:$idx:$len}"
 
         case "$i" in
             0 )
@@ -82,15 +85,18 @@ dump_bitmap_file_header() {
 }
 
 dump_bitmap_info_header() {
+    local data=()
     local sizes=(4 4 4 2 2 4 4 4 4 4 4)
     local offsets=()
     local item_count=${#sizes[@]}
 
+    split data "$BITMAPINFOHEADER_DATA"
     calc_offsets sizes offsets
 
     for ((i=0; i < "$item_count"; i++)) do
-        local val
-        val=$(substr "$BITMAPINFOHEADER_DATA" "${offsets[$i]}" "${sizes[$i]}")
+        local idx="${offsets[$i]}"
+        local len="${sizes[$i]}"
+        local val="${data[*]:$idx:$len}"
 
         case "$i" in
             0 )
