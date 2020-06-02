@@ -136,19 +136,19 @@ dump_bitmap_info_header() {
     done
 }
 
-export_image() {
-    # 引数で指定できるようにする
-    local w=32  # width
-    local h=32  # height
+binarize() {
+    local w=$1  # width
+    local h=$2  # height
+    local d=$3  # depth
+    local img=$4
     local t=100 # threshold
-    local d=3   # depth
     local src_img=()
     local dst_img=()
 
-    split src_img "$IMAGE_DATA"
+    split src_img "$img"
     array_fill dst_img $((w * h * d)) "\x0"
 
-    for ((i = 0; i < $((w * h * d)); i+=3)) do
+    for ((i = 0; i < $((w * h * d)); i += 3)) do
         local r=${src_img[$((i + 0))]}
         local g=${src_img[$((i + 1))]}
         local b=${src_img[$((i + 2))]}
@@ -166,14 +166,14 @@ export_image() {
     split bfh "$BITMAPFILEHEADER_DATA"
     array_map bfh dec_to_bin
 
-    local bif=()
-    split bif "$BITMAPINFOHEADER_DATA"
-    array_map bif dec_to_bin
+    local bih=()
+    split bih "$BITMAPINFOHEADER_DATA"
+    array_map bih dec_to_bin
 
     local IFS=""
     {
         echo -en "${bfh[*]}"
-        echo -en "${bif[*]}"
+        echo -en "${bih[*]}"
         echo -en "${dst_img[*]}"
     } > ./a.bmp
 }
@@ -185,4 +185,4 @@ echo "===== BITMAPINFOHEADER ====="
 dump_bitmap_info_header
 
 echo "===== IMAGE ====="
-export_image
+binarize 32 32 3 "$IMAGE_DATA"
