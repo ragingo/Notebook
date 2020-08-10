@@ -24,8 +24,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
         return FALSE;
     }
 
+    RECT rect;
+    if (!GetWindowRect(g_hWnd, &rect)) {
+        return FALSE;
+    }
+
+    int width = rect.right - rect.left;
+    int height = rect.bottom - rect.top;
+
     DxApp dxApp;
-    dxApp.Initialize(g_hWnd);
+    dxApp.Initialize(g_hWnd, width, height);
 
     MSG msg;
 

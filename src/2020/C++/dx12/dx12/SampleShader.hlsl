@@ -1,33 +1,20 @@
-cbuffer cbBuffer : register(b0)
+struct PSInput
 {
-    float4x4 WVP;
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
 };
 
-struct VS_INPUT
+PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
 {
-    float3 Position : POSITION;
-    float3 Color    : COLOR;
-};
+    PSInput result;
 
-struct PS_INPUT
-{
-    float4 Position : SV_POSITION;
-    float4 Color    : COLOR;
-};
+    result.position = position;
+    result.color = color;
 
-
-PS_INPUT VSMain(VS_INPUT input)
-{
-    PS_INPUT output;
-
-    float4 pos4 = float4(input.Position, 1.0);
-    output.Position = mul(pos4, WVP);
-    output.Color = float4(input.Color, 1.0);
-
-    return output;
+    return result;
 }
 
-
-float4 PSMain(PS_INPUT input) : SV_TARGET{
-    return input.Color;
+float4 PSMain(PSInput input) : SV_TARGET
+{
+    return input.color;
 }
