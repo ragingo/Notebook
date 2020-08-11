@@ -70,6 +70,86 @@ namespace
         descBarrier.Transition.StateAfter = after;
         commandList->ResourceBarrier(1, &descBarrier);
     }
+
+    ComPtr<ID3D12RootSignature> CreateRootSignature(ID3D12Device* device)
+    {
+        D3D12_ROOT_SIGNATURE_DESC sigDesc = {};
+        sigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+        ComPtr<ID3D12RootSignature> rootSignature;
+        ComPtr<ID3DBlob> sig;
+        ComPtr<ID3DBlob> error;
+        D3D12SerializeRootSignature(&sigDesc, D3D_ROOT_SIGNATURE_VERSION_1, &sig, &error);
+        device->CreateRootSignature(0, sig->GetBufferPointer(), sig->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+
+        return rootSignature;
+    }
+
+    ComPtr<ID3D12PipelineState> CreatePipelineState(ID3D12Device* device, ID3D12RootSignature* rootSignature)
+    {
+        ComPtr<ID3D12PipelineState> pipelineState;
+        ComPtr<ID3DBlob> vs;
+        ComPtr<ID3DBlob> ps;
+
+        UINT flags = 0;
+#ifdef _DEBUG
+        flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
+#endif // _DEBUG
+
+        HRESULT hr;
+        hr = D3DCompileFromFile(L"./SampleShader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", flags, 0, &vs, nullptr);
+        hr = D3DCompileFromFile(L"./SampleShader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", flags, 0, &ps, nullptr);
+
+        // Define the vertex input layout.
+        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        };
+
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+        psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+        psoDesc.pRootSignature = rootSignature;
+        psoDesc.VS = D3D12_SHADER_BYTECODE{ vs->GetBufferPointer(), vs->GetBufferSize() };
+        psoDesc.PS = D3D12_SHADER_BYTECODE{ ps->GetBufferPointer(), ps->GetBufferSize() };
+        psoDesc.RasterizerState = {};
+        psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+        psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
+        psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+        psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+        psoDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+        psoDesc.RasterizerState.DepthClipEnable = TRUE;
+        psoDesc.RasterizerState.MultisampleEnable = FALSE;
+        psoDesc.RasterizerState.AntialiasedLineEnable = FALSE;
+        psoDesc.RasterizerState.ForcedSampleCount = 0;
+        psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+        psoDesc.BlendState = {};
+        psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
+        psoDesc.BlendState.IndependentBlendEnable = FALSE;
+        {
+            const D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc = {
+                FALSE, FALSE,
+                D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+                D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+                D3D12_LOGIC_OP_NOOP,
+                D3D12_COLOR_WRITE_ENABLE_ALL,
+            };
+            for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
+                psoDesc.BlendState.RenderTarget[i] = rtBlendDesc;
+            }
+        }
+        psoDesc.DepthStencilState.DepthEnable = FALSE;
+        psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.SampleMask = UINT_MAX;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        psoDesc.SampleDesc.Count = 1;
+        device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
+
+        return pipelineState;
+    }
 }
 
 void DxApp::Initialize(HWND hWnd, int width, int height)
@@ -150,79 +230,8 @@ void DxApp::LoadPipeline()
 
 void DxApp::LoadAssets()
 {
-    // root signature
-    {
-        D3D12_ROOT_SIGNATURE_DESC sigDesc = {};
-        sigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-        ComPtr<ID3DBlob> sig;
-        ComPtr<ID3DBlob> error;
-        D3D12SerializeRootSignature(&sigDesc, D3D_ROOT_SIGNATURE_VERSION_1, &sig, &error);
-        m_Device->CreateRootSignature(0, sig->GetBufferPointer(), sig->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
-    }
-
-    // shaders
-    {
-        ComPtr<ID3DBlob> vs;
-        ComPtr<ID3DBlob> ps;
-
-        UINT flags = 0;
-#ifdef _DEBUG
-        flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
-#endif // _DEBUG
-
-        HRESULT hr;
-        hr = D3DCompileFromFile(L"./SampleShader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", flags, 0, &vs, nullptr);
-        hr = D3DCompileFromFile(L"./SampleShader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", flags, 0, &ps, nullptr);
-
-        // Define the vertex input layout.
-        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-        {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-        };
-
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-        psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-        psoDesc.pRootSignature = m_RootSignature.Get();
-        psoDesc.VS = D3D12_SHADER_BYTECODE{ vs->GetBufferPointer(), vs->GetBufferSize() };
-        psoDesc.PS = D3D12_SHADER_BYTECODE{ ps->GetBufferPointer(), ps->GetBufferSize() };
-        psoDesc.RasterizerState = {};
-        psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
-        psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
-        psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
-        psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-        psoDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-        psoDesc.RasterizerState.DepthClipEnable = TRUE;
-        psoDesc.RasterizerState.MultisampleEnable = FALSE;
-        psoDesc.RasterizerState.AntialiasedLineEnable = FALSE;
-        psoDesc.RasterizerState.ForcedSampleCount = 0;
-        psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-        psoDesc.BlendState = {};
-        psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
-        psoDesc.BlendState.IndependentBlendEnable = FALSE;
-        {
-            const D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc = {
-                FALSE, FALSE,
-                D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
-                D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
-                D3D12_LOGIC_OP_NOOP,
-                D3D12_COLOR_WRITE_ENABLE_ALL,
-            };
-            for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
-                psoDesc.BlendState.RenderTarget[i] = rtBlendDesc;
-            }
-        }
-        psoDesc.DepthStencilState.DepthEnable = FALSE;
-        psoDesc.DepthStencilState.StencilEnable = FALSE;
-        psoDesc.SampleMask = UINT_MAX;
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 1;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-        psoDesc.SampleDesc.Count = 1;
-        m_Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState));
-    }
+    m_RootSignature = std::move(CreateRootSignature(m_Device.Get()));
+    m_PipelineState = std::move(CreatePipelineState(m_Device.Get(), m_RootSignature.Get()));
 
     // command list
     m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_CommandList));
