@@ -87,7 +87,6 @@ namespace
 
     ComPtr<ID3D12PipelineState> CreatePipelineState(ID3D12Device* device, ID3D12RootSignature* rootSignature)
     {
-        ComPtr<ID3D12PipelineState> pipelineState;
         ComPtr<ID3DBlob> vs;
         ComPtr<ID3DBlob> ps;
 
@@ -146,6 +145,8 @@ namespace
         psoDesc.NumRenderTargets = 1;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         psoDesc.SampleDesc.Count = 1;
+
+        ComPtr<ID3D12PipelineState> pipelineState;
         device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
 
         return pipelineState;
