@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
 #include "DxApp.h"
+#include "../shaders/gen/SampleVS.h"
+#include "../shaders/gen/SamplePS.h"
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
@@ -87,17 +89,10 @@ namespace
 
     ComPtr<ID3D12PipelineState> CreatePipelineState(ID3D12Device* device, ID3D12RootSignature* rootSignature)
     {
-        ComPtr<ID3DBlob> vs;
-        ComPtr<ID3DBlob> ps;
-
         UINT flags = 0;
 #ifdef _DEBUG
         flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
 #endif // _DEBUG
-
-        HRESULT hr;
-        hr = D3DCompileFromFile(L"./SampleShader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", flags, 0, &vs, nullptr);
-        hr = D3DCompileFromFile(L"./SampleShader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", flags, 0, &ps, nullptr);
 
         // Define the vertex input layout.
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -109,8 +104,8 @@ namespace
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
         psoDesc.pRootSignature = rootSignature;
-        psoDesc.VS = D3D12_SHADER_BYTECODE{ vs->GetBufferPointer(), vs->GetBufferSize() };
-        psoDesc.PS = D3D12_SHADER_BYTECODE{ ps->GetBufferPointer(), ps->GetBufferSize() };
+        psoDesc.VS = D3D12_SHADER_BYTECODE{ g_SampleVS, sizeof(g_SampleVS) };
+        psoDesc.PS = D3D12_SHADER_BYTECODE{ g_SamplePS, sizeof(g_SamplePS) };
         psoDesc.RasterizerState = {};
         psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;

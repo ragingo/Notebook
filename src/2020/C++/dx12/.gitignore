@@ -1,7 +1,8 @@
 .vs
-Debug
-Release
-x64
+build/
+obj/
+dx12/shaders/gen/*
+!dx12/shaders/gen/.gitkeep
 
 *.filters
 *.user
