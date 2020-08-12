@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "framework.h"
-#include "resource.h"
+#include "Resource.h"
 #include "DxApp.h"
 
 #define MAX_LOADSTRING 100
@@ -88,16 +88,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
     {
         int wmId = LOWORD(wParam);
+#pragma warning (push)
+#pragma warning (disable: 4065)
         switch (wmId) {
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
+#pragma warning (pop)
     }
     break;
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
+        [[maybe_unused]] HDC hdc = BeginPaint(hWnd, &ps);
         EndPaint(hWnd, &ps);
     }
     break;

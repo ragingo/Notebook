@@ -89,11 +89,6 @@ namespace
 
     ComPtr<ID3D12PipelineState> CreatePipelineState(ID3D12Device* device, ID3D12RootSignature* rootSignature)
     {
-        UINT flags = 0;
-#ifdef _DEBUG
-        flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
-#endif // _DEBUG
-
         // Define the vertex input layout.
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
         {
@@ -172,9 +167,9 @@ void DxApp::Initialize(HWND hWnd, int width, int height)
 
 void DxApp::LoadPipeline()
 {
-    auto factory = std::move(CreateFactory());
-    auto adapter = std::move(GetHardwareAdapter(factory.Get()));
-    m_Device = std::move(CreateDevice(adapter.Get()));
+    auto factory = CreateFactory();
+    auto adapter = GetHardwareAdapter(factory.Get());
+    m_Device = CreateDevice(adapter.Get());
 
     // command queue
     {
@@ -216,7 +211,7 @@ void DxApp::LoadPipeline()
         for (UINT i = 0; i < FRAME_COUNT; i++) {
             m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_RenderTargets[i]));
             m_RtvHandles[i] = m_RtvHeap->GetCPUDescriptorHandleForHeapStart();
-            m_RtvHandles[i].ptr += rtvDescSize * i;
+            m_RtvHandles[i].ptr += static_cast<SIZE_T>(rtvDescSize) * i;
             m_Device->CreateRenderTargetView(m_RenderTargets[i].Get(), nullptr, m_RtvHandles[i]);
         }
     }
@@ -226,8 +221,8 @@ void DxApp::LoadPipeline()
 
 void DxApp::LoadAssets()
 {
-    m_RootSignature = std::move(CreateRootSignature(m_Device.Get()));
-    m_PipelineState = std::move(CreatePipelineState(m_Device.Get(), m_RootSignature.Get()));
+    m_RootSignature = CreateRootSignature(m_Device.Get());
+    m_PipelineState = CreatePipelineState(m_Device.Get(), m_RootSignature.Get());
 
     // command list
     m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_CommandList));
