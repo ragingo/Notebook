@@ -92,13 +92,30 @@ namespace
 
         if (IsRootSignatureVersionAvaiable(device, D3D_ROOT_SIGNATURE_VERSION_1_1))
         {
-            sigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+            D3D12_STATIC_SAMPLER_DESC sampler = {};
+            sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+            sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+            sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+            sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+            sampler.MipLODBias = 0;
+            sampler.MaxAnisotropy = 0;
+            sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+            sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+            sampler.MinLOD = 0.0f;
+            sampler.MaxLOD = D3D12_FLOAT32_MAX;
+            sampler.ShaderRegister = 0;
+            sampler.RegisterSpace = 0;
+            sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
             sigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+            sigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+            sigDesc.Desc_1_1.NumStaticSamplers = 1;
+            sigDesc.Desc_1_1.pStaticSamplers = &sampler;
         }
         else
         {
-            sigDesc.Desc_1_0.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
             sigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_0;
+            sigDesc.Desc_1_0.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
         }
 
         ComPtr<ID3DBlob> sig;
@@ -113,12 +130,34 @@ namespace
 
     ComPtr<ID3D12PipelineState> CreatePipelineState(ID3D12Device* device, ID3D12RootSignature* rootSignature)
     {
-        // Define the vertex input layout.
-        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-        {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-        };
+        D3D12_INPUT_ELEMENT_DESC pos = {};
+        pos.SemanticName = "POSITION";
+        pos.SemanticIndex = 0;
+        pos.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+        pos.InputSlot = 0;
+        pos.AlignedByteOffset = 0;
+        pos.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+        pos.InstanceDataStepRate = 0;
+
+        D3D12_INPUT_ELEMENT_DESC color = {};
+        color.SemanticName = "COLOR";
+        color.SemanticIndex = 0;
+        color.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        color.InputSlot = 0;
+        color.AlignedByteOffset = 12;
+        color.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+        color.InstanceDataStepRate = 0;
+
+        D3D12_INPUT_ELEMENT_DESC texcoord = {};
+        texcoord.SemanticName = "TEXCOORD";
+        texcoord.SemanticIndex = 0;
+        texcoord.Format = DXGI_FORMAT_R32G32_FLOAT;
+        texcoord.InputSlot = 0;
+        texcoord.AlignedByteOffset = 28;
+        texcoord.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+        texcoord.InstanceDataStepRate = 0;
+
+        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = { pos, color, texcoord };
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
@@ -240,6 +279,16 @@ void DxApp::LoadPipeline()
         }
     }
 
+    // shader resource view
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+        srvHeapDesc.NumDescriptors = 1;
+        srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+        m_Device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_SrvHeap));
+    }
+
     m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator));
 }
 
@@ -259,9 +308,9 @@ void DxApp::LoadAssets()
 
         Vertex triangleVertices[] =
         {
-            { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-            { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-            { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+            { {  0.0f,   0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, 0.0f } },
+            { {  0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
+            { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }
         };
 
         const UINT vertexBufferSize = sizeof(triangleVertices);
@@ -304,6 +353,11 @@ void DxApp::LoadAssets()
         m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
         m_VertexBufferView.StrideInBytes = sizeof(Vertex);
         m_VertexBufferView.SizeInBytes = vertexBufferSize;
+    }
+
+    // texture
+    {
+
     }
 
     // fence

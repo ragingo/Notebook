@@ -4,6 +4,7 @@ struct Vertex
 {
     DirectX::XMFLOAT3 position;
     DirectX::XMFLOAT4 color;
+    DirectX::XMFLOAT2 texcoord;
 };
 
 class DxApp
@@ -31,6 +32,7 @@ private:
     Microsoft::WRL::ComPtr<IDXGISwapChain3> m_SwapChain;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FRAME_COUNT];
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SrvHeap;
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
     Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
