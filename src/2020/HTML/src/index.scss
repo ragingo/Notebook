@@ -1,0 +1,61 @@
+.Base {
+  & {
+    width: 100%;
+    background-color: red;
+  }
+}
+
+.TopPage {
+  & {
+    display: flex;
+    flex-direction: column;
+    background-color: green;
+    max-width: 800px;
+  }
+
+  @media screen and (min-width: 500px) {
+    & {
+      margin-left: 50px;
+      margin-right: 0;
+    }
+  }
+
+  @media screen and (min-width: 700px) {
+    & {
+      margin-left: 50px;
+      margin-right: 50px;
+    }
+  }
+
+  @media screen and (min-width: 920px) {
+    & {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  * + * {
+    margin-top: 16px;
+  }
+
+  * {
+    width: auto;
+    background-color: blue;
+  }
+}
+
+.ContainerA {
+  height: 500px;
+}
+
+.ContainerB {
+  height: 200px;
+}
+
+.ContainerC {
+  height: 200px;
+}
+
+.ContainerD {
+  height: 200px;
+}
