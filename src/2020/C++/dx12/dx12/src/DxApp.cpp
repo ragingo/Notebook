@@ -73,15 +73,39 @@ namespace
         commandList->ResourceBarrier(1, &descBarrier);
     }
 
+    bool IsRootSignatureVersionAvaiable(ID3D12Device* device, D3D_ROOT_SIGNATURE_VERSION version)
+    {
+        D3D12_FEATURE_DATA_ROOT_SIGNATURE data = {};
+        data.HighestVersion = version;
+
+        if (SUCCEEDED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &data, sizeof(data))))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     ComPtr<ID3D12RootSignature> CreateRootSignature(ID3D12Device* device)
     {
-        D3D12_ROOT_SIGNATURE_DESC sigDesc = {};
-        sigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+        D3D12_VERSIONED_ROOT_SIGNATURE_DESC sigDesc = {};
 
-        ComPtr<ID3D12RootSignature> rootSignature;
+        if (IsRootSignatureVersionAvaiable(device, D3D_ROOT_SIGNATURE_VERSION_1_1))
+        {
+            sigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+            sigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+        }
+        else
+        {
+            sigDesc.Desc_1_0.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+            sigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_0;
+        }
+
         ComPtr<ID3DBlob> sig;
         ComPtr<ID3DBlob> error;
-        D3D12SerializeRootSignature(&sigDesc, D3D_ROOT_SIGNATURE_VERSION_1, &sig, &error);
+        D3D12SerializeVersionedRootSignature(&sigDesc, &sig, &error);
+
+        ComPtr<ID3D12RootSignature> rootSignature;
         device->CreateRootSignature(0, sig->GetBufferPointer(), sig->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 
         return rootSignature;
