@@ -17,6 +17,7 @@ public:
 private:
     void LoadPipeline();
     void LoadAssets();
+    void PopulateCommandList();
 
     static const int FRAME_COUNT = 2;
     int m_FenceValue = 0;
@@ -45,4 +46,5 @@ private:
     D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
     Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShader;
     Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShader;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_Texture;
 };
