@@ -2,6 +2,7 @@
 #include "DxApp.h"
 #include "../shaders/gen/SampleVS.h"
 #include "../shaders/gen/SamplePS.h"
+#include "Texture.h"
 
 using namespace std;
 using namespace DirectX;
@@ -442,98 +443,18 @@ void DxApp::LoadAssets()
 
     // texture
     {
-        D3D12_RESOURCE_DESC textureDesc = {};
-        textureDesc.MipLevels = 1;
-        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        textureDesc.Width = 256;
-        textureDesc.Height = 256;
-        textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-        textureDesc.DepthOrArraySize = 1;
-        textureDesc.SampleDesc.Count = 1;
-        textureDesc.SampleDesc.Quality = 0;
-        textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        auto data = GenerateTextureData(256, 256);
+        m_Texture = Texture::Create(m_Device.Get(), 256, 256, 32, DXGI_FORMAT_R8G8B8A8_UNORM);
+        m_Texture->Write(data);
 
-        {
-            D3D12_HEAP_PROPERTIES heapProps = {};
-            heapProps.Type = D3D12_HEAP_TYPE_CUSTOM;
-            heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-            heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-            heapProps.CreationNodeMask = 1;
-            heapProps.VisibleNodeMask = 1;
+        SetResourceBarrier(m_CommandList.Get(), m_Texture->Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-            m_Device->CreateCommittedResource(
-                &heapProps,
-                D3D12_HEAP_FLAG_NONE,
-                &textureDesc,
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                nullptr,
-                IID_PPV_ARGS(&m_Texture));
-
-            m_Texture->SetName(L"MainTexture");
-        }
-
-        UINT64 uploadBufferSize = 0;
-        D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-        m_Device->GetCopyableFootprints(&textureDesc, 0, 1, 0, &footprint, nullptr, nullptr, &uploadBufferSize);
-
-        ComPtr<ID3D12Resource> textureUploadHeap;
-
-        {
-            D3D12_HEAP_PROPERTIES heapProps = {};
-            heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-            heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-            heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-            heapProps.CreationNodeMask = 1;
-            heapProps.VisibleNodeMask = 1;
-
-            D3D12_RESOURCE_DESC resDesc = {};
-            resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            resDesc.Alignment = 0;
-            resDesc.Width = uploadBufferSize;
-            resDesc.Height = 1;
-            resDesc.DepthOrArraySize = 1;
-            resDesc.MipLevels = 1;
-            resDesc.Format = DXGI_FORMAT_UNKNOWN;
-            resDesc.SampleDesc.Count = 1;
-            resDesc.SampleDesc.Quality = 0;
-            resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-            m_Device->CreateCommittedResource(
-                &heapProps,
-                D3D12_HEAP_FLAG_NONE,
-                &resDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&textureUploadHeap));
-
-            textureUploadHeap->SetName(L"TextureUploadHeap");
-        }
-        {
-            auto tex = GenerateTextureData(256, 256);
-
-            {
-                // これがだめだから
-                //D3D12_SUBRESOURCE_DATA textureData = {};
-                //textureData.pData = &tex[0];
-                //textureData.RowPitch = 256 * 4;
-                //textureData.SlicePitch = textureData.RowPitch * 256;
-                //UpdateTexture(m_CommandList.Get(), m_Texture.Get(), textureUploadHeap.Get(), footprint, textureData, uploadBufferSize);
-
-                // これにした
-                D3D12_BOX box = { 0, 0, 0, 256, 256, 1 };
-                m_Texture->WriteToSubresource(0, &box, tex.data(), 256 * 4, 256 * 256 * 4);
-            }
-
-            SetResourceBarrier(m_CommandList.Get(), m_Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Format = textureDesc.Format;
-            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Texture2D.MipLevels = 1;
-            m_Device->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SrvHeap->GetCPUDescriptorHandleForHeapStart());
-        }
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Format = m_Texture->Get()->GetDesc().Format;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        m_Device->CreateShaderResourceView(m_Texture->Get(), &srvDesc, m_SrvHeap->GetCPUDescriptorHandleForHeapStart());
     }
 
     m_CommandList->Close();

@@ -7,6 +7,8 @@ struct Vertex
     DirectX::XMFLOAT2 texcoord;
 };
 
+class Texture;
+
 class DxApp
 {
 public:
@@ -46,5 +48,5 @@ private:
     D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
     Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShader;
     Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShader;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_Texture;
+    std::shared_ptr<Texture> m_Texture;
 };
