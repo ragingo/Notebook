@@ -12,12 +12,12 @@ class DxApp
 public:
     void Initialize(HWND hWnd, int width, int height);
     void Render();
-    void WaitForPreviousFrame();
 
 private:
     void LoadPipeline();
     void LoadAssets();
     void PopulateCommandList();
+    void WaitForPreviousFrame();
 
     static const int FRAME_COUNT = 2;
     int m_FenceValue = 0;

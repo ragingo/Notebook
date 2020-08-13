@@ -232,19 +232,19 @@ namespace
         uint8_t* pData = &data[0];
 
         for (uint32_t n = 0; n < textureSize; n += 4) {
-            uint8_t x = n % rowPitch;
-            uint8_t y = n / rowPitch;
-            uint8_t i = x / cellPitch;
-            uint8_t j = y / cellHeight;
+            uint8_t x = static_cast<uint8_t>(n % rowPitch);
+            uint8_t y = static_cast<uint8_t>(n / rowPitch);
+            uint8_t i = static_cast<uint8_t>(x / cellPitch);
+            uint8_t j = static_cast<uint8_t>(y / cellHeight);
 
             if (i % 2 == j % 2) {
-                pData[n] = 0x00;     // R
+                pData[n + 0] = 0x00; // R
                 pData[n + 1] = 0x00; // G
                 pData[n + 2] = 0x00; // B
                 pData[n + 3] = 0xff; // A
             }
             else {
-                pData[n] = 0xff;     // R
+                pData[n + 0] = 0xff; // R
                 pData[n + 1] = 0xff; // G
                 pData[n + 2] = 0xff; // B
                 pData[n + 3] = 0xff; // A
@@ -254,7 +254,14 @@ namespace
         return data;
     }
 
-    void UpdateTexture(ID3D12GraphicsCommandList* commandList, ID3D12Resource* destination, ID3D12Resource* intermediate, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint, const D3D12_SUBRESOURCE_DATA& srcData, uint64_t dataSize)
+    [[maybe_unused]] void UpdateTexture(
+        ID3D12GraphicsCommandList* commandList,
+        ID3D12Resource* destination,
+        ID3D12Resource* intermediate,
+        const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint,
+        const D3D12_SUBRESOURCE_DATA& srcData,
+        size_t dataSize
+    )
     {
         auto intermediateDesc = intermediate->GetDesc();
         if (intermediateDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER) {

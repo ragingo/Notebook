@@ -3,29 +3,28 @@
 #include "Resource.h"
 #include "DxApp.h"
 
-#define MAX_LOADSTRING 100
-
-// グローバル変数
-WCHAR szTitle[MAX_LOADSTRING];       // タイトル バーのテキスト
-WCHAR szWindowClass[MAX_LOADSTRING]; // メイン ウィンドウ クラス名
-HWND g_hWnd = nullptr;
-
-ATOM MyRegisterClass(HINSTANCE hInstance);
-BOOL InitInstance(HINSTANCE, int);
+ATOM MyRegisterClass(HINSTANCE hInstance, LPCWSTR);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int nCmdShow)
 {
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_DX12, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+    WCHAR title[100] = {};
+    WCHAR windowClassName[100] = {};
 
-    if (!InitInstance(hInstance, nCmdShow)) {
+    LoadStringW(hInstance, IDS_APP_TITLE, title, _countof(title));
+    LoadStringW(hInstance, IDC_DX12, windowClassName, _countof(windowClassName));
+    MyRegisterClass(hInstance, windowClassName);
+
+    HWND hWnd = CreateWindowW(windowClassName, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    if (!hWnd) {
         return FALSE;
     }
 
-    RECT rect;
-    if (!GetWindowRect(g_hWnd, &rect)) {
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
+
+    RECT rect = {};
+    if (!GetWindowRect(hWnd, &rect)) {
         return FALSE;
     }
 
@@ -33,22 +32,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
     int height = rect.bottom - rect.top;
 
     DxApp dxApp;
-    dxApp.Initialize(g_hWnd, width, height);
+    dxApp.Initialize(hWnd, width, height);
 
-    MSG msg;
+    MSG msg = {};
 
-    // メイン メッセージ ループ:
     while (GetMessage(&msg, nullptr, 0, 0) > 0) {
         DispatchMessage(&msg);
         dxApp.Render();
     }
 
-    return (int)msg.wParam;
+    return static_cast<int>(msg.wParam);
 }
 
-ATOM MyRegisterClass(HINSTANCE hInstance)
+ATOM MyRegisterClass(HINSTANCE hInstance, LPCWSTR windowClassName)
 {
-    WNDCLASSEXW wcex;
+    WNDCLASSEXW wcex = {};
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = WndProc;
@@ -59,27 +57,10 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_DX12);
-    wcex.lpszClassName = szWindowClass;
+    wcex.lpszClassName = windowClassName;
     wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
     return RegisterClassExW(&wcex);
-}
-
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
-
-    if (!hWnd) {
-        return FALSE;
-    }
-
-    g_hWnd = hWnd;
-
-    ShowWindow(hWnd, nCmdShow);
-    UpdateWindow(hWnd);
-
-    return TRUE;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
