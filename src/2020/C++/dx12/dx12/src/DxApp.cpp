@@ -9,10 +9,10 @@ using namespace Microsoft::WRL;
 
 namespace
 {
-    ComPtr<IDXGIFactory4> CreateFactory()
+    ComPtr<IDXGIFactory7> CreateFactory()
     {
         HRESULT hr;
-        ComPtr<IDXGIFactory4> factory;
+        ComPtr<IDXGIFactory7> factory;
 
         UINT flags = 0;
 #ifdef _DEBUG
@@ -22,6 +22,7 @@ namespace
             if (SUCCEEDED(hr)) {
                 debug->EnableDebugLayer();
                 flags |= DXGI_CREATE_FACTORY_DEBUG;
+                debug->Release();
             }
         }
 #endif
@@ -33,7 +34,7 @@ namespace
         return factory;
     }
 
-    ComPtr<IDXGIAdapter1> GetHardwareAdapter(IDXGIFactory2* factory)
+    ComPtr<IDXGIAdapter1> GetHardwareAdapter(IDXGIFactory7* factory)
     {
         ComPtr<IDXGIAdapter1> adapter;
 
@@ -570,14 +571,9 @@ void DxApp::PopulateCommandList()
     m_CommandList->SetDescriptorHeaps(_countof(heaps), heaps);
     m_CommandList->SetGraphicsRootDescriptorTable(0, m_SrvHeap->GetGPUDescriptorHandleForHeapStart());
 
-    m_CommandList->RSSetViewports(1, &m_ViewPort);
-    m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
-
     UINT frameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
     SetResourceBarrier(m_CommandList.Get(), m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-    m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
 
     {
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
@@ -586,6 +582,9 @@ void DxApp::PopulateCommandList()
 
     m_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     m_CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
+    m_CommandList->RSSetViewports(1, &m_ViewPort);
+    m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
+    m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
     m_CommandList->DrawInstanced(3, 1, 0, 0);
 
     SetResourceBarrier(m_CommandList.Get(), m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

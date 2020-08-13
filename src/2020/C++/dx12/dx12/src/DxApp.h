@@ -30,7 +30,7 @@ private:
     D3D12_RECT m_ScissorRect = {};
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_CommandQueue;
-    Microsoft::WRL::ComPtr<IDXGISwapChain3> m_SwapChain;
+    Microsoft::WRL::ComPtr<IDXGISwapChain4> m_SwapChain;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FRAME_COUNT];
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SrvHeap;
