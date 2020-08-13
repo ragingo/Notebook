@@ -80,8 +80,7 @@ namespace
         D3D12_FEATURE_DATA_ROOT_SIGNATURE data = {};
         data.HighestVersion = version;
 
-        if (SUCCEEDED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &data, sizeof(data))))
-        {
+        if (SUCCEEDED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &data, sizeof(data)))) {
             return true;
         }
 
@@ -92,8 +91,7 @@ namespace
     {
         D3D12_VERSIONED_ROOT_SIGNATURE_DESC sigDesc = {};
 
-        if (IsRootSignatureVersionAvaiable(device, D3D_ROOT_SIGNATURE_VERSION_1_1))
-        {
+        if (IsRootSignatureVersionAvaiable(device, D3D_ROOT_SIGNATURE_VERSION_1_1)) {
             D3D12_DESCRIPTOR_RANGE1 range = {};
             range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
             range.NumDescriptors = 1;
@@ -130,8 +128,7 @@ namespace
             sigDesc.Desc_1_1.NumParameters = 1;
             sigDesc.Desc_1_1.pParameters = &rootParam;
         }
-        else
-        {
+        else {
             sigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_0;
             sigDesc.Desc_1_0.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
         }
@@ -198,6 +195,7 @@ namespace
         psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
         psoDesc.BlendState.IndependentBlendEnable = FALSE;
         {
+            // clang-format off
             const D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc = {
                 FALSE, FALSE,
                 D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
@@ -240,16 +238,16 @@ namespace
             uint8_t j = y / cellHeight;
 
             if (i % 2 == j % 2) {
-                pData[n] = 0x00;        // R
-                pData[n + 1] = 0x00;    // G
-                pData[n + 2] = 0x00;    // B
-                pData[n + 3] = 0xff;    // A
+                pData[n] = 0x00;     // R
+                pData[n + 1] = 0x00; // G
+                pData[n + 2] = 0x00; // B
+                pData[n + 3] = 0xff; // A
             }
             else {
-                pData[n] = 0xff;        // R
-                pData[n + 1] = 0xff;    // G
-                pData[n + 2] = 0xff;    // B
-                pData[n + 3] = 0xff;    // A
+                pData[n] = 0xff;     // R
+                pData[n + 1] = 0xff; // G
+                pData[n + 2] = 0xff; // B
+                pData[n + 3] = 0xff; // A
             }
         }
 
@@ -259,14 +257,12 @@ namespace
     void UpdateTexture(ID3D12GraphicsCommandList* commandList, ID3D12Resource* destination, ID3D12Resource* intermediate, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint, const D3D12_SUBRESOURCE_DATA& srcData, uint64_t dataSize)
     {
         auto intermediateDesc = intermediate->GetDesc();
-        if (intermediateDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER)
-        {
+        if (intermediateDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER) {
             return;
         }
 
         auto destinationDesc = destination->GetDesc();
-        if (destinationDesc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D)
-        {
+        if (destinationDesc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D) {
             return;
         }
 
@@ -388,8 +384,8 @@ void DxApp::LoadAssets()
     {
         float aspectRatio = 9.0 / 16.0;
 
-        Vertex triangleVertices[] =
-        {
+        // clang-format off
+        Vertex triangleVertices[] = {
             { {  0.0f,   0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, 0.0f } },
             { {  0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
             { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }
@@ -423,8 +419,7 @@ void DxApp::LoadAssets()
             &resDesc,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
-            IID_PPV_ARGS(&m_VertexBuffer)
-        );
+            IID_PPV_ARGS(&m_VertexBuffer));
 
         UINT8* pVertexDataBegin;
         D3D12_RANGE readRange = {};
@@ -464,8 +459,7 @@ void DxApp::LoadAssets()
                 &textureDesc,
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 nullptr,
-                IID_PPV_ARGS(&m_Texture)
-            );
+                IID_PPV_ARGS(&m_Texture));
 
             m_Texture->SetName(L"MainTexture");
         }
@@ -503,8 +497,7 @@ void DxApp::LoadAssets()
                 &resDesc,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
-                IID_PPV_ARGS(&textureUploadHeap)
-            );
+                IID_PPV_ARGS(&textureUploadHeap));
 
             textureUploadHeap->SetName(L"TextureUploadHeap");
         }

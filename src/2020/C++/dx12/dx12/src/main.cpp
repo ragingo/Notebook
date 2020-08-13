@@ -10,9 +10,9 @@ WCHAR szTitle[MAX_LOADSTRING];       // タイトル バーのテキスト
 WCHAR szWindowClass[MAX_LOADSTRING]; // メイン ウィンドウ クラス名
 HWND g_hWnd = nullptr;
 
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+ATOM MyRegisterClass(HINSTANCE hInstance);
+BOOL InitInstance(HINSTANCE, int);
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int nCmdShow)
 {
@@ -85,25 +85,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
-    case WM_COMMAND:
-    {
+    case WM_COMMAND: {
         int wmId = LOWORD(wParam);
-#pragma warning (push)
-#pragma warning (disable: 4065)
+#pragma warning(push)
+#pragma warning(disable : 4065)
         switch (wmId) {
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
-#pragma warning (pop)
-    }
-    break;
-    case WM_PAINT:
-    {
+#pragma warning(pop)
+    } break;
+    case WM_PAINT: {
         PAINTSTRUCT ps;
         [[maybe_unused]] HDC hdc = BeginPaint(hWnd, &ps);
         EndPaint(hWnd, &ps);
-    }
-    break;
+    } break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
