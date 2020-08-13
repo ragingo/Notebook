@@ -293,6 +293,48 @@ namespace
         commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
     }
 
+    ComPtr<ID3D12Resource> CreateVertexBuffer(ID3D12Device* device, vector<Vertex> vertices)
+    {
+        const UINT vertexBufferSize = sizeof(Vertex) * vertices.size();
+
+        D3D12_HEAP_PROPERTIES heapProps = {};
+        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heapProps.CreationNodeMask = 1;
+        heapProps.VisibleNodeMask = 1;
+
+        D3D12_RESOURCE_DESC resDesc = {};
+        resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        resDesc.Alignment = 0;
+        resDesc.Width = vertexBufferSize;
+        resDesc.Height = 1;
+        resDesc.DepthOrArraySize = 1;
+        resDesc.MipLevels = 1;
+        resDesc.Format = DXGI_FORMAT_UNKNOWN;
+        resDesc.SampleDesc.Count = 1;
+        resDesc.SampleDesc.Quality = 0;
+        resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        ComPtr<ID3D12Resource> vertexBuffer;
+        device->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &resDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&vertexBuffer));
+
+        UINT8* pVertexDataBegin;
+        D3D12_RANGE readRange = {};
+        vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
+        memcpy(pVertexDataBegin, vertices.data(), vertexBufferSize);
+        vertexBuffer->Unmap(0, nullptr);
+
+        return vertexBuffer;
+    }
+
 }
 
 void DxApp::Initialize(HWND hWnd, int width, int height)
@@ -389,56 +431,19 @@ void DxApp::LoadAssets()
     // command list
     m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), m_PipelineState.Get(), IID_PPV_ARGS(&m_CommandList));
 
-    // vertex buffer
     {
         float aspectRatio = 9.0 / 16.0;
 
         // clang-format off
-        Vertex triangleVertices[] = {
-            { {  0.0f,   0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, 0.0f } },
-            { {  0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } },
-            { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } }
-        };
-
-        const UINT vertexBufferSize = sizeof(triangleVertices);
-
-        D3D12_HEAP_PROPERTIES heapProps = {};
-        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        heapProps.CreationNodeMask = 1;
-        heapProps.VisibleNodeMask = 1;
-
-        D3D12_RESOURCE_DESC resDesc = {};
-        resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        resDesc.Alignment = 0;
-        resDesc.Width = vertexBufferSize;
-        resDesc.Height = 1;
-        resDesc.DepthOrArraySize = 1;
-        resDesc.MipLevels = 1;
-        resDesc.Format = DXGI_FORMAT_UNKNOWN;
-        resDesc.SampleDesc.Count = 1;
-        resDesc.SampleDesc.Quality = 0;
-        resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-        m_Device->CreateCommittedResource(
-            &heapProps,
-            D3D12_HEAP_FLAG_NONE,
-            &resDesc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&m_VertexBuffer));
-
-        UINT8* pVertexDataBegin;
-        D3D12_RANGE readRange = {};
-        m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
-        memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-        m_VertexBuffer->Unmap(0, nullptr);
+        vector<Vertex> data;
+        data.emplace_back(Vertex { {  0.0f,   0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, 0.0f } });
+        data.emplace_back(Vertex { {  0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } });
+        data.emplace_back(Vertex { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } });
+        m_VertexBuffer = CreateVertexBuffer(m_Device.Get(), data);
 
         m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
         m_VertexBufferView.StrideInBytes = sizeof(Vertex);
-        m_VertexBufferView.SizeInBytes = vertexBufferSize;
+        m_VertexBufferView.SizeInBytes = sizeof(Vertex) * data.size();
     }
 
     // texture
