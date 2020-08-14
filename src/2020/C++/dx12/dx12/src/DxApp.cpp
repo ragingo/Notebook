@@ -223,39 +223,6 @@ namespace
         return pipelineState;
     }
 
-    vector<uint8_t> GenerateTextureData(int width, int height)
-    {
-        const uint32_t rowPitch = width * 4;
-        const uint32_t cellPitch = rowPitch >> 3;
-        const uint32_t cellHeight = width >> 3;
-        const uint32_t textureSize = rowPitch * height;
-
-        vector<uint8_t> data(textureSize);
-        uint8_t* pData = &data[0];
-
-        for (uint32_t n = 0; n < textureSize; n += 4) {
-            uint8_t x = static_cast<uint8_t>(n % rowPitch);
-            uint8_t y = static_cast<uint8_t>(n / rowPitch);
-            uint8_t i = static_cast<uint8_t>(x / cellPitch);
-            uint8_t j = static_cast<uint8_t>(y / cellHeight);
-
-            if (i % 2 == j % 2) {
-                pData[n + 0] = 0x00; // R
-                pData[n + 1] = 0x00; // G
-                pData[n + 2] = 0x00; // B
-                pData[n + 3] = 0xff; // A
-            }
-            else {
-                pData[n + 0] = 0xff; // R
-                pData[n + 1] = 0xff; // G
-                pData[n + 2] = 0xff; // B
-                pData[n + 3] = 0xff; // A
-            }
-        }
-
-        return data;
-    }
-
     [[maybe_unused]] void UpdateTexture(
         ID3D12GraphicsCommandList* commandList,
         ID3D12Resource* destination,
@@ -333,6 +300,45 @@ namespace
         vertexBuffer->Unmap(0, nullptr);
 
         return vertexBuffer;
+    }
+
+    shared_ptr<Texture> LoadTextureFromFile(ID3D12Device* device, string path)
+    {
+        vector<uint8_t> img;
+        fstream fs(path, ios_base::in | ios_base::binary);
+        if(!fs){
+            return nullptr;
+        }
+
+        vector<uint8_t> x;
+        x.resize(4);
+        fs.read(reinterpret_cast<char*>(x.data()), x.size());
+        if (!(x[0] == (int)'B' && x[1] == (int)'M')) {
+            return nullptr;
+        }
+
+        fs.seekg(0, ios_base::beg);
+
+        BITMAPFILEHEADER fileHeader = {};
+        fs.read(reinterpret_cast<char*>(&fileHeader), sizeof(BITMAPFILEHEADER));
+
+        BITMAPINFOHEADER infoHeader = {};
+        fs.read(reinterpret_cast<char*>(&infoHeader), sizeof(BITMAPINFOHEADER));
+
+        int w = infoHeader.biWidth;
+        int h = infoHeader.biHeight;
+        int d = infoHeader.biBitCount;
+        int size = w * h * (d/8);
+
+        img.resize(size);
+        fs.seekg(fileHeader.bfOffBits, ios_base::beg);
+        fs.read(reinterpret_cast<char*>(img.data()), img.size());
+        fs.close();
+
+        auto tex = Texture::Create(device, w, h, d, DXGI_FORMAT_B8G8R8A8_UNORM);
+        tex->Write(img);
+
+        return tex;
     }
 
 }
@@ -448,9 +454,7 @@ void DxApp::LoadAssets()
 
     // texture
     {
-        auto data = GenerateTextureData(256, 256);
-        m_Texture = Texture::Create(m_Device.Get(), 256, 256, 32, DXGI_FORMAT_R8G8B8A8_UNORM);
-        m_Texture->Write(data);
+        m_Texture = LoadTextureFromFile(m_Device.Get(), "./assets/cat_256x256_32bit.bmp");
 
         SetResourceBarrier(m_CommandList.Get(), m_Texture->Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 

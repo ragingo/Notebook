@@ -3,7 +3,10 @@
 #include "framework.h"
 
 #include <cinttypes>
+#include <iostream>
+#include <fstream>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <wrl.h>
