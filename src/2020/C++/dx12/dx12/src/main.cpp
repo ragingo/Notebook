@@ -6,6 +6,8 @@
 ATOM MyRegisterClass(HINSTANCE hInstance, LPCWSTR);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
+DxApp g_DxApp;
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int nCmdShow)
 {
     WCHAR title[100] = {};
@@ -31,15 +33,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
     int width = rect.right - rect.left;
     int height = rect.bottom - rect.top;
 
-    DxApp dxApp;
-    dxApp.Initialize(hWnd, width, height);
+    g_DxApp.Initialize(hWnd, width, height);
 
     MSG msg = {};
 
-    while (GetMessage(&msg, nullptr, 0, 0) > 0) {
-        DispatchMessage(&msg);
-        dxApp.Render();
+    while (msg.message != WM_QUIT) {
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
     }
+
+    g_DxApp.Destroy();
 
     return static_cast<int>(msg.wParam);
 }
@@ -77,9 +82,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #pragma warning(pop)
     } break;
     case WM_PAINT: {
-        PAINTSTRUCT ps;
-        [[maybe_unused]] HDC hdc = BeginPaint(hWnd, &ps);
-        EndPaint(hWnd, &ps);
+        g_DxApp.Render();
     } break;
     case WM_DESTROY:
         PostQuitMessage(0);

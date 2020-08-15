@@ -7,6 +7,13 @@ struct Vertex
     DirectX::XMFLOAT2 texcoord;
 };
 
+struct ConstantBuffer
+{
+    DirectX::XMFLOAT4 offset;
+    float padding[60];
+};
+static_assert((sizeof(ConstantBuffer) % 256) == 0, "Constant Buffer size must be 256-byte aligned");
+
 class Texture;
 
 class DxApp
@@ -14,6 +21,7 @@ class DxApp
 public:
     void Initialize(HWND hWnd, int width, int height);
     void Render();
+    void Destroy();
 
 private:
     void LoadPipeline();
@@ -22,6 +30,7 @@ private:
     void WaitForPreviousFrame();
 
     static const int FRAME_COUNT = 2;
+    bool m_Initialized = false;
     int m_FenceValue = 0;
     int m_Width = 0;
     int m_Height = 0;
@@ -33,9 +42,9 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_CommandQueue;
     Microsoft::WRL::ComPtr<IDXGISwapChain4> m_SwapChain;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FRAME_COUNT];
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FRAME_COUNT] = {};
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SrvHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_BasicHeap;
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
     Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
@@ -48,5 +57,7 @@ private:
     D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
     Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShader;
     Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShader;
+    ConstantBuffer m_ConstantBufferData = {};
+    UINT8* m_pCbvDataBegin = nullptr;
     std::shared_ptr<Texture> m_Texture;
 };

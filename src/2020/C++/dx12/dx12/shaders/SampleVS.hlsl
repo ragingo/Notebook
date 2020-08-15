@@ -1,3 +1,9 @@
+cbuffer ConstantBuffer : register(b0)
+{
+    float4 offset;
+    float4 padding[15];
+};
+
 struct PSInput
 {
     float4 position : SV_POSITION;
@@ -9,7 +15,7 @@ PSInput main(float4 position : POSITION, float4 color : COLOR, float2 uv : TEXCO
 {
     PSInput result;
 
-    result.position = position;
+    result.position = position + offset;
     result.color = color;
     result.uv = uv;
 
