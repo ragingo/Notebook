@@ -179,23 +179,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\DxApp.h" />
+    <ClInclude Include="src\CDxApp.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\targetver.h" />
-    <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\CTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\DxApp.cpp" />
+    <ClCompile Include="src\CDxApp.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\CTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\dx12.rc" />

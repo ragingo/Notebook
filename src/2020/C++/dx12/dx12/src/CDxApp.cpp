@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
-#include "DxApp.h"
+#include "CDxApp.h"
+#include "CTexture.h"
 #include "../shaders/gen/SampleVS.h"
 #include "../shaders/gen/SamplePS.h"
-#include "Texture.h"
 
 using namespace std;
 using namespace DirectX;
@@ -287,7 +287,7 @@ namespace
 
     ComPtr<ID3D12Resource> CreateVertexBuffer(ID3D12Device* device, vector<Vertex> vertices)
     {
-        const UINT vertexBufferSize = sizeof(Vertex) * vertices.size();
+        const size_t vertexBufferSize = sizeof(Vertex) * vertices.size();
 
         D3D12_HEAP_PROPERTIES heapProps = {};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -318,10 +318,9 @@ namespace
             nullptr,
             IID_PPV_ARGS(&vertexBuffer));
 
-        UINT8* pVertexDataBegin;
-        D3D12_RANGE readRange = {};
-        vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
-        memcpy(pVertexDataBegin, vertices.data(), vertexBufferSize);
+        Vertex* dataBegin;
+        vertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dataBegin));
+        memcpy(dataBegin, vertices.data(), vertexBufferSize);
         vertexBuffer->Unmap(0, nullptr);
 
         return vertexBuffer;
@@ -363,63 +362,6 @@ namespace
         return constantBuffer;
     }
 
-    struct ImageData
-    {
-        int width;
-        int height;
-        int depth;
-        vector<uint8_t> data;
-    };
-
-    ImageData LoadBitmapFromFile(string path)
-    {
-        ImageData img = {};
-        fstream fs(path, ios_base::in | ios_base::binary);
-        if(!fs){
-            return {};
-        }
-
-        vector<uint8_t> x;
-        x.resize(4);
-        fs.read(reinterpret_cast<char*>(x.data()), x.size());
-        if (!(x[0] == (int)'B' && x[1] == (int)'M')) {
-            return {};
-        }
-
-        fs.seekg(0, ios_base::beg);
-
-        BITMAPFILEHEADER fileHeader = {};
-        fs.read(reinterpret_cast<char*>(&fileHeader), sizeof(BITMAPFILEHEADER));
-
-        BITMAPINFOHEADER infoHeader = {};
-        fs.read(reinterpret_cast<char*>(&infoHeader), sizeof(BITMAPINFOHEADER));
-
-        img.width = infoHeader.biWidth;
-        img.height = infoHeader.biHeight;
-        img.depth = infoHeader.biBitCount;
-        int size = img.width * img.height * (img.depth / 8);
-
-        img.data.resize(size);
-        fs.seekg(fileHeader.bfOffBits, ios_base::beg);
-        fs.read(reinterpret_cast<char*>(img.data.data()), img.data.size());
-        fs.close();
-
-        return img;
-    }
-
-    shared_ptr<Texture> LoadTextureFromFile(ID3D12Device* device, string path)
-    {
-        auto img = LoadBitmapFromFile(path);
-        if (img.data.empty()) {
-            return nullptr;
-        }
-
-        auto tex = Texture::Create(device, img.width, img.height, img.depth, DXGI_FORMAT_B8G8R8A8_UNORM);
-        tex->Write(img.data);
-
-        return tex;
-    }
-
     // clang-format off
     vector<Vertex> CreateSquareVertices()
     {
@@ -435,7 +377,7 @@ namespace
     }
 }
 
-void DxApp::Initialize(HWND hWnd, int width, int height)
+void CDxApp::Initialize(HWND hWnd, int width, int height)
 {
     m_Hwnd = hWnd;
     m_Width = width;
@@ -459,7 +401,7 @@ void DxApp::Initialize(HWND hWnd, int width, int height)
     m_Initialized = true;
 }
 
-void DxApp::LoadPipeline()
+void CDxApp::LoadPipeline()
 {
     auto factory = CreateFactory();
     auto adapter = GetHardwareAdapter(factory.Get());
@@ -523,7 +465,7 @@ void DxApp::LoadPipeline()
     m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator));
 }
 
-void DxApp::LoadAssets()
+void CDxApp::LoadAssets()
 {
     m_RootSignature = CreateRootSignature(m_Device.Get());
     m_PipelineState = CreatePipelineState(m_Device.Get(), m_RootSignature.Get());
@@ -567,9 +509,8 @@ void DxApp::LoadAssets()
         cbvDesc.SizeInBytes = sizeof(m_ConstantBufferData);
         m_Device->CreateConstantBufferView(&cbvDesc, handle);
 
-        D3D12_RANGE readRange = {};
-        m_ConstantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_pCbvDataBegin));
-        memcpy(m_pCbvDataBegin, &m_ConstantBufferData, sizeof(m_ConstantBufferData));
+        m_ConstantBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m_pCbvDataBegin));
+        *m_pCbvDataBegin = m_ConstantBufferData;
     }
 
     m_CommandList->Close();
@@ -585,7 +526,7 @@ void DxApp::LoadAssets()
     WaitForPreviousFrame();
 }
 
-void DxApp::Render()
+void CDxApp::Render()
 {
     if (!m_Initialized) {
         return;
@@ -599,19 +540,19 @@ void DxApp::Render()
     {
         m_ConstantBufferData.offset.x = -offsetBounds;
     }
-    memcpy(m_pCbvDataBegin, &m_ConstantBufferData, sizeof(m_ConstantBufferData));
+    *m_pCbvDataBegin = m_ConstantBufferData;
 
     PopulateCommandList();
 
-    ID3D12CommandList* ppCommandLists[] = { m_CommandList.Get() };
-    m_CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    ID3D12CommandList* commandLists[] = { m_CommandList.Get() };
+    m_CommandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
 
     m_SwapChain->Present(1, 0);
 
     WaitForPreviousFrame();
 }
 
-void DxApp::PopulateCommandList()
+void CDxApp::PopulateCommandList()
 {
     m_CommandAllocator->Reset();
     m_CommandList->Reset(m_CommandAllocator.Get(), m_PipelineState.Get());
@@ -646,7 +587,7 @@ void DxApp::PopulateCommandList()
     m_CommandList->Close();
 }
 
-void DxApp::WaitForPreviousFrame()
+void CDxApp::WaitForPreviousFrame()
 {
     const UINT64 fence = m_FenceValue;
     m_CommandQueue->Signal(m_Fence.Get(), fence);
@@ -658,7 +599,7 @@ void DxApp::WaitForPreviousFrame()
     }
 }
 
-void DxApp::Destroy()
+void CDxApp::Destroy()
 {
     if (!m_Initialized) {
         return;

@@ -14,9 +14,9 @@ struct ConstantBuffer
 };
 static_assert((sizeof(ConstantBuffer) % 256) == 0, "Constant Buffer size must be 256-byte aligned");
 
-class Texture;
+class CTexture;
 
-class DxApp
+class CDxApp
 {
 public:
     void Initialize(HWND hWnd, int width, int height);
@@ -58,6 +58,6 @@ private:
     Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShader;
     Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShader;
     ConstantBuffer m_ConstantBufferData = {};
-    UINT8* m_pCbvDataBegin = nullptr;
-    std::shared_ptr<Texture> m_Texture;
+    ConstantBuffer* m_pCbvDataBegin = nullptr;
+    std::shared_ptr<CTexture> m_Texture;
 };

@@ -1,12 +1,12 @@
 ﻿#include "pch.h"
 #include "framework.h"
 #include "Resource.h"
-#include "DxApp.h"
+#include "CDxApp.h"
 
 ATOM MyRegisterClass(HINSTANCE hInstance, LPCWSTR);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-DxApp g_DxApp;
+CDxApp g_DxApp;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int nCmdShow)
 {
