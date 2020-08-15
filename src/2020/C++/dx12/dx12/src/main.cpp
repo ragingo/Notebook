@@ -1,7 +1,5 @@
-﻿#include "pch.h"
-#include "framework.h"
-#include "Resource.h"
-#include "CDxApp.h"
+﻿#include "Resource.h"
+#include "./graphics/CDxApp.h"
 
 ATOM MyRegisterClass(HINSTANCE hInstance, LPCWSTR);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);

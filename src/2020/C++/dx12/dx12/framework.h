@@ -1,6 +1,13 @@
 ﻿#pragma once
 
-#include "framework.h"
+#include "targetver.h"
+#define WIN32_LEAN_AND_MEAN             // Windows ヘッダーからほとんど使用されていない部分を除外する
+#include <windows.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <memory.h>
+#include <tchar.h>
+
 
 #include <cinttypes>
 #include <iostream>

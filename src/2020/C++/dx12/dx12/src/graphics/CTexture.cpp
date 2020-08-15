@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "CTexture.h"
 
 using namespace std;

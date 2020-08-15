@@ -1,8 +1,7 @@
-﻿#include "pch.h"
-#include "CDxApp.h"
+﻿#include "CDxApp.h"
 #include "CTexture.h"
-#include "../shaders/gen/SampleVS.h"
-#include "../shaders/gen/SamplePS.h"
+#include "../../shaders/gen/SampleVS.h"
+#include "../../shaders/gen/SamplePS.h"
 
 using namespace std;
 using namespace DirectX;
@@ -480,7 +479,7 @@ void CDxApp::LoadAssets()
 
         m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
         m_VertexBufferView.StrideInBytes = sizeof(Vertex);
-        m_VertexBufferView.SizeInBytes = sizeof(Vertex) * vertices.size();
+        m_VertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(Vertex) * vertices.size());
     }
 
     // texture
