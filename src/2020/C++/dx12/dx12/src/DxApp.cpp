@@ -302,19 +302,27 @@ namespace
         return vertexBuffer;
     }
 
-    shared_ptr<Texture> LoadTextureFromFile(ID3D12Device* device, string path)
+    struct ImageData
     {
-        vector<uint8_t> img;
+        int width;
+        int height;
+        int depth;
+        vector<uint8_t> data;
+    };
+
+    ImageData LoadBitmapFromFile(string path)
+    {
+        ImageData img = {};
         fstream fs(path, ios_base::in | ios_base::binary);
         if(!fs){
-            return nullptr;
+            return {};
         }
 
         vector<uint8_t> x;
         x.resize(4);
         fs.read(reinterpret_cast<char*>(x.data()), x.size());
         if (!(x[0] == (int)'B' && x[1] == (int)'M')) {
-            return nullptr;
+            return {};
         }
 
         fs.seekg(0, ios_base::beg);
@@ -325,22 +333,45 @@ namespace
         BITMAPINFOHEADER infoHeader = {};
         fs.read(reinterpret_cast<char*>(&infoHeader), sizeof(BITMAPINFOHEADER));
 
-        int w = infoHeader.biWidth;
-        int h = infoHeader.biHeight;
-        int d = infoHeader.biBitCount;
-        int size = w * h * (d/8);
+        img.width = infoHeader.biWidth;
+        img.height = infoHeader.biHeight;
+        img.depth = infoHeader.biBitCount;
+        int size = img.width * img.height * (img.depth / 8);
 
-        img.resize(size);
+        img.data.resize(size);
         fs.seekg(fileHeader.bfOffBits, ios_base::beg);
-        fs.read(reinterpret_cast<char*>(img.data()), img.size());
+        fs.read(reinterpret_cast<char*>(img.data.data()), img.data.size());
         fs.close();
 
-        auto tex = Texture::Create(device, w, h, d, DXGI_FORMAT_B8G8R8A8_UNORM);
-        tex->Write(img);
+        return img;
+    }
+
+    shared_ptr<Texture> LoadTextureFromFile(ID3D12Device* device, string path)
+    {
+        auto img = LoadBitmapFromFile(path);
+        if (img.data.empty()) {
+            return nullptr;
+        }
+
+        auto tex = Texture::Create(device, img.width, img.height, img.depth, DXGI_FORMAT_B8G8R8A8_UNORM);
+        tex->Write(img.data);
 
         return tex;
     }
 
+    // clang-format off
+    vector<Vertex> CreateSquareVertices()
+    {
+        vector<Vertex> data;
+        data.emplace_back(Vertex { { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } });
+        data.emplace_back(Vertex { {  1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } });
+        data.emplace_back(Vertex { { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } });
+
+        data.emplace_back(Vertex { { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } });
+        data.emplace_back(Vertex { {  1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } });
+        data.emplace_back(Vertex { {  1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } });
+        return data;
+    }
 }
 
 void DxApp::Initialize(HWND hWnd, int width, int height)
@@ -438,18 +469,12 @@ void DxApp::LoadAssets()
     m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), m_PipelineState.Get(), IID_PPV_ARGS(&m_CommandList));
 
     {
-        float aspectRatio = 9.0 / 16.0;
-
-        // clang-format off
-        vector<Vertex> data;
-        data.emplace_back(Vertex { {  0.0f,   0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, 0.0f } });
-        data.emplace_back(Vertex { {  0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 1.0f } });
-        data.emplace_back(Vertex { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } });
-        m_VertexBuffer = CreateVertexBuffer(m_Device.Get(), data);
+        auto vertices = CreateSquareVertices();
+        m_VertexBuffer = CreateVertexBuffer(m_Device.Get(), vertices);
 
         m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
         m_VertexBufferView.StrideInBytes = sizeof(Vertex);
-        m_VertexBufferView.SizeInBytes = sizeof(Vertex) * data.size();
+        m_VertexBufferView.SizeInBytes = sizeof(Vertex) * vertices.size();
     }
 
     // texture
@@ -515,7 +540,7 @@ void DxApp::PopulateCommandList()
     m_CommandList->RSSetViewports(1, &m_ViewPort);
     m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
     m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
-    m_CommandList->DrawInstanced(3, 1, 0, 0);
+    m_CommandList->DrawInstanced(6, 1, 0, 0);
 
     SetResourceBarrier(m_CommandList.Get(), m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
