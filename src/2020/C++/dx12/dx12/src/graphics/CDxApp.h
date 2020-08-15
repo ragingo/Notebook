@@ -36,7 +36,7 @@ private:
     int m_Height = 0;
     HWND m_Hwnd = nullptr;
     HANDLE m_FenceEvent = INVALID_HANDLE_VALUE;
-    D3D12_CPU_DESCRIPTOR_HANDLE m_RtvHandles[FRAME_COUNT];
+    D3D12_CPU_DESCRIPTOR_HANDLE m_RtvHandles[FRAME_COUNT] = {};
     D3D12_VIEWPORT m_ViewPort = {};
     D3D12_RECT m_ScissorRect = {};
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;

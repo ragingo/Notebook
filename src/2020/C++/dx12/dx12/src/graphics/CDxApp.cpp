@@ -64,6 +64,39 @@ namespace
         return device;
     }
 
+    ComPtr<ID3D12CommandQueue> CreateCommandQueue(ID3D12Device* device)
+    {
+        D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+        queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+        ComPtr<ID3D12CommandQueue> commandQueue;
+        device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue));
+
+        return commandQueue;
+    }
+
+    ComPtr<IDXGISwapChain4> CreateSwapChain(IDXGIFactory7* factory, ID3D12CommandQueue* commandQueue, int frameCount, int width, int height, HWND hWnd)
+    {
+        DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+        swapChainDesc.BufferCount = frameCount;
+        swapChainDesc.Width = width;
+        swapChainDesc.Height = height;
+        swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        swapChainDesc.SampleDesc.Count = 1;
+
+        ComPtr<IDXGISwapChain1> swapChain1;
+        factory->CreateSwapChainForHwnd(commandQueue, hWnd, &swapChainDesc, nullptr, nullptr, &swapChain1);
+        factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
+
+        ComPtr<IDXGISwapChain4> swapChain4;
+        swapChain1.As(&swapChain4);
+
+        return swapChain4;
+    }
+
     void SetResourceBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after)
     {
         D3D12_RESOURCE_BARRIER barrier = {};
@@ -389,10 +422,7 @@ void CDxApp::Initialize(HWND hWnd, int width, int height)
     m_ViewPort.MinDepth = D3D12_MIN_DEPTH;
     m_ViewPort.MaxDepth = D3D12_MAX_DEPTH;
 
-    m_ScissorRect.left = 0;
-    m_ScissorRect.top = 0;
-    m_ScissorRect.right = width;
-    m_ScissorRect.bottom = height;
+    m_ScissorRect = { 0, 0, width, height };
 
     LoadPipeline();
     LoadAssets();
@@ -405,32 +435,8 @@ void CDxApp::LoadPipeline()
     auto factory = CreateFactory();
     auto adapter = GetHardwareAdapter(factory.Get());
     m_Device = CreateDevice(adapter.Get());
-
-    // command queue
-    {
-        D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-        queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-        m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue));
-    }
-
-    // swap chain
-    {
-        DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-        swapChainDesc.BufferCount = FRAME_COUNT;
-        swapChainDesc.Width = m_Width;
-        swapChainDesc.Height = m_Height;
-        swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        swapChainDesc.SampleDesc.Count = 1;
-
-        ComPtr<IDXGISwapChain1> swapChain;
-        factory->CreateSwapChainForHwnd(m_CommandQueue.Get(), m_Hwnd, &swapChainDesc, nullptr, nullptr, &swapChain);
-        factory->MakeWindowAssociation(m_Hwnd, DXGI_MWA_NO_ALT_ENTER);
-        swapChain.As(&m_SwapChain);
-    }
+    m_CommandQueue = CreateCommandQueue(m_Device.Get());
+    m_SwapChain = CreateSwapChain(factory.Get(), m_CommandQueue.Get(), FRAME_COUNT, m_Width, m_Height, m_Hwnd);
 
     // render target view
     {
