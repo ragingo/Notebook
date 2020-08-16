@@ -24,6 +24,8 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d12.lib")
 
+#include "lib/d3dx12.h"
+
 #ifdef _DEBUG
 
 #include <d3d12sdklayers.h>
