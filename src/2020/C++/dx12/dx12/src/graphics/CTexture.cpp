@@ -8,32 +8,14 @@ namespace
 {
     ComPtr<ID3D12Resource> CreateUploadHeap(ID3D12Device* device, UINT64 bufferSize)
     {
+        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
         ComPtr<ID3D12Resource> textureUploadHeap;
-
-        D3D12_HEAP_PROPERTIES heapProps = {};
-        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        heapProps.CreationNodeMask = 1;
-        heapProps.VisibleNodeMask = 1;
-
-        D3D12_RESOURCE_DESC resDesc = {};
-        resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        resDesc.Alignment = 0;
-        resDesc.Width = bufferSize;
-        resDesc.Height = 1;
-        resDesc.DepthOrArraySize = 1;
-        resDesc.MipLevels = 1;
-        resDesc.Format = DXGI_FORMAT_UNKNOWN;
-        resDesc.SampleDesc.Count = 1;
-        resDesc.SampleDesc.Quality = 0;
-        resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
         device->CreateCommittedResource(
-            &heapProps,
+            &props,
             D3D12_HEAP_FLAG_NONE,
-            &resDesc,
+            &desc,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
             IID_PPV_ARGS(&textureUploadHeap));
@@ -53,7 +35,6 @@ CTexture::~CTexture()
     if (m_Texture) {
         m_Texture.Reset();
     }
-    m_HeapProps = {};
     m_ResourceDesc = {};
 }
 
@@ -61,43 +42,22 @@ shared_ptr<CTexture> CTexture::Create(ID3D12Device* device, int w, int h, DXGI_F
 {
     assert(device);
 
-    D3D12_HEAP_PROPERTIES heapProps = {};
-    heapProps.Type = D3D12_HEAP_TYPE_CUSTOM;
-    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-    heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-    heapProps.CreationNodeMask = 1;
-    heapProps.VisibleNodeMask = 1;
+    auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    auto desc = CD3DX12_RESOURCE_DESC::Tex2D(format, w, h);
 
-    D3D12_RESOURCE_DESC resDesc = {};
-    resDesc.MipLevels = 1;
-    resDesc.Format = format;
-    resDesc.Width = w;
-    resDesc.Height = h;
-    resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-    resDesc.DepthOrArraySize = 1;
-    resDesc.SampleDesc.Count = 1;
-    resDesc.SampleDesc.Quality = 0;
-    resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-
-    auto instance = make_shared<CTexture>();
-
-    instance->m_Device = device;
-    swap(instance->m_HeapProps, heapProps);
-    swap(instance->m_ResourceDesc, resDesc);
-
-    HRESULT hr = device->CreateCommittedResource(
-        &instance->m_HeapProps,
+    ComPtr<ID3D12Resource> tex;
+    device->CreateCommittedResource(
+        &props,
         D3D12_HEAP_FLAG_NONE,
-        &instance->m_ResourceDesc,
+        &desc,
         D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr,
-        IID_PPV_ARGS(&instance->m_Texture));
+        IID_PPV_ARGS(&tex));
 
-    if (FAILED(hr)) {
-        if (instance->m_Texture) {
-            instance->m_Texture->Release();
-        }
-    }
+    auto instance = make_shared<CTexture>();
+    instance->m_Device = device;
+    instance->m_Texture.Swap(tex);
+    swap(instance->m_ResourceDesc, desc);
 
     return instance;
 }
@@ -135,7 +95,7 @@ void CTexture::Write(ID3D12GraphicsCommandList* commandList, const Image* img)
 {
     vector<uint8_t> data;
     data.resize(img->rowPitch * img->height);
-    memcpy(&data[0], img->pixels, data.size());
+    memcpy(data.data(), img->pixels, data.size());
     Write(commandList, data);
 }
 

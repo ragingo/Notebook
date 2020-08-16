@@ -18,8 +18,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_Texture;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_UploadTexture;
-    D3D12_RESOURCE_DESC m_ResourceDesc = {};
-    D3D12_HEAP_PROPERTIES m_HeapProps = {};
+    CD3DX12_RESOURCE_DESC m_ResourceDesc = {};
 };
 
 struct ImageData

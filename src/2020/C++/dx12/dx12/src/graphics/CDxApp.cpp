@@ -97,18 +97,6 @@ namespace
         return swapChain4;
     }
 
-    void SetResourceBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after)
-    {
-        D3D12_RESOURCE_BARRIER barrier = {};
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrier.Transition.pResource = resource;
-        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-        barrier.Transition.StateBefore = before;
-        barrier.Transition.StateAfter = after;
-        commandList->ResourceBarrier(1, &barrier);
-    }
-
     bool IsRootSignatureVersionAvaiable(ID3D12Device* device, D3D_ROOT_SIGNATURE_VERSION version)
     {
         D3D12_FEATURE_DATA_ROOT_SIGNATURE data = {};
@@ -238,34 +226,8 @@ namespace
         psoDesc.pRootSignature = rootSignature;
         psoDesc.VS = D3D12_SHADER_BYTECODE{ g_SampleVS, sizeof(g_SampleVS) };
         psoDesc.PS = D3D12_SHADER_BYTECODE{ g_SamplePS, sizeof(g_SamplePS) };
-        psoDesc.RasterizerState = {};
-        psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
-        psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
-        psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
-        psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-        psoDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-        psoDesc.RasterizerState.DepthClipEnable = TRUE;
-        psoDesc.RasterizerState.MultisampleEnable = FALSE;
-        psoDesc.RasterizerState.AntialiasedLineEnable = FALSE;
-        psoDesc.RasterizerState.ForcedSampleCount = 0;
-        psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-        psoDesc.BlendState = {};
-        psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
-        psoDesc.BlendState.IndependentBlendEnable = FALSE;
-        {
-            // clang-format off
-            const D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc = {
-                FALSE, FALSE,
-                D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
-                D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
-                D3D12_LOGIC_OP_NOOP,
-                D3D12_COLOR_WRITE_ENABLE_ALL,
-            };
-            for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
-                psoDesc.BlendState.RenderTarget[i] = rtBlendDesc;
-            }
-        }
+        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         psoDesc.DepthStencilState.DepthEnable = FALSE;
         psoDesc.DepthStencilState.StencilEnable = FALSE;
         psoDesc.SampleMask = UINT_MAX;
@@ -282,40 +244,22 @@ namespace
 
     ComPtr<ID3D12Resource> CreateVertexBuffer(ID3D12Device* device, vector<Vertex> vertices)
     {
-        const size_t vertexBufferSize = sizeof(Vertex) * vertices.size();
-
-        D3D12_HEAP_PROPERTIES heapProps = {};
-        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        heapProps.CreationNodeMask = 1;
-        heapProps.VisibleNodeMask = 1;
-
-        D3D12_RESOURCE_DESC resDesc = {};
-        resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        resDesc.Alignment = 0;
-        resDesc.Width = vertexBufferSize;
-        resDesc.Height = 1;
-        resDesc.DepthOrArraySize = 1;
-        resDesc.MipLevels = 1;
-        resDesc.Format = DXGI_FORMAT_UNKNOWN;
-        resDesc.SampleDesc.Count = 1;
-        resDesc.SampleDesc.Quality = 0;
-        resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        const size_t bufferSize = sizeof(Vertex) * vertices.size();
+        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
         ComPtr<ID3D12Resource> vertexBuffer;
         device->CreateCommittedResource(
-            &heapProps,
+            &props,
             D3D12_HEAP_FLAG_NONE,
-            &resDesc,
+            &desc,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
             IID_PPV_ARGS(&vertexBuffer));
 
-        Vertex* dataBegin;
+        Vertex* dataBegin = nullptr;
         vertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dataBegin));
-        memcpy(dataBegin, vertices.data(), vertexBufferSize);
+        memcpy(dataBegin, vertices.data(), bufferSize);
         vertexBuffer->Unmap(0, nullptr);
 
         return vertexBuffer;
@@ -324,32 +268,14 @@ namespace
     ComPtr<ID3D12Resource> CreateConstantBuffer(ID3D12Device* device)
     {
         const auto bufferSize = sizeof(ConstantBuffer);
-
-        D3D12_HEAP_PROPERTIES heapProps = {};
-        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        heapProps.CreationNodeMask = 1;
-        heapProps.VisibleNodeMask = 1;
-
-        D3D12_RESOURCE_DESC resDesc = {};
-        resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        resDesc.Alignment = 0;
-        resDesc.Width = bufferSize;
-        resDesc.Height = 1;
-        resDesc.DepthOrArraySize = 1;
-        resDesc.MipLevels = 1;
-        resDesc.Format = DXGI_FORMAT_UNKNOWN;
-        resDesc.SampleDesc.Count = 1;
-        resDesc.SampleDesc.Quality = 0;
-        resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
         ComPtr<ID3D12Resource> constantBuffer;
         device->CreateCommittedResource(
-            &heapProps,
+            &props,
             D3D12_HEAP_FLAG_NONE,
-            &resDesc,
+            &desc,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
             IID_PPV_ARGS(&constantBuffer));
@@ -460,7 +386,8 @@ void CDxApp::LoadAssets()
         m_Texture = LoadTextureFromFile2(m_Device.Get(), m_CommandList.Get(), L"./assets/cat_256x256_32bit.bmp");
         //m_Texture = LoadTextureFromFile2(m_Device.Get(), m_CommandList.Get(), L"./assets/cat_256x256_lz77.png");
 
-        SetResourceBarrier(m_CommandList.Get(), m_Texture->Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_Texture->Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        m_CommandList->ResourceBarrier(1, &barrier);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -541,7 +468,10 @@ void CDxApp::PopulateCommandList()
 
     UINT frameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
-    SetResourceBarrier(m_CommandList.Get(), m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    {
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        m_CommandList->ResourceBarrier(1, &barrier);
+    }
 
     {
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
@@ -555,7 +485,10 @@ void CDxApp::PopulateCommandList()
     m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
     m_CommandList->DrawInstanced(6, 1, 0, 0);
 
-    SetResourceBarrier(m_CommandList.Get(), m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    {
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+        m_CommandList->ResourceBarrier(1, &barrier);
+    }
 
     m_CommandList->Close();
 }
