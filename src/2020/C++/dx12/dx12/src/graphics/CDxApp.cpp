@@ -280,43 +280,6 @@ namespace
         return pipelineState;
     }
 
-    [[maybe_unused]] void UpdateTexture(
-        ID3D12GraphicsCommandList* commandList,
-        ID3D12Resource* destination,
-        ID3D12Resource* intermediate,
-        const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint,
-        const D3D12_SUBRESOURCE_DATA& srcData,
-        size_t dataSize
-    )
-    {
-        auto intermediateDesc = intermediate->GetDesc();
-        if (intermediateDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER) {
-            return;
-        }
-
-        auto destinationDesc = destination->GetDesc();
-        if (destinationDesc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D) {
-            return;
-        }
-
-        uint8_t* data = nullptr;
-        intermediate->Map(0, nullptr, reinterpret_cast<void**>(&data));
-        memcpy(data, reinterpret_cast<const uint8_t*>(srcData.pData), dataSize);
-        intermediate->Unmap(0, nullptr);
-
-        D3D12_TEXTURE_COPY_LOCATION dst = {};
-        dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-        dst.pResource = destination;
-        dst.SubresourceIndex = 0;
-
-        D3D12_TEXTURE_COPY_LOCATION src;
-        src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-        src.pResource = intermediate;
-        src.PlacedFootprint = footprint;
-
-        commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-    }
-
     ComPtr<ID3D12Resource> CreateVertexBuffer(ID3D12Device* device, vector<Vertex> vertices)
     {
         const size_t vertexBufferSize = sizeof(Vertex) * vertices.size();
@@ -490,7 +453,7 @@ void CDxApp::LoadAssets()
 
     // texture
     {
-        m_Texture = LoadTextureFromFile(m_Device.Get(), "./assets/cat_256x256_32bit.bmp");
+        m_Texture = LoadTextureFromFile(m_Device.Get(), m_CommandList.Get(), "./assets/cat_256x256_32bit.bmp");
 
         SetResourceBarrier(m_CommandList.Get(), m_Texture->Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
@@ -520,8 +483,8 @@ void CDxApp::LoadAssets()
 
     m_CommandList->Close();
 
-    ID3D12CommandList* ppCommandLists[] = { m_CommandList.Get() };
-    m_CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    ID3D12CommandList* commandLists[] = { m_CommandList.Get() };
+    m_CommandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
 
     // fence
     m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence));

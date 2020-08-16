@@ -1,6 +1,47 @@
 #include "CTexture.h"
 
 using namespace std;
+using namespace Microsoft::WRL;
+
+namespace
+{
+    ComPtr<ID3D12Resource> CreateUploadHeap(ID3D12Device* device, UINT64 bufferSize)
+    {
+        ComPtr<ID3D12Resource> textureUploadHeap;
+
+        D3D12_HEAP_PROPERTIES heapProps = {};
+        heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heapProps.CreationNodeMask = 1;
+        heapProps.VisibleNodeMask = 1;
+
+        D3D12_RESOURCE_DESC resDesc = {};
+        resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        resDesc.Alignment = 0;
+        resDesc.Width = bufferSize;
+        resDesc.Height = 1;
+        resDesc.DepthOrArraySize = 1;
+        resDesc.MipLevels = 1;
+        resDesc.Format = DXGI_FORMAT_UNKNOWN;
+        resDesc.SampleDesc.Count = 1;
+        resDesc.SampleDesc.Quality = 0;
+        resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        device->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &resDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&textureUploadHeap));
+
+        textureUploadHeap->SetName(L"TextureUploadHeap");
+
+        return textureUploadHeap;
+    }
+}
 
 CTexture::CTexture()
 {
@@ -39,6 +80,7 @@ shared_ptr<CTexture> CTexture::Create(ID3D12Device* device, int w, int h, int d,
 
     auto instance = make_shared<CTexture>();
 
+    instance->m_Device = device;
     instance->m_Depth = d / 8;
     swap(instance->m_HeapProps, heapProps);
     swap(instance->m_ResourceDesc, resDesc);
@@ -60,16 +102,36 @@ shared_ptr<CTexture> CTexture::Create(ID3D12Device* device, int w, int h, int d,
     return instance;
 }
 
-void CTexture::Write(vector<uint8_t> data)
+void CTexture::Write(ID3D12GraphicsCommandList* commandList, vector<uint8_t> data)
 {
     assert(m_Texture);
 
     uint32_t w = static_cast<uint32_t>(m_ResourceDesc.Width);
     uint32_t h = m_ResourceDesc.Height;
     uint32_t d = m_Depth;
+    uint32_t size = w * h * d;
 
-    D3D12_BOX box = { 0, 0, 0, w, h, 1 };
-    m_Texture->WriteToSubresource(0, &box, data.data(), w * d, w * h * d);
+    uint8_t* ptr = nullptr;
+    m_UploadTexture = CreateUploadHeap(m_Device.Get(), size);
+    m_UploadTexture->Map(0, nullptr, reinterpret_cast<void**>(&ptr));
+    memcpy(ptr, data.data(), size);
+    m_UploadTexture->Unmap(0, nullptr);
+
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+    UINT64 totalSize = 0;
+    m_Device->GetCopyableFootprints(&m_ResourceDesc, 0, 1, 0, &footprint, nullptr, nullptr, &totalSize);
+
+    D3D12_TEXTURE_COPY_LOCATION dst = {};
+    dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    dst.pResource = m_Texture.Get();
+    dst.SubresourceIndex = 0;
+
+    D3D12_TEXTURE_COPY_LOCATION src = {};
+    src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+    src.pResource = m_UploadTexture.Get();
+    src.PlacedFootprint = footprint;
+
+    commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 }
 
 namespace
@@ -111,7 +173,7 @@ namespace
     }
 }
 
-shared_ptr<CTexture> LoadTextureFromFile(ID3D12Device* device, string path)
+shared_ptr<CTexture> LoadTextureFromFile(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, string path)
 {
     auto img = LoadBitmapFromFile(path);
     if (img.data.empty()) {
@@ -119,7 +181,7 @@ shared_ptr<CTexture> LoadTextureFromFile(ID3D12Device* device, string path)
     }
 
     auto tex = CTexture::Create(device, img.width, img.height, img.depth, DXGI_FORMAT_B8G8R8A8_UNORM);
-    tex->Write(img.data);
+    tex->Write(commandList, img.data);
 
     return tex;
 }
