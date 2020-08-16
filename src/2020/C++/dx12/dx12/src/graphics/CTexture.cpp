@@ -2,6 +2,7 @@
 
 using namespace std;
 using namespace Microsoft::WRL;
+using namespace DirectX;
 
 namespace
 {
@@ -56,7 +57,7 @@ CTexture::~CTexture()
     m_ResourceDesc = {};
 }
 
-shared_ptr<CTexture> CTexture::Create(ID3D12Device* device, int w, int h, int d, DXGI_FORMAT format)
+shared_ptr<CTexture> CTexture::Create(ID3D12Device* device, int w, int h, DXGI_FORMAT format)
 {
     assert(device);
 
@@ -81,7 +82,6 @@ shared_ptr<CTexture> CTexture::Create(ID3D12Device* device, int w, int h, int d,
     auto instance = make_shared<CTexture>();
 
     instance->m_Device = device;
-    instance->m_Depth = d / 8;
     swap(instance->m_HeapProps, heapProps);
     swap(instance->m_ResourceDesc, resDesc);
 
@@ -106,20 +106,17 @@ void CTexture::Write(ID3D12GraphicsCommandList* commandList, vector<uint8_t> dat
 {
     assert(m_Texture);
 
-    uint32_t w = static_cast<uint32_t>(m_ResourceDesc.Width);
-    uint32_t h = m_ResourceDesc.Height;
-    uint32_t d = m_Depth;
-    uint32_t size = w * h * d;
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+    UINT64 totalSize = 0;
+    m_Device->GetCopyableFootprints(&m_ResourceDesc, 0, 1, 0, &footprint, nullptr, nullptr, &totalSize);
+
+    uint32_t size = footprint.Footprint.RowPitch * footprint.Footprint.Height;
 
     uint8_t* ptr = nullptr;
     m_UploadTexture = CreateUploadHeap(m_Device.Get(), size);
     m_UploadTexture->Map(0, nullptr, reinterpret_cast<void**>(&ptr));
     memcpy(ptr, data.data(), size);
     m_UploadTexture->Unmap(0, nullptr);
-
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
-    UINT64 totalSize = 0;
-    m_Device->GetCopyableFootprints(&m_ResourceDesc, 0, 1, 0, &footprint, nullptr, nullptr, &totalSize);
 
     D3D12_TEXTURE_COPY_LOCATION dst = {};
     dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -132,6 +129,14 @@ void CTexture::Write(ID3D12GraphicsCommandList* commandList, vector<uint8_t> dat
     src.PlacedFootprint = footprint;
 
     commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+}
+
+void CTexture::Write(ID3D12GraphicsCommandList* commandList, const Image* img)
+{
+    vector<uint8_t> data;
+    data.resize(img->rowPitch * img->height);
+    memcpy(&data[0], img->pixels, data.size());
+    Write(commandList, data);
 }
 
 namespace
@@ -218,8 +223,20 @@ shared_ptr<CTexture> LoadTextureFromFile(ID3D12Device* device, ID3D12GraphicsCom
         return nullptr;
     }
 
-    auto tex = CTexture::Create(device, img.width, img.height, img.depth, DXGI_FORMAT_B8G8R8A8_UNORM);
+    auto tex = CTexture::Create(device, img.width, img.height, DXGI_FORMAT_B8G8R8A8_UNORM);
     tex->Write(commandList, img.data);
+
+    return tex;
+}
+
+shared_ptr<CTexture> LoadTextureFromFile2(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, wstring path)
+{
+    TexMetadata meta = {};
+    ScratchImage scratchImg = {};
+    LoadFromWICFile(path.c_str(), WIC_FLAGS_NONE, &meta, scratchImg);
+
+    auto tex = CTexture::Create(device, meta.width, meta.height, meta.format);
+    tex->Write(commandList, scratchImg.GetImage(0, 0, 0));
 
     return tex;
 }

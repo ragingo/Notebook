@@ -412,11 +412,15 @@ void CDxApp::LoadPipeline()
 
         UINT rtvDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
+        D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+        rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
         for (UINT i = 0; i < FRAME_COUNT; i++) {
             m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_RenderTargets[i]));
             m_RtvHandles[i] = m_RtvHeap->GetCPUDescriptorHandleForHeapStart();
             m_RtvHandles[i].ptr += static_cast<SIZE_T>(rtvDescSize) * i;
-            m_Device->CreateRenderTargetView(m_RenderTargets[i].Get(), nullptr, m_RtvHandles[i]);
+            m_Device->CreateRenderTargetView(m_RenderTargets[i].Get(), &rtvDesc, m_RtvHandles[i]);
         }
     }
 
@@ -453,7 +457,8 @@ void CDxApp::LoadAssets()
 
     // texture
     {
-        m_Texture = LoadTextureFromFile(m_Device.Get(), m_CommandList.Get(), "./assets/cat_256x256_32bit.bmp");
+        m_Texture = LoadTextureFromFile2(m_Device.Get(), m_CommandList.Get(), L"./assets/cat_256x256_32bit.bmp");
+        //m_Texture = LoadTextureFromFile2(m_Device.Get(), m_CommandList.Get(), L"./assets/cat_256x256_lz77.png");
 
         SetResourceBarrier(m_CommandList.Get(), m_Texture->Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 

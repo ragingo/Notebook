@@ -1,6 +1,7 @@
 .vs
 build/
 obj/
+packages/
 dx12/shaders/gen/*
 !dx12/shaders/gen/.gitkeep
 
