@@ -136,20 +136,38 @@ void CTexture::Write(ID3D12GraphicsCommandList* commandList, vector<uint8_t> dat
 
 namespace
 {
-    ImageData LoadBitmapFromFile(string path)
+    enum class ImageType
     {
-        ImageData img = {};
-        fstream fs(path, ios_base::in | ios_base::binary);
-        if (!fs) {
-            return {};
+        Unknown,
+        Bitmap,
+        Jpeg,
+        Png,
+    };
+
+    constexpr uint16_t SIGNATURE_BMP = 'B' | ('M' << 8);
+    constexpr uint64_t SIGNATURE_PNG = 0x0a1a0a0d474e5089;
+
+    ImageType DetectImageType(fstream& fs)
+    {
+        vector<uint8_t> data;
+        data.resize(100);
+
+        fs.seekg(0, ios_base::beg);
+        fs.read(reinterpret_cast<char*>(data.data()), data.size());
+
+        if (*reinterpret_cast<uint16_t*>(data.data()) == SIGNATURE_BMP) {
+            return ImageType::Bitmap;
+        }
+        if (*reinterpret_cast<uint64_t*>(data.data()) == SIGNATURE_PNG) {
+            return ImageType::Png;
         }
 
-        vector<uint8_t> x;
-        x.resize(4);
-        fs.read(reinterpret_cast<char*>(x.data()), x.size());
-        if (!(x[0] == (int)'B' && x[1] == (int)'M')) {
-            return {};
-        }
+        return ImageType::Unknown;
+    }
+
+    ImageData LoadBitmapFromFile(fstream& fs)
+    {
+        ImageData img = {};
 
         fs.seekg(0, ios_base::beg);
 
@@ -175,7 +193,27 @@ namespace
 
 shared_ptr<CTexture> LoadTextureFromFile(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, string path)
 {
-    auto img = LoadBitmapFromFile(path);
+    fstream fs(path, ios_base::in | ios_base::binary);
+    if (!fs) {
+        return nullptr;
+    }
+
+    ImageData img = {};
+    auto type = DetectImageType(fs);
+
+    switch (type) {
+    case ImageType::Bitmap:
+        img = LoadBitmapFromFile(fs);
+        break;
+    case ImageType::Jpeg:
+        break;
+    case ImageType::Png:
+        break;
+    case ImageType::Unknown:
+    default:
+        return nullptr;
+    }
+
     if (img.data.empty()) {
         return nullptr;
     }
