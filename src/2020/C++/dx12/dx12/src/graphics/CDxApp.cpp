@@ -115,33 +115,17 @@ namespace
         D3D12_VERSIONED_ROOT_SIGNATURE_DESC sigDesc = {};
 
         if (IsRootSignatureVersionAvaiable(device, D3D_ROOT_SIGNATURE_VERSION_1_1)) {
-            D3D12_DESCRIPTOR_RANGE1 range1 = {};
-            range1.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-            range1.NumDescriptors = 1;
-            range1.BaseShaderRegister = 0;
-            range1.RegisterSpace = 0;
-            range1.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
-            range1.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+            CD3DX12_DESCRIPTOR_RANGE1 range1;
+            range1.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
 
-            D3D12_ROOT_PARAMETER1 rootParam1 = {};
-            rootParam1.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-            rootParam1.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-            rootParam1.DescriptorTable.NumDescriptorRanges = 1;
-            rootParam1.DescriptorTable.pDescriptorRanges = &range1;
+            CD3DX12_ROOT_PARAMETER1 rootParam1;
+            rootParam1.InitAsDescriptorTable(1, &range1, D3D12_SHADER_VISIBILITY_PIXEL);
 
-            D3D12_DESCRIPTOR_RANGE1 range2 = {};
-            range2.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-            range2.NumDescriptors = 1;
-            range2.BaseShaderRegister = 0;
-            range2.RegisterSpace = 0;
-            range2.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
-            range2.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+            CD3DX12_DESCRIPTOR_RANGE1 range2;
+            range2.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
 
-            D3D12_ROOT_PARAMETER1 rootParam2 = {};
-            rootParam2.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-            rootParam2.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-            rootParam2.DescriptorTable.NumDescriptorRanges = 1;
-            rootParam2.DescriptorTable.pDescriptorRanges = &range2;
+            CD3DX12_ROOT_PARAMETER1 rootParam2;
+            rootParam2.InitAsDescriptorTable(1, &range2, D3D12_SHADER_VISIBILITY_VERTEX);
 
             D3D12_ROOT_PARAMETER1 rootParams[] = { rootParam1, rootParam2 };
 
