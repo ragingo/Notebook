@@ -106,6 +106,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAs>CompileAsCpp</CompileAs>
+      <ForcedIncludeFiles>$(ProjectDir)framework.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -123,6 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAs>CompileAsCpp</CompileAs>
+      <ForcedIncludeFiles>$(ProjectDir)framework.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,6 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAs>CompileAsCpp</CompileAs>
+      <ForcedIncludeFiles>$(ProjectDir)framework.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,6 +160,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAs>CompileAsCpp</CompileAs>
+      <ForcedIncludeFiles>$(ProjectDir)framework.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,13 +171,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="dx12_sample2.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="src\CApp.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dx12_sample2.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\CApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dx12_sample2.rc" />
