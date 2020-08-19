@@ -4,6 +4,8 @@ obj/
 packages/
 dx12_sample1/shaders/gen/*
 !dx12_sample1/shaders/gen/.gitkeep
+dx12_sample2/shaders/gen/*
+!dx12_sample2/shaders/gen/.gitkeep
 
 *.filters
 *.user

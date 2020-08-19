@@ -10,3 +10,20 @@
 #include <tchar.h>
 
 #include <string>
+#include <vector>
+
+#include <wrl.h>
+#include <dxgi1_6.h>
+#include <d3d12.h>
+#include <DirectXMath.h>
+#include <DirectXTex.h>
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3d12.lib")
+
+#include "lib/d3dx12.h"
+
+#ifdef _DEBUG
+
+#include <d3d12sdklayers.h>
+
+#endif // _DEBUG

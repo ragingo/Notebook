@@ -1,4 +1,7 @@
 #include "CApp.h"
+#include "gfx/CGfx.h"
+
+CGfx g_Gfx;
 
 int CApp::Run(HINSTANCE hInstance, int nCmdShow)
 {
@@ -14,13 +17,18 @@ int CApp::Run(HINSTANCE hInstance, int nCmdShow)
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
-    //RECT rect = {};
-    //if (!GetWindowRect(hWnd, &rect)) {
-    //    return FALSE;
-    //}
+    RECT rect = {};
+    if (!GetWindowRect(hWnd, &rect)) {
+        return FALSE;
+    }
 
-    //int width = rect.right - rect.left;
-    //int height = rect.bottom - rect.top;
+    int width = rect.right - rect.left;
+    int height = rect.bottom - rect.top;
+
+    if (!g_Gfx.Initialize(hWnd, width, height)) {
+        return FALSE;
+    }
+
 
     MSG msg = {};
 
@@ -70,6 +78,8 @@ LRESULT CALLBACK CApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
     } break;
 
     case WM_PAINT:
+        g_Gfx.Update();
+        g_Gfx.Render();
         break;
 
     case WM_DESTROY:
