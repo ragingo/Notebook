@@ -58,8 +58,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> m_ConstantBuffer;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-    D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
-    D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+    D3D12_INDEX_BUFFER_VIEW m_IndexBufferView = {};
+    D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView = {};
     Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShader;
     Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShader;
     ConstantBuffer m_ConstantBufferData = {};

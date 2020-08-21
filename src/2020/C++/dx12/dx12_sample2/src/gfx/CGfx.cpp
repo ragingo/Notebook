@@ -247,6 +247,29 @@ namespace
         return vertexBuffer;
     }
 
+    ComPtr<ID3D12Resource> CreateIndexBuffer(ID3D12Device* device, vector<uint16_t> indices)
+    {
+        const size_t bufferSize = sizeof(uint16_t) * indices.size();
+        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
+        ComPtr<ID3D12Resource> indexBuffer;
+        device->CreateCommittedResource(
+            &props,
+            D3D12_HEAP_FLAG_NONE,
+            &desc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&indexBuffer));
+
+        uint16_t* dataBegin = nullptr;
+        indexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dataBegin));
+        memcpy(dataBegin, indices.data(), bufferSize);
+        indexBuffer->Unmap(0, nullptr);
+
+        return indexBuffer;
+    }
+
     ComPtr<ID3D12Resource> CreateConstantBuffer(ID3D12Device* device)
     {
         const auto bufferSize = sizeof(CGfx::ConstantBuffer);
@@ -269,13 +292,10 @@ namespace
     vector<CGfx::Vertex> CreateSquareVertices()
     {
         vector<CGfx::Vertex> data;
-        data.emplace_back(CGfx::Vertex{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } });
-        data.emplace_back(CGfx::Vertex{ {  1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } });
         data.emplace_back(CGfx::Vertex{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } });
-
         data.emplace_back(CGfx::Vertex{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } });
-        data.emplace_back(CGfx::Vertex{ {  1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } });
         data.emplace_back(CGfx::Vertex{ {  1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } });
+        data.emplace_back(CGfx::Vertex{ {  1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } });
         return data;
     }
 }
@@ -398,6 +418,16 @@ void CGfx::LoadAssets()
         m_VertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(Vertex) * vertices.size());
     }
 
+    // index buffer
+    {
+        vector<uint16_t> indices = { 0, 1, 2, 2, 1, 3 };
+        m_IndexBuffer = CreateIndexBuffer(m_Device.Get(), indices);
+
+        m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
+        m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+        m_IndexBufferView.SizeInBytes = static_cast<UINT>(sizeof(uint16_t) * indices.size());
+    }
+
     // texture
     {
         m_Texture = LoadTextureFromFile(m_Device.Get(), m_CommandList.Get(), L"./assets/cat_256x256_yuv410.jpg");
@@ -470,10 +500,11 @@ void CGfx::PopulateCommandList()
 
     m_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     m_CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
+    m_CommandList->IASetIndexBuffer(&m_IndexBufferView);
     m_CommandList->RSSetViewports(1, &m_ViewPort);
     m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
     m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
-    m_CommandList->DrawInstanced(6, 1, 0, 0);
+    m_CommandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
     {
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
