@@ -171,6 +171,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\gfx\CSprite.h" />
     <ClInclude Include="src\gfx\CTexture.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="lib\d3dx12.h" />
@@ -180,6 +181,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\gfx\CSprite.cpp" />
     <ClCompile Include="src\gfx\CTexture.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\CApp.cpp" />

@@ -1,5 +1,6 @@
 #include "CGfx.h"
 #include "CTexture.h"
+#include "CSprite.h"
 #include "../../shaders/gen/SampleVS.h"
 #include "../../shaders/gen/SamplePS.h"
 
@@ -224,52 +225,6 @@ namespace
         return pipelineState;
     }
 
-    ComPtr<ID3D12Resource> CreateVertexBuffer(ID3D12Device* device, vector<CGfx::Vertex> vertices)
-    {
-        const size_t bufferSize = sizeof(CGfx::Vertex) * vertices.size();
-        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-
-        ComPtr<ID3D12Resource> vertexBuffer;
-        device->CreateCommittedResource(
-            &props,
-            D3D12_HEAP_FLAG_NONE,
-            &desc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&vertexBuffer));
-
-        CGfx::Vertex* dataBegin = nullptr;
-        vertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dataBegin));
-        memcpy(dataBegin, vertices.data(), bufferSize);
-        vertexBuffer->Unmap(0, nullptr);
-
-        return vertexBuffer;
-    }
-
-    ComPtr<ID3D12Resource> CreateIndexBuffer(ID3D12Device* device, vector<uint16_t> indices)
-    {
-        const size_t bufferSize = sizeof(uint16_t) * indices.size();
-        auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-
-        ComPtr<ID3D12Resource> indexBuffer;
-        device->CreateCommittedResource(
-            &props,
-            D3D12_HEAP_FLAG_NONE,
-            &desc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&indexBuffer));
-
-        uint16_t* dataBegin = nullptr;
-        indexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&dataBegin));
-        memcpy(dataBegin, indices.data(), bufferSize);
-        indexBuffer->Unmap(0, nullptr);
-
-        return indexBuffer;
-    }
-
     ComPtr<ID3D12Resource> CreateConstantBuffer(ID3D12Device* device)
     {
         const auto bufferSize = sizeof(CGfx::ConstantBuffer);
@@ -286,17 +241,6 @@ namespace
             IID_PPV_ARGS(&constantBuffer));
 
         return constantBuffer;
-    }
-
-    // clang-format off
-    vector<CGfx::Vertex> CreateSquareVertices()
-    {
-        vector<CGfx::Vertex> data;
-        data.emplace_back(CGfx::Vertex{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } });
-        data.emplace_back(CGfx::Vertex{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } });
-        data.emplace_back(CGfx::Vertex{ {  1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } });
-        data.emplace_back(CGfx::Vertex{ {  1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } });
-        return data;
     }
 }
 
@@ -408,25 +352,8 @@ void CGfx::LoadAssets()
     // command list
     m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), m_PipelineState.Get(), IID_PPV_ARGS(&m_CommandList));
 
-    // vertex buffer
-    {
-        auto vertices = CreateSquareVertices();
-        m_VertexBuffer = CreateVertexBuffer(m_Device.Get(), vertices);
-
-        m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-        m_VertexBufferView.StrideInBytes = sizeof(Vertex);
-        m_VertexBufferView.SizeInBytes = static_cast<UINT>(sizeof(Vertex) * vertices.size());
-    }
-
-    // index buffer
-    {
-        vector<uint16_t> indices = { 0, 1, 2, 2, 1, 3 };
-        m_IndexBuffer = CreateIndexBuffer(m_Device.Get(), indices);
-
-        m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
-        m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-        m_IndexBufferView.SizeInBytes = static_cast<UINT>(sizeof(uint16_t) * indices.size());
-    }
+    m_Sprite = make_shared<CSprite>(m_Device.Get());
+    m_Sprite->Create();
 
     // texture
     {
@@ -498,13 +425,11 @@ void CGfx::PopulateCommandList()
         m_CommandList->ClearRenderTargetView(m_RtvHandles[frameIndex], clearColor, 0, nullptr);
     }
 
-    m_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-    m_CommandList->IASetIndexBuffer(&m_IndexBufferView);
     m_CommandList->RSSetViewports(1, &m_ViewPort);
     m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
     m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
-    m_CommandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+
+    m_Sprite->Draw(m_CommandList.Get());
 
     {
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

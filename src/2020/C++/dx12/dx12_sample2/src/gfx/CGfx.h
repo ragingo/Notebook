@@ -1,6 +1,7 @@
 #pragma once
 
 class CTexture;
+class CSprite;
 
 class CGfx
 {
@@ -56,13 +57,10 @@ private:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_ConstantBuffer;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-    D3D12_INDEX_BUFFER_VIEW m_IndexBufferView = {};
-    D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView = {};
     Microsoft::WRL::ComPtr<ID3DBlob> m_VertexShader;
     Microsoft::WRL::ComPtr<ID3DBlob> m_PixelShader;
     ConstantBuffer m_ConstantBufferData = {};
     ConstantBuffer* m_pCbvDataBegin = nullptr;
     std::shared_ptr<CTexture> m_Texture;
+    std::shared_ptr<CSprite> m_Sprite;
 };
