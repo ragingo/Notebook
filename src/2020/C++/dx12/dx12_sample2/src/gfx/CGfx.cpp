@@ -413,6 +413,9 @@ void CGfx::PopulateCommandList()
     handle.ptr += m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     m_CommandList->SetGraphicsRootDescriptorTable(1, handle);
 
+    m_CommandList->RSSetViewports(1, &m_ViewPort);
+    m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
+
     UINT frameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
     {
@@ -420,14 +423,12 @@ void CGfx::PopulateCommandList()
         m_CommandList->ResourceBarrier(1, &barrier);
     }
 
+    m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
+
     {
         const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
         m_CommandList->ClearRenderTargetView(m_RtvHandles[frameIndex], clearColor, 0, nullptr);
     }
-
-    m_CommandList->RSSetViewports(1, &m_ViewPort);
-    m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
-    m_CommandList->OMSetRenderTargets(1, &m_RtvHandles[frameIndex], FALSE, nullptr);
 
     m_Sprite->Draw(m_CommandList.Get());
 

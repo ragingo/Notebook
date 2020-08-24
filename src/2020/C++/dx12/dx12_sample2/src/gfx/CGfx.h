@@ -26,6 +26,7 @@ public:
         DirectX::XMFLOAT4 offset;
         float padding[60];
     };
+    static_assert((sizeof(ConstantBuffer) % 256) == 0, "Constant Buffer size must be 256-byte aligned");
 
 private:
     void LoadPipeline();
@@ -35,8 +36,6 @@ private:
     void PopulateCommandList();
 
     void WaitForPreviousFrame();
-
-    static_assert((sizeof(ConstantBuffer) % 256) == 0, "Constant Buffer size must be 256-byte aligned");
 
     static const int FRAME_COUNT = 2;
     bool m_Initialized = false;

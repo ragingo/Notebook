@@ -19,16 +19,15 @@ void CSprite::Create()
 
     // vertex buffer
     {
-        vector<Vertex> vertices;
         // clang-format off
-        {
-            vertices.emplace_back(Vertex{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } });
-            vertices.emplace_back(Vertex{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } });
-            vertices.emplace_back(Vertex{ {  1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } });
-            vertices.emplace_back(Vertex{ {  1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } });
-        }
+        const Vertex vertices[] = {
+            { { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } },
+            { { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+            { {  1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } },
+            { {  1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } }
+        };
 
-        auto bufferSize = sizeof(Vertex) * vertices.size();
+        const auto bufferSize = sizeof(vertices);
         auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
@@ -42,7 +41,7 @@ void CSprite::Create()
 
         void* dataBegin = nullptr;
         m_VertexBuffer->Map(0, nullptr, &dataBegin);
-        memcpy(dataBegin, vertices.data(), bufferSize);
+        memcpy(dataBegin, vertices, bufferSize);
         m_VertexBuffer->Unmap(0, nullptr);
 
         m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
@@ -52,9 +51,9 @@ void CSprite::Create()
 
     // index buffer
     {
-        vector<uint16_t> indices = { 0, 1, 2, 2, 1, 3 };
+        const uint16_t indices[] = { 0, 1, 2, 2, 1, 3 };
 
-        const size_t bufferSize = sizeof(uint16_t) * indices.size();
+        const size_t bufferSize = sizeof(indices);
         auto props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         auto desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
@@ -68,12 +67,12 @@ void CSprite::Create()
 
         void* dataBegin = nullptr;
         m_IndexBuffer->Map(0, nullptr, &dataBegin);
-        memcpy(dataBegin, indices.data(), bufferSize);
+        memcpy(dataBegin, indices, bufferSize);
         m_IndexBuffer->Unmap(0, nullptr);
 
         m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
         m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-        m_IndexBufferView.SizeInBytes = sizeof(uint16_t) * indices.size();
+        m_IndexBufferView.SizeInBytes = bufferSize;
     }
 }
 
