@@ -1,0 +1,62 @@
+.LEDMessageBoard {
+  & {
+    position: relative;
+    width: 50px;
+    height: 100%;
+    overflow: hidden;
+    font-size: 30px;
+    font-weight: bold;
+    color: yellow;
+    background: #333;
+    text-orientation: upright;
+    writing-mode: vertical-rl;
+  }
+
+  // LED風味
+  &:after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: linear-gradient(#0a0600, transparent), linear-gradient(0deg, #0a0600, transparent);
+    background-size: 2px 2px;
+  }
+
+  &-scrollArea {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+  }
+
+  &-message {
+    display: inline-block;
+    position: absolute;
+    padding-top: 100%;
+    white-space: nowrap;
+    animation-name: marquee;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: 5s;
+  }
+
+  // IEの場合のみ自力でアニメーションさせる
+  // IEの対応を切る場合は、JS実装とこのスタイルを削除するだけでOK
+  // 他の Chrome, Firefox, Edge(Chromium) では問題なく動作している
+  &-message[data-is-ie] {
+    padding-top: 0;
+    padding-left: 100%;
+    animation-name: none;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateY(0%);
+    }
+    to {
+      transform: translateY(-100%);
+    }
+  }
+}
