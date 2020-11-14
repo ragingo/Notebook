@@ -36,7 +36,7 @@ func getJson(string: String, params: HttpRequestQueryParams, handler: @escaping 
         params: params,
         completionHandler: { data, res, err in
             if err != nil {
-                print(err)
+                print(err as Any)
                 return
             }
 
@@ -45,9 +45,7 @@ func getJson(string: String, params: HttpRequestQueryParams, handler: @escaping 
 
             do {
                 let json = try JSONSerialization.jsonObject(with: data)
-                if json != nil {
-                    handler(json)
-                }
+                handler(json)
             } catch (let e) {
                 print(e)
             }
@@ -55,7 +53,41 @@ func getJson(string: String, params: HttpRequestQueryParams, handler: @escaping 
     )
 }
 
-getJson(
+func getJson2<T: Codable>(string: String, params: HttpRequestQueryParams, handler: @escaping (T) -> Void) {
+    get(
+        string: string,
+        params: params,
+        completionHandler: { data, res, err in
+            if err != nil {
+                print(err as Any)
+                return
+            }
+
+            guard let data = data else { return }
+            guard let _ = res else { return }
+
+            do {
+                let json = try JSONDecoder().decode(T.self, from: data)
+                handler(json)
+            } catch (let e) {
+                print(e)
+            }
+        }
+    )
+}
+
+struct VideoItem: Codable {
+    var contentId: String
+}
+struct ApiMeta: Codable {
+    var status: Int
+}
+struct ApiResponse: Codable {
+    var meta: ApiMeta
+    var data: [VideoItem]
+}
+
+getJson2(
     string: VIDEO_SEARCH_API_ENDPOINT,
     params: [
         "q": "game",
@@ -64,8 +96,10 @@ getJson(
         "_sort": "-viewCounter",
         "_context": "swifttest",
     ]
-) { json in
-    print(json)
+) { (json: ApiResponse) in
+    json.data.forEach {
+        print($0.contentId);
+    }
     exit(EXIT_SUCCESS)
 }
 
