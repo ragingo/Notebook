@@ -8,9 +8,6 @@ let SEARCH_API_ENDPOINT = "https://api.search.nicovideo.jp/api/v2/:service/conte
 let VIDEO_SEARCH_API_ENDPOINT = SEARCH_API_ENDPOINT.replacingOccurrences(of: ":service", with: "video")
 let LIVE_SEARCH_API_ENDPOINT = SEARCH_API_ENDPOINT.replacingOccurrences(of: ":service", with: "live")
 
-print(VIDEO_SEARCH_API_ENDPOINT)
-print(LIVE_SEARCH_API_ENDPOINT)
-
 typealias HttpRequestQueryParams = Dictionary<String, String>
 
 typealias HttpRequestCompletionHandler = (Data?, URLResponse?, Error?) -> Void
@@ -79,28 +76,12 @@ func getJson2<T: Codable>(string: String, params: HttpRequestQueryParams, handle
 struct VideoItem: Codable {
     var contentId: String
 }
+
 struct ApiMeta: Codable {
     var status: Int
 }
+
 struct ApiResponse: Codable {
     var meta: ApiMeta
     var data: [VideoItem]
 }
-
-getJson2(
-    string: VIDEO_SEARCH_API_ENDPOINT,
-    params: [
-        "q": "game",
-        "targets": "title",
-        "fields": "contentId",
-        "_sort": "-viewCounter",
-        "_context": "swifttest",
-    ]
-) { (json: ApiResponse) in
-    json.data.forEach {
-        print($0.contentId);
-    }
-    exit(EXIT_SUCCESS)
-}
-
-dispatchMain()
