@@ -35,11 +35,18 @@ func test_http_get() {
         }
         exit(EXIT_SUCCESS)
     }
+
+    dispatchMain()
+}
+
+func test_cpp() {
+    print(ret1000())
+    print(add(1, 2))
 }
 
 func main() {
-    test_http_get()
-    dispatchMain()
+    // test_http_get()
+    test_cpp()
 }
 
 main()
