@@ -7,7 +7,7 @@ private let WINDOW_CLASS_NAME = "SwiftAppSampleForWindowsDesktop"
 
 struct App {
     static func run() {
-        let window = RgWindow()
+        let window = MainWindow()
         window.create(hInstance, windowClass: WINDOW_CLASS_NAME, windowTitle: WINDOW_TITLE)
 
         guard let hWnd = window.handle else {

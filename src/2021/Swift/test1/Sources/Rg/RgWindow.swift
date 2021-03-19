@@ -1,5 +1,7 @@
 import WinSDK
 
+typealias WindowProc = @convention(c) (HWND?, UINT, WPARAM, LPARAM) -> LRESULT
+
 class RgWindow {
     private var hInstance: HINSTANCE?
     var handle: HWND?
@@ -7,11 +9,11 @@ class RgWindow {
     init() {
     }
 
-    func create(_ hInstance: HINSTANCE?, windowClass: String, windowTitle: String) {
+    func create(_ hInstance: HINSTANCE?, _ windowClass: String, _ windowTitle: String, _ windowProc: @escaping WindowProc) {
         self.hInstance = hInstance
         let windowClass = RgString(windowClass)
 
-        guard registerClass(windowClass) else {
+        guard registerClass(windowClass, windowProc) else {
             return
         }
 
@@ -30,29 +32,16 @@ class RgWindow {
         )
     }
 
-    private func registerClass(_ windowClass: RgString) -> Bool {
+    private func registerClass(_ windowClass: RgString, _ windowProc: @escaping WindowProc) -> Bool {
         var wcex = WNDCLASSEXW()
         wcex.cbSize = UINT(MemoryLayout<WNDCLASSEX>.size);
         wcex.style = UINT(CS_HREDRAW | CS_VREDRAW);
-        wcex.lpfnWndProc = windowProc;
+        wcex.lpfnWndProc = windowProc
         wcex.cbClsExtra = 0;
         wcex.cbWndExtra = 0;
         wcex.hInstance = hInstance;
         wcex.lpszClassName = windowClass.ptr;
         wcex.hbrBackground = unsafeBitCast(GetStockObject(WHITE_BRUSH), to: HBRUSH.self)
-
         return RegisterClassExW(&wcex) != 0
     }
-}
-
-private func windowProc(hWnd: HWND?, msg: UINT, wParam: WPARAM, lParam: LPARAM) -> LRESULT {
-    switch msg {
-    case UINT(WM_DESTROY):
-        PostQuitMessage(0)
-    // case UINT(WM_PAINT):
-        // TODO: 描画コードをここに記述
-    default:
-        return DefWindowProcW(hWnd, msg, wParam, lParam)
-    }
-    return 0
 }
