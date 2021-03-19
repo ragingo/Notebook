@@ -1,1 +1,1 @@
-RgApp.run()
+App.run()

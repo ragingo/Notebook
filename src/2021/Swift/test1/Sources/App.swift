@@ -5,7 +5,7 @@ private let hInstance = GetModuleHandleW(nil)
 private let WINDOW_TITLE = "Swift で Win32 API を使ってみた"
 private let WINDOW_CLASS_NAME = "SwiftAppSampleForWindowsDesktop"
 
-struct RgApp {
+struct App {
     static func run() {
         let window = RgWindow()
         window.create(hInstance, windowClass: WINDOW_CLASS_NAME, windowTitle: WINDOW_TITLE)
