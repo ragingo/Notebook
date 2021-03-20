@@ -6,6 +6,10 @@ final class RgString {
         UnsafePointer(self.buffer)
     }
 
+    var mutablePtr: UnsafeMutablePointer<UInt16> {
+        self.buffer
+    }
+
     private(set) var length: Int32
 
     init(_ s: String) {

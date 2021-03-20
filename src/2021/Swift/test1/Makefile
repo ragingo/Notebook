@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-SWIFT_OPTIONS = -sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows -luser32
+SWIFT_OPTIONS = -sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows -luser32 -lcomctl32
 SWIFT_SOURCES = $(shell shopt -s globstar && ls ./**/*.swift)
 OUTPUT_DIR = ./build
 EXE_NAME = swift_test1

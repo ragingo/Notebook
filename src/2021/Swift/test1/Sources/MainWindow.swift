@@ -11,6 +11,8 @@ class MainWindow {
     func create(_ hInstance: HINSTANCE?) {
         window.create(hInstance, WINDOW_CLASS_NAME, WINDOW_TITLE) { (hWnd, msg, wParam, lParam) -> LRESULT in
             switch msg {
+            case UINT(WM_CREATE):
+                onCreate(hWnd)
             case UINT(WM_DESTROY):
                 onDestroy()
             case UINT(WM_PAINT):
@@ -23,6 +25,29 @@ class MainWindow {
             return 0
         }
     }
+}
+
+private func onCreate(_ hWnd: HWND?) {
+    InitCommonControls();
+    let tabClassName = RgString(WC_TABCONTROL)
+    let hTab = CreateWindowExW(
+        0,
+        tabClassName.ptr,
+        nil,
+        UINT(WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE),
+        10, 10, 500, 500,
+        hWnd,
+        nil,
+        nil,
+        nil
+    )
+
+    let tabText = RgString("タブ1")
+    var tabItem = TCITEMW()
+    tabItem.mask = UINT(TCIF_TEXT)
+    tabItem.pszText = tabText.mutablePtr // TODO: 文字化け直す
+    tabItem.cchTextMax = tabText.length
+    rg_TabCtrl_InsertItem(hTab, 0, &tabItem)
 }
 
 private func onDestroy() {
