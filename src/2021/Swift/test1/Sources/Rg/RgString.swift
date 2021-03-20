@@ -12,7 +12,7 @@ final class RgString {
         self.originalString = s
         let nullTerminatedString = s + "\0"
         var arr = Array<UInt16>(nullTerminatedString.utf16)
-        self.length = Int32(arr.count)
+        self.length = Int32(arr.count - 1)
         self.buffer = UnsafeMutablePointer<UInt16>.allocate(capacity: arr.count)
         self.buffer.initialize(from: &arr, count: arr.count)
     }
