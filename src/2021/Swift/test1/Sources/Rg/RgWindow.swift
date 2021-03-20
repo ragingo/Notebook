@@ -1,7 +1,5 @@
 import WinSDK
 
-typealias WindowProc = @convention(c) (HWND?, UINT, WPARAM, LPARAM) -> LRESULT
-
 class RgWindow {
     private var hInstance: HINSTANCE?
     var handle: HWND?
@@ -9,7 +7,7 @@ class RgWindow {
     init() {
     }
 
-    func create(_ hInstance: HINSTANCE?, _ windowClass: String, _ windowTitle: String, _ windowProc: @escaping WindowProc) {
+    func create(_ hInstance: HINSTANCE?, _ windowClass: String, _ windowTitle: String, _ windowProc: @escaping WNDPROC) {
         self.hInstance = hInstance
         let windowClass = RgString(windowClass)
 
@@ -32,7 +30,7 @@ class RgWindow {
         )
     }
 
-    private func registerClass(_ windowClass: RgString, _ windowProc: @escaping WindowProc) -> Bool {
+    private func registerClass(_ windowClass: RgString, _ windowProc: @escaping WNDPROC) -> Bool {
         var wcex = WNDCLASSEXW()
         wcex.cbSize = UINT(MemoryLayout<WNDCLASSEX>.size);
         wcex.style = UINT(CS_HREDRAW | CS_VREDRAW);
