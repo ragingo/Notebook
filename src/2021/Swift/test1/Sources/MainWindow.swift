@@ -81,15 +81,24 @@ private func onDestroy() {
 
 private func onPaint(_ hWnd: HWND?) {
     var ps = PAINTSTRUCT()
-    let hDC = BeginPaint(hWnd, &ps)
+    guard let hDC = BeginPaint(hWnd, &ps) else {
+        return
+    }
 
     var rect = RECT()
     let tabName = RgString("tab")
 
     if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
         GetClientRect(hTab, &rect)
-        if rg_TabCtrl_GetCurSel(hTab) == 0 {
-            Rectangle(hDC, 0, rect.bottom - rect.top, 30, rect.bottom - rect.top + 30)
+        switch rg_TabCtrl_GetCurSel(hTab) {
+        case 0:
+            onTabItem1Paint(hTab, hDC, rect)
+        case 1:
+            onTabItem2Paint(hTab, hDC, rect)
+        case 2:
+            onTabItem3Paint(hTab, hDC, rect)
+        default:
+            break
         }
     }
 
@@ -111,4 +120,16 @@ private func onNotify(_ hWnd: HWND?, _ lParam: LPARAM) {
 }
 
 private func onMouseLButtonDown(_ hWnd: HWND?) {
+}
+
+private func onTabItem1Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
+    Rectangle(hDC, 10, rect.bottom - rect.top, 30, rect.bottom - rect.top + 30)
+}
+
+private func onTabItem2Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
+    Rectangle(hDC, 10, rect.bottom - rect.top, 50, rect.bottom - rect.top + 50)
+}
+
+private func onTabItem3Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
+    Rectangle(hDC, 10, rect.bottom - rect.top, 70, rect.bottom - rect.top + 70)
 }
