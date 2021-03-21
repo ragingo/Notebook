@@ -10,9 +10,10 @@ class MainWindow {
 
     func create(_ hInstance: HINSTANCE?) {
         window.create(hInstance, WINDOW_CLASS_NAME, WINDOW_TITLE) { (hWnd, msg, wParam, lParam) -> LRESULT in
+            let lpCreateStruct = unsafeBitCast(lParam, to: LPCREATESTRUCT.self)
             switch msg {
             case UINT(WM_CREATE):
-                onCreate(hWnd)
+                onCreate(hWnd, lpCreateStruct.pointee.hInstance)
             case UINT(WM_DESTROY):
                 onDestroy()
             case UINT(WM_PAINT):
@@ -27,8 +28,14 @@ class MainWindow {
     }
 }
 
-private func onCreate(_ hWnd: HWND?) {
-    InitCommonControls();
+private func loadCommonControls() {
+    var initCommCtrl = INITCOMMONCONTROLSEX()
+    initCommCtrl.dwSize = UINT(MemoryLayout<INITCOMMONCONTROLSEX>.size)
+    initCommCtrl.dwICC = DWORD(ICC_TAB_CLASSES)
+    InitCommonControlsEx(&initCommCtrl)
+}
+
+private func createTabControl(_ hWnd: HWND?, _ hInstance: HINSTANCE) -> HWND? {
     let tabClassName = RgString(WC_TABCONTROL)
     let hTab = CreateWindowExW(
         0,
@@ -38,16 +45,29 @@ private func onCreate(_ hWnd: HWND?) {
         10, 10, 500, 500,
         hWnd,
         nil,
-        nil,
+        hInstance,
         nil
     )
+    return hTab
+}
 
-    let tabText = RgString("タブ1")
+private func addTabItem(_ hTab: HWND, _ index: UINT, _ text: String) {
+    let tabText = RgString(text)
     var tabItem = TCITEMW()
     tabItem.mask = UINT(TCIF_TEXT)
-    tabItem.pszText = tabText.mutablePtr // TODO: 文字化け直す
+    tabItem.pszText = tabText.mutablePtr
     tabItem.cchTextMax = tabText.length
-    rg_TabCtrl_InsertItem(hTab, 0, &tabItem)
+    rg_TabCtrl_InsertItem(hTab, index, &tabItem)
+}
+
+private func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
+    loadCommonControls()
+    guard let hTab = createTabControl(hWnd, hInstance) else {
+        return
+    }
+    addTabItem(hTab, 0, "タブ1")
+    addTabItem(hTab, 1, "タブ2")
+    addTabItem(hTab, 2, "タブ3")
 }
 
 private func onDestroy() {
@@ -63,8 +83,4 @@ private func onPaint(_ hWnd: HWND?) {
 }
 
 private func onMouseLButtonDown(_ hWnd: HWND?) {
-    let hDC = GetDC(hWnd)
-    let text = RgString("やっほー")
-    TextOutW(hDC, 100, 100, text.ptr, text.length)
-    ReleaseDC(hWnd, hDC)
 }
