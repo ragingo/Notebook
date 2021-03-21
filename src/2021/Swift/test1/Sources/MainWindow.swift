@@ -7,42 +7,14 @@ private let TAB_BUTTON_HIGHT: Int32 = 30
 
 let GWL_USERDATA: Int32 = -21
 
-private func getInstance<T: RgWindow>(_ type: T.Type, _ hWnd: HWND?) -> T {
-    let ptr = GetWindowLongPtrW(hWnd, GWL_USERDATA)
-    return unsafeBitCast(ptr, to: T.self)
-}
-
-class MainWindow: RgWindow {
+final class MainWindow: RgWindow {
     func create(_ hInstance: HINSTANCE?) {
-        self.create(hInstance, WINDOW_CLASS_NAME, WINDOW_TITLE) { (hWnd, msg, wParam, lParam) -> LRESULT in
-            let lpCreateStruct = unsafeBitCast(lParam, to: LPCREATESTRUCT.self)
-
-            switch msg {
-            case UINT(WM_CREATE):
-                let params = lpCreateStruct.pointee.lpCreateParams
-                let ptr = unsafeBitCast(params, to: LONG_PTR.self)
-                SetWindowLongPtrW(hWnd, GWL_USERDATA, ptr)
-                getInstance(MainWindow.self, hWnd).onCreate(hWnd, lpCreateStruct.pointee.hInstance)
-            case UINT(WM_DESTROY):
-                getInstance(MainWindow.self, hWnd).onDestroy()
-            case UINT(WM_PAINT):
-                getInstance(MainWindow.self, hWnd).onPaint(hWnd)
-            case UINT(WM_SIZE):
-                getInstance(MainWindow.self, hWnd).onSize(hWnd, lParam)
-            case UINT(WM_NOTIFY):
-                getInstance(MainWindow.self, hWnd).onNotify(hWnd, lParam)
-            case UINT(WM_LBUTTONDOWN):
-                getInstance(MainWindow.self, hWnd).onMouseLButtonDown(hWnd)
-            default:
-                return DefWindowProcW(hWnd, msg, wParam, lParam)
-            }
-            return 0
-        }
+        self.create(hInstance, WINDOW_CLASS_NAME, WINDOW_TITLE)
     }
 
     private var hBmp: HBITMAP?
 
-    private func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
+    override func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
         loadCommonControls()
         guard let hTab = createTabControl(hWnd, hInstance, "tab") else {
             return
@@ -56,7 +28,7 @@ class MainWindow: RgWindow {
         self.hBmp = unsafeBitCast(ptr, to: HBITMAP.self)
     }
 
-    private func onPaint(_ hWnd: HWND?) {
+    override func onPaint(_ hWnd: HWND?) {
         var ps = PAINTSTRUCT()
         guard let hDC = BeginPaint(hWnd, &ps) else {
             return
@@ -101,27 +73,24 @@ class MainWindow: RgWindow {
         Rectangle(hDC, 10, rect.bottom - rect.top, 70, rect.bottom - rect.top + 70)
     }
 
-    private func onSize(_ hWnd: HWND?, _ lParam: LPARAM) {
+    override func onSize(_ hWnd: HWND?, _ lParam: LPARAM) {
         let tabName = RgString("tab")
         if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
             MoveWindow(hTab, 0, 0, rg_LOWORD(lParam), TAB_BUTTON_HIGHT, true)
         }
     }
 
-    private func onNotify(_ hWnd: HWND?, _ lParam: LPARAM) {
+    override func onNotify(_ hWnd: HWND?, _ lParam: LPARAM) {
         let msg = unsafeBitCast(lParam, to: LPNMHDR.self)
         if msg.pointee.code == TCN_SELCHANGE {
             InvalidateRect(hWnd, nil, true)
         }
     }
 
-    private func onMouseLButtonDown(_ hWnd: HWND?) {
-    }
-
-    private func onDestroy() {
+    override func onDestroy() {
         if let hBmp = hBmp {
             DeleteObject(hBmp)
         }
-        PostQuitMessage(0)
+        super.onDestroy()
     }
 }
