@@ -18,6 +18,10 @@ class MainWindow {
                 onDestroy()
             case UINT(WM_PAINT):
                 onPaint(hWnd)
+            case UINT(WM_SIZE):
+                onSize(hWnd, lParam)
+            case UINT(WM_NOTIFY):
+                onNotify(hWnd, lParam)
             case UINT(WM_LBUTTONDOWN):
                 onMouseLButtonDown(hWnd)
             default:
@@ -35,14 +39,15 @@ private func loadCommonControls() {
     InitCommonControlsEx(&initCommCtrl)
 }
 
-private func createTabControl(_ hWnd: HWND?, _ hInstance: HINSTANCE) -> HWND? {
+private func createTabControl(_ hWnd: HWND?, _ hInstance: HINSTANCE, _ name: String) -> HWND? {
     let tabClassName = RgString(WC_TABCONTROL)
+    let name = RgString(name)
     let hTab = CreateWindowExW(
         0,
         tabClassName.ptr,
-        nil,
+        name.ptr,
         UINT(WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE),
-        10, 10, 500, 500,
+        0, 0, 0, 0,
         hWnd,
         nil,
         hInstance,
@@ -62,7 +67,7 @@ private func addTabItem(_ hTab: HWND, _ index: UINT, _ text: String) {
 
 private func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
     loadCommonControls()
-    guard let hTab = createTabControl(hWnd, hInstance) else {
+    guard let hTab = createTabControl(hWnd, hInstance, "tab") else {
         return
     }
     addTabItem(hTab, 0, "タブ1")
@@ -77,9 +82,32 @@ private func onDestroy() {
 private func onPaint(_ hWnd: HWND?) {
     var ps = PAINTSTRUCT()
     let hDC = BeginPaint(hWnd, &ps)
-    let text = RgString("やっほー!!!")
-    TextOutW(hDC, 0, 0, text.ptr, text.length)
+
+    var rect = RECT()
+    let tabName = RgString("tab")
+
+    if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
+        GetClientRect(hTab, &rect)
+        if rg_TabCtrl_GetCurSel(hTab) == 0 {
+            Rectangle(hDC, 0, rect.bottom - rect.top, 30, rect.bottom - rect.top + 30)
+        }
+    }
+
     EndPaint(hWnd, &ps)
+}
+
+private func onSize(_ hWnd: HWND?, _ lParam: LPARAM) {
+    let tabName = RgString("tab")
+    if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
+        MoveWindow(hTab, 0, 0, rg_LOWORD(lParam), 30, true)
+    }
+}
+
+private func onNotify(_ hWnd: HWND?, _ lParam: LPARAM) {
+    let msg = unsafeBitCast(lParam, to: LPNMHDR.self)
+    if msg.pointee.code == TCN_SELCHANGE {
+        InvalidateRect(hWnd, nil, true)
+    }
 }
 
 private func onMouseLButtonDown(_ hWnd: HWND?) {
