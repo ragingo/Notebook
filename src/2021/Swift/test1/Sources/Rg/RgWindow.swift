@@ -16,6 +16,7 @@ class RgWindow {
         }
 
         let windowTitle = RgString(windowTitle)
+        var _selfPtr = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
 
         handle = CreateWindowExW(
             0,
@@ -26,7 +27,7 @@ class RgWindow {
             nil,
             nil,
             hInstance,
-            nil
+            _selfPtr
         )
     }
 
