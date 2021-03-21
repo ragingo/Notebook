@@ -7,10 +7,9 @@ private let TAB_BUTTON_HIGHT: Int32 = 30
 
 let GWL_USERDATA: Int32 = -21
 
-private func getInstance<T: RgWindow>(_ hWnd: HWND?) -> T {
+private func getInstance<T: RgWindow>(_ type: T.Type, _ hWnd: HWND?) -> T {
     let ptr = GetWindowLongPtrW(hWnd, GWL_USERDATA)
-    var _self = unsafeBitCast(ptr, to: T.self)
-    return _self
+    return unsafeBitCast(ptr, to: T.self)
 }
 
 class MainWindow: RgWindow {
@@ -23,24 +22,17 @@ class MainWindow: RgWindow {
                 let params = lpCreateStruct.pointee.lpCreateParams
                 let ptr = unsafeBitCast(params, to: LONG_PTR.self)
                 SetWindowLongPtrW(hWnd, GWL_USERDATA, ptr)
-
-                let _self: MainWindow = getInstance(hWnd)
-                _self.onCreate(hWnd, lpCreateStruct.pointee.hInstance)
+                getInstance(MainWindow.self, hWnd).onCreate(hWnd, lpCreateStruct.pointee.hInstance)
             case UINT(WM_DESTROY):
-                let _self: MainWindow = getInstance(hWnd)
-                _self.onDestroy()
+                getInstance(MainWindow.self, hWnd).onDestroy()
             case UINT(WM_PAINT):
-                let _self: MainWindow = getInstance(hWnd)
-                _self.onPaint(hWnd)
+                getInstance(MainWindow.self, hWnd).onPaint(hWnd)
             case UINT(WM_SIZE):
-                let _self: MainWindow = getInstance(hWnd)
-                _self.onSize(hWnd, lParam)
+                getInstance(MainWindow.self, hWnd).onSize(hWnd, lParam)
             case UINT(WM_NOTIFY):
-                let _self: MainWindow = getInstance(hWnd)
-                _self.onNotify(hWnd, lParam)
+                getInstance(MainWindow.self, hWnd).onNotify(hWnd, lParam)
             case UINT(WM_LBUTTONDOWN):
-                let _self: MainWindow = getInstance(hWnd)
-                _self.onMouseLButtonDown(hWnd)
+                getInstance(MainWindow.self, hWnd).onMouseLButtonDown(hWnd)
             default:
                 return DefWindowProcW(hWnd, msg, wParam, lParam)
             }
