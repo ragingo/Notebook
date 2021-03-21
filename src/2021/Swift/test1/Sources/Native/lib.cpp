@@ -1,7 +1,11 @@
-extern "C" int ret1000() {
-    return 1000;
-}
+#include "lib.h"
 
-extern "C" int add(int a, int b) {
-    return a + b;
+#include <stdio.h>
+
+extern "C" {
+
+    int rg_TabCtrl_InsertItem(HWND hWnd, UINT iItem, const TCITEMW* pitem) {
+        return TabCtrl_InsertItem(hWnd, iItem, pitem);
+    }
+
 }
