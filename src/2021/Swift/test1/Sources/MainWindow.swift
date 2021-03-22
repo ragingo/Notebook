@@ -15,10 +15,14 @@ final class MainWindow: RgWindow {
     private var hBmp: HBITMAP?
 
     override func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
+        super.onCreate(hWnd, hInstance)
+
         loadCommonControls()
-        guard let hTab = createTabControl(hWnd, hInstance, "tab") else {
+
+        guard let hWnd = hWnd, let hTab = createTabControl(hWnd, hInstance, "tab") else {
             return
         }
+
         addTabItem(hTab, 0, "タブ1")
         addTabItem(hTab, 1, "タブ2")
         addTabItem(hTab, 2, "タブ3")
@@ -28,7 +32,7 @@ final class MainWindow: RgWindow {
         self.hBmp = unsafeBitCast(ptr, to: HBITMAP.self)
     }
 
-    override func onPaint(_ hWnd: HWND?) {
+    override func onPaint(_ windowMessage: inout RgWindowMessage) {
         var ps = PAINTSTRUCT()
         guard let hDC = BeginPaint(hWnd, &ps) else {
             return
@@ -73,15 +77,15 @@ final class MainWindow: RgWindow {
         Rectangle(hDC, 10, rect.bottom - rect.top, 70, rect.bottom - rect.top + 70)
     }
 
-    override func onSize(_ hWnd: HWND?, _ lParam: LPARAM) {
+    override func onSize(_ windowMessage: inout RgWindowMessage) {
         let tabName = RgString("tab")
         if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
-            MoveWindow(hTab, 0, 0, rg_LOWORD(lParam), TAB_BUTTON_HIGHT, true)
+            MoveWindow(hTab, 0, 0, rg_LOWORD(windowMessage.lParam), TAB_BUTTON_HIGHT, true)
         }
     }
 
-    override func onNotify(_ hWnd: HWND?, _ lParam: LPARAM) {
-        let msg = unsafeBitCast(lParam, to: LPNMHDR.self)
+    override func onNotify(_ windowMessage: inout RgWindowMessage) {
+        let msg = unsafeBitCast(windowMessage.lParam, to: LPNMHDR.self)
         if msg.pointee.code == TCN_SELCHANGE {
             InvalidateRect(hWnd, nil, true)
         }

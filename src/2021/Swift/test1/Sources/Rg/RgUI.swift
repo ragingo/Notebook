@@ -7,7 +7,7 @@ func loadCommonControls() {
     InitCommonControlsEx(&initCommCtrl)
 }
 
-func createTabControl(_ hWnd: HWND?, _ hInstance: HINSTANCE, _ name: String) -> HWND? {
+func createTabControl(_ hWnd: HWND, _ hInstance: HINSTANCE, _ name: String) -> HWND? {
     let tabClassName = RgString(WC_TABCONTROL)
     let name = RgString(name)
     let hTab = CreateWindowExW(

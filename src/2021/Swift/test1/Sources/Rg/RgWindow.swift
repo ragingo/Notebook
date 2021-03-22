@@ -1,13 +1,25 @@
 import WinSDK
 
-func getInstance<T: RgWindow>(_ type: T.Type, _ hWnd: HWND?) -> T {
+func getInstance<T: RgWindow>(_ type: T.Type, _ hWnd: HWND?) -> T? {
+    guard let hWnd = hWnd else {
+        return nil
+    }
     let ptr = GetWindowLongPtrW(hWnd, GWL_USERDATA)
+    if ptr == 0 {
+        return nil
+    }
     return unsafeBitCast(ptr, to: T.self)
+}
+
+struct RgWindowMessage {
+    let uMsg: UINT
+    let wParam: WPARAM
+    let lParam: LPARAM
 }
 
 class RgWindow {
     private var hInstance: HINSTANCE?
-    var handle: HWND?
+    private(set) var hWnd: HWND?
 
     init() {
     }
@@ -16,27 +28,32 @@ class RgWindow {
         self.hInstance = hInstance
         let windowClass = RgString(windowClass)
 
-        let windowProc: WNDPROC = { (hWnd, msg, wParam, lParam) -> LRESULT in
+        let windowProc: WNDPROC = { (hWnd, uMsg, wParam, lParam) -> LRESULT in
             let lpCreateStruct = unsafeBitCast(lParam, to: LPCREATESTRUCT.self)
+            var windowMessage = RgWindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam)
 
-            switch msg {
+            if let instance = getInstance(RgWindow.self, hWnd) {
+                instance.windowProc(hWnd, &windowMessage)
+            }
+
+            switch uMsg {
             case UINT(WM_CREATE):
                 let params = lpCreateStruct.pointee.lpCreateParams
                 let ptr = unsafeBitCast(params, to: LONG_PTR.self)
                 SetWindowLongPtrW(hWnd, GWL_USERDATA, ptr)
-                getInstance(RgWindow.self, hWnd).onCreate(hWnd, lpCreateStruct.pointee.hInstance)
+                getInstance(RgWindow.self, hWnd)?.onCreate(hWnd, lpCreateStruct.pointee.hInstance)
             case UINT(WM_DESTROY):
-                getInstance(RgWindow.self, hWnd).onDestroy()
+                getInstance(RgWindow.self, hWnd)?.onDestroy()
             case UINT(WM_PAINT):
-                getInstance(RgWindow.self, hWnd).onPaint(hWnd)
+                getInstance(RgWindow.self, hWnd)?.onPaint(&windowMessage)
             case UINT(WM_SIZE):
-                getInstance(RgWindow.self, hWnd).onSize(hWnd, lParam)
+                getInstance(RgWindow.self, hWnd)?.onSize(&windowMessage)
             case UINT(WM_NOTIFY):
-                getInstance(RgWindow.self, hWnd).onNotify(hWnd, lParam)
+                getInstance(RgWindow.self, hWnd)?.onNotify(&windowMessage)
             case UINT(WM_LBUTTONDOWN):
-                getInstance(RgWindow.self, hWnd).onMouseLButtonDown(hWnd)
+                getInstance(RgWindow.self, hWnd)?.onMouseLButtonDown(&windowMessage)
             default:
-                return DefWindowProcW(hWnd, msg, wParam, lParam)
+                return DefWindowProcW(hWnd, uMsg, wParam, lParam)
             }
             return 0
         }
@@ -48,7 +65,7 @@ class RgWindow {
         let windowTitle = RgString(windowTitle)
         let selfPtr = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
 
-        handle = CreateWindowExW(
+        let hWnd = CreateWindowExW(
             0,
             windowClass.ptr,
             windowTitle.ptr,
@@ -59,6 +76,8 @@ class RgWindow {
             hInstance,
             selfPtr
         )
+        ShowWindow(hWnd, SW_SHOW);
+        UpdateWindow(hWnd)
     }
 
     private func registerClass(_ windowClass: RgString, _ windowProc: @escaping WNDPROC) -> Bool {
@@ -74,22 +93,23 @@ class RgWindow {
         return RegisterClassExW(&wcex) != 0
     }
 
-    // func windowProc(_ hWnd: HWND, _ msg: UINT, _ wParam: WPARAM, _ lParam: LPARAM) {
-    // }
+    func windowProc(_ hWnd: HWND?, _ windowMessage: inout RgWindowMessage) {
+    }
 
     func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
+        self.hWnd = hWnd
     }
 
-    func onPaint(_ hWnd: HWND?) {
+    func onPaint(_ windowMessage: inout RgWindowMessage) {
     }
 
-    func onSize(_ hWnd: HWND?, _ lParam: LPARAM) {
+    func onSize(_ windowMessage: inout RgWindowMessage) {
     }
 
-    func onNotify(_ hWnd: HWND?, _ lParam: LPARAM) {
+    func onNotify(_ windowMessage: inout RgWindowMessage) {
     }
 
-    func onMouseLButtonDown(_ hWnd: HWND?) {
+    func onMouseLButtonDown(_ windowMessage: inout RgWindowMessage) {
     }
 
     func onDestroy() {
