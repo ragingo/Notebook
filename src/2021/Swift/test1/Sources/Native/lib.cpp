@@ -1,7 +1,5 @@
 #include "lib.h"
 
-#include <stdio.h>
-
 extern "C" {
 
     int rg_LOWORD(LPARAM lParam) {
@@ -18,6 +16,14 @@ extern "C" {
 
     int rg_TabCtrl_GetCurSel(HWND hWnd) {
         return TabCtrl_GetCurSel(hWnd);
+    }
+
+}
+
+extern "C" {
+
+    void rg_jpeg_create_decompress(j_decompress_ptr cinfo) {
+        jpeg_create_decompress(cinfo);
     }
 
 }
