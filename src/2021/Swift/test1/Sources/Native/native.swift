@@ -1,0 +1,2 @@
+
+let GWL_USERDATA: Int32 = -21

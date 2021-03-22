@@ -5,8 +5,6 @@ private let WINDOW_CLASS_NAME = "SwiftAppSampleForWindowsDesktop"
 
 private let TAB_BUTTON_HIGHT: Int32 = 30
 
-let GWL_USERDATA: Int32 = -21
-
 final class MainWindow: RgWindow {
     func create(_ hInstance: HINSTANCE?) {
         self.create(hInstance, WINDOW_CLASS_NAME, WINDOW_TITLE)
