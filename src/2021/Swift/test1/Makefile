@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 SWIFT_OPTIONS = \
+	-g -D DEBUG \
 	-sdk %SDKROOT% \
 	-I %SDKROOT%/usr/lib/swift \
 	-L %SDKROOT%/usr/lib/swift/windows -luser32 -lcomctl32 \

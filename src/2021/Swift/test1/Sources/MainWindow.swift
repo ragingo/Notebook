@@ -28,6 +28,30 @@ final class MainWindow: RgWindow {
         let path = RgString("./Resources/catman.bmp")
         let ptr = LoadImageW(nil, path.ptr, UINT(IMAGE_BITMAP), 0, 0, UINT(LR_LOADFROMFILE));
         self.hBmp = unsafeBitCast(ptr, to: HBITMAP.self)
+
+        HttpClient.shared.getDecodedObject(
+            videoSearchApiEndpoint,
+            params: [
+                "q": "game",
+                "targets": "title",
+                "fields": "contentId,thumbnailUrl",
+                "_sort": "-viewCounter",
+                "_context": "swifttest",
+            ]
+        ) { (obj: ApiResponse?) in
+            obj?.data.forEach {
+                print($0);
+                if $0.contentId == "sm26474456" {
+                    HttpClient.shared.send($0.thumbnailUrl) { data, res, _ in
+                        print("thumbnail downloaded")
+                        guard let data = data else { return }
+                        decodeJpegFromMemory(data) { img in
+                            print("decoded!!!")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override func onPaint(_ windowMessage: inout RgWindowMessage) {
@@ -57,8 +81,6 @@ final class MainWindow: RgWindow {
     }
 
     private func onTabItem1Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
-        Rectangle(hDC, 10, rect.bottom - rect.top, 30, rect.bottom - rect.top + 30)
-
         if let hBmp = hBmp {
             let hMemDC = CreateCompatibleDC(hDC)
             SelectObject(hMemDC, hBmp)
@@ -68,7 +90,6 @@ final class MainWindow: RgWindow {
     }
 
     private func onTabItem2Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
-        Rectangle(hDC, 10, rect.bottom - rect.top, 50, rect.bottom - rect.top + 50)
     }
 
     private func onTabItem3Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
@@ -96,3 +117,23 @@ final class MainWindow: RgWindow {
         super.onDestroy()
     }
 }
+
+
+// TODO: 廃止されるらしいからこっちに移行する https://site.nicovideo.jp/search-api-docs/snapshot
+let searchApiEndpoint = "https://api.search.nicovideo.jp/api/v2/:service/contents/search"
+let videoSearchApiEndpoint = searchApiEndpoint.replacingOccurrences(of: ":service", with: "video")
+
+struct VideoItem: Decodable {
+    var contentId: String
+    var thumbnailUrl: String
+}
+
+struct ApiMeta: Decodable {
+    var status: Int
+}
+
+struct ApiResponse: Decodable {
+    var meta: ApiMeta
+    var data: [VideoItem]
+}
+
