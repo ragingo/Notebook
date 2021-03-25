@@ -5,7 +5,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch",
-            "program": "${workspaceFolder}/build/swift_test1",
+            "program": "${workspaceFolder}/build/app",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "make"

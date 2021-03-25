@@ -8,10 +8,10 @@ SWIFT_OPTIONS = \
 	-L ./Tools/vcpkg/installed/x64-windows-static/lib -ljpeg
 SWIFT_SOURCES = $(shell shopt -s globstar && ls ./**/*.swift)
 OUTPUT_DIR = ./build
-EXE_NAME = swift_test1
+EXE_NAME = app
 EXE_PATH = $(OUTPUT_DIR)/$(EXE_NAME).exe
 
-all: build_cpp build_swift
+all: clean build_cpp build_swift
 
 run:
 	$(EXE_PATH)
