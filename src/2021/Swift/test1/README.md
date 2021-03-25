@@ -1,4 +1,4 @@
-環境構築メモ
+# 環境構築メモ
 
 - Windows 10
 - Visual Studio 2019
@@ -11,3 +11,25 @@
     - `Swift 5.4 Development`
 - Make 3.81
   - http://gnuwin32.sourceforge.net/packages/make.htm
+- vcpkg
+  - https://github.com/Microsoft/vcpkg
+- libjpeg-turbo
+
+# vcpkg setup
+
+※ windows git bash を使う
+
+vcpkg 導入
+
+```sh
+cd ./Tools
+git clone git@github.com:microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+```
+
+ライブラリ導入
+
+```sh
+vcpkg install libjpeg-turbo:x64-windows-static
+```
