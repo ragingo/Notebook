@@ -3,10 +3,16 @@ import Foundation
 private let JPEG_TRUE: UInt8 = 1
 private let JPEG_FALSE: UInt8 = 0
 
-
 typealias ImagePointer = UnsafeMutablePointer<UInt8>
 
-func decodeJpegFromMemory(_ data: Data, completed: @escaping (ImagePointer) -> ()) {
+struct ImageInfo {
+    let width: Int32
+    let height: Int32
+    let bitCount: Int32
+    let image: ImagePointer
+}
+
+func decodeJpegFromMemory(_ data: Data, completed: @escaping (ImageInfo) -> ()) {
     var err_mgr = jpeg_error_mgr()
     var cinfo = jpeg_decompress_struct()
     cinfo.err = jpeg_std_error(&err_mgr)
@@ -35,12 +41,15 @@ func decodeJpegFromMemory(_ data: Data, completed: @escaping (ImagePointer) -> (
     let pixels = img_ptr.assumingMemoryBound(to: UInt8.self)
 
     while cinfo.output_scanline < cinfo.output_height {
-        print("output_scanline: \(cinfo.output_scanline)")
         var row_ptr: JSAMPROW? = pixels + Int(cinfo.output_scanline) * Int(stride)
         jpeg_read_scanlines(&cinfo, &row_ptr, 1)
     }
 
-    completed(img)
-
-    img.deallocate()
+    let info = ImageInfo(
+        width: Int32(cinfo.output_width),
+        height: Int32(cinfo.output_height),
+        bitCount: Int32(cinfo.output_components) * 8,
+        image: img
+    )
+    completed(info)
 }
