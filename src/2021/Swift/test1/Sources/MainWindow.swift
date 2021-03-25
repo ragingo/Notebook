@@ -69,11 +69,11 @@ final class MainWindow: RgWindow {
     private static func createBitmapInfo(_ imageInfo: ImageInfo, _ bitmapInfo: inout BITMAPINFO) {
         bitmapInfo.bmiHeader.biSize = DWORD(MemoryLayout<BITMAPINFOHEADER>.size)
         bitmapInfo.bmiHeader.biWidth = imageInfo.width
-        bitmapInfo.bmiHeader.biHeight = imageInfo.height
+        bitmapInfo.bmiHeader.biHeight = -imageInfo.height
         bitmapInfo.bmiHeader.biPlanes = 1
         bitmapInfo.bmiHeader.biBitCount = WORD(imageInfo.bitCount)
         bitmapInfo.bmiHeader.biCompression = DWORD(BI_RGB)
-        bitmapInfo.bmiHeader.biSizeImage = DWORD(imageInfo.width * imageInfo.height * (imageInfo.bitCount / 8))
+        bitmapInfo.bmiHeader.biSizeImage = 0
         bitmapInfo.bmiHeader.biXPelsPerMeter = 0
         bitmapInfo.bmiHeader.biYPelsPerMeter = 0
         bitmapInfo.bmiHeader.biClrUsed = 0
