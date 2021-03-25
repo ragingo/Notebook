@@ -18,8 +18,9 @@ struct RgWindowMessage {
 }
 
 class RgWindow {
-    private var hInstance: HINSTANCE?
     private(set) var hWnd: HWND?
+    private var hInstance: HINSTANCE?
+    private var paintCount = 0
 
     init() {
     }
@@ -101,6 +102,10 @@ class RgWindow {
     }
 
     func onPaint(_ windowMessage: inout RgWindowMessage) {
+        if paintCount == 0 {
+            onShown()
+        }
+        paintCount += 1
     }
 
     func onSize(_ windowMessage: inout RgWindowMessage) {
@@ -114,5 +119,8 @@ class RgWindow {
 
     func onDestroy() {
         PostQuitMessage(0)
+    }
+
+    func onShown() {
     }
 }

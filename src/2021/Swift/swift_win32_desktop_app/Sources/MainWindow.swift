@@ -25,7 +25,9 @@ final class MainWindow: RgWindow {
         addTabItem(hTab, 0, "タブ1")
         addTabItem(hTab, 1, "タブ2")
         addTabItem(hTab, 2, "タブ3")
+    }
 
+    override func onShown() {
         onTabItem1Create()
         onTabItem2Create()
     }
@@ -81,6 +83,8 @@ final class MainWindow: RgWindow {
     }
 
     override func onPaint(_ windowMessage: inout RgWindowMessage) {
+        super.onPaint(&windowMessage)
+
         var ps = PAINTSTRUCT()
         guard let hDC = BeginPaint(hWnd, &ps) else {
             return

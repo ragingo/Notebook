@@ -68,8 +68,8 @@ func decodeJpegFromMemory(_ data: Data, completed: @escaping (ImageInfo) -> ()) 
         var src_pix_offset = 0
         var dst_pix_offset = 0
         while src_pix_offset < src_stride {
-            var s = src_row_ptr! + src_pix_offset
-            var d = dst_row_ptr! + dst_pix_offset
+            let s = src_row_ptr! + src_pix_offset
+            let d = dst_row_ptr! + dst_pix_offset
             d[0] = s[0]
             d[1] = s[1]
             d[2] = s[2]
