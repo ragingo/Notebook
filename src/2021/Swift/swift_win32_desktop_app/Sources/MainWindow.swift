@@ -22,9 +22,9 @@ final class MainWindow: RgWindow {
             return
         }
 
-        addTabItem(hTab, 0, "タブ1")
-        addTabItem(hTab, 1, "タブ2")
-        addTabItem(hTab, 2, "タブ3")
+        addTabItem(hTab, 0, "local bmp")
+        addTabItem(hTab, 1, "http jpg list")
+        addTabItem(hTab, 2, "todo")
     }
 
     override func onShown() {
@@ -71,6 +71,9 @@ final class MainWindow: RgWindow {
         guard let hDC = BeginPaint(hWnd, &ps) else {
             return
         }
+        defer {
+            EndPaint(hWnd, &ps)
+        }
 
         var rect = RECT()
         let tabName = RgString("tab")
@@ -88,8 +91,6 @@ final class MainWindow: RgWindow {
                 break
             }
         }
-
-        EndPaint(hWnd, &ps)
     }
 
     private func onTabItem1Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
