@@ -11,7 +11,7 @@ final class MainWindow: RgWindow {
     }
 
     private var hBmp1: HBITMAP?
-    private var imageInfo: ImageInfo?
+    private var imageInfos: [ImageInfo] = []
 
     override func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
         super.onCreate(hWnd, hInstance)
@@ -53,33 +53,15 @@ final class MainWindow: RgWindow {
             }
             res.data.forEach {
                 print($0);
-                // 今はとりあえず1枚だけ処理する
-                if $0.contentId != "sm23867118" {
-                    return
-                }
                 HttpClient.shared.send($0.thumbnailUrl) { [unowned self] data, res, _ in
                     print("thumbnail downloaded")
                     guard let data = data else { return }
                     decodeJpegFromMemory(data) { info in
-                        self.imageInfo = info
+                        self.imageInfos.append(info)
                     }
                 }
             }
         }
-    }
-
-    private static func createBitmapInfo(_ imageInfo: ImageInfo, _ bitmapInfo: inout BITMAPINFO) {
-        bitmapInfo.bmiHeader.biSize = DWORD(MemoryLayout<BITMAPINFOHEADER>.size)
-        bitmapInfo.bmiHeader.biWidth = imageInfo.width
-        bitmapInfo.bmiHeader.biHeight = -imageInfo.height
-        bitmapInfo.bmiHeader.biPlanes = 1
-        bitmapInfo.bmiHeader.biBitCount = WORD(imageInfo.bitCount)
-        bitmapInfo.bmiHeader.biCompression = DWORD(BI_RGB)
-        bitmapInfo.bmiHeader.biSizeImage = 0
-        bitmapInfo.bmiHeader.biXPelsPerMeter = 0
-        bitmapInfo.bmiHeader.biYPelsPerMeter = 0
-        bitmapInfo.bmiHeader.biClrUsed = 0
-        bitmapInfo.bmiHeader.biClrImportant = 0
     }
 
     override func onPaint(_ windowMessage: inout RgWindowMessage) {
@@ -120,21 +102,21 @@ final class MainWindow: RgWindow {
     }
 
     private func onTabItem2Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
-        guard let imageInfo = imageInfo else {
-            return
+        var y = TAB_BUTTON_HIGHT
+        for info in imageInfos {
+            var bi = BITMAPINFO()
+            createBitmapInfo(info, &bi)
+            StretchDIBits(
+                hDC,
+                0, y, info.width, info.height,
+                0, 0, info.width, info.height,
+                info.image,
+                &bi,
+                UINT(DIB_RGB_COLORS),
+                SRCCOPY
+            )
+            y += info.height
         }
-
-        var bi = BITMAPINFO()
-        Self.createBitmapInfo(imageInfo, &bi)
-        StretchDIBits(
-            hDC,
-            0, TAB_BUTTON_HIGHT, imageInfo.width, imageInfo.height,
-            0, 0, imageInfo.width, imageInfo.height,
-            imageInfo.image,
-            &bi,
-            UINT(DIB_RGB_COLORS),
-            SRCCOPY
-        )
     }
 
     private func onTabItem3Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
@@ -159,13 +141,26 @@ final class MainWindow: RgWindow {
         if let bmp = hBmp1 {
             DeleteObject(bmp)
         }
-        if let info = imageInfo {
+        for info in imageInfos {
             info.image.deallocate()
         }
         super.onDestroy()
     }
 }
 
+private func createBitmapInfo(_ imageInfo: ImageInfo, _ bitmapInfo: inout BITMAPINFO) {
+    bitmapInfo.bmiHeader.biSize = DWORD(MemoryLayout<BITMAPINFOHEADER>.size)
+    bitmapInfo.bmiHeader.biWidth = imageInfo.width
+    bitmapInfo.bmiHeader.biHeight = -imageInfo.height
+    bitmapInfo.bmiHeader.biPlanes = 1
+    bitmapInfo.bmiHeader.biBitCount = WORD(imageInfo.bitCount)
+    bitmapInfo.bmiHeader.biCompression = DWORD(BI_RGB)
+    bitmapInfo.bmiHeader.biSizeImage = 0
+    bitmapInfo.bmiHeader.biXPelsPerMeter = 0
+    bitmapInfo.bmiHeader.biYPelsPerMeter = 0
+    bitmapInfo.bmiHeader.biClrUsed = 0
+    bitmapInfo.bmiHeader.biClrImportant = 0
+}
 
 // TODO: 廃止されるらしいからこっちに移行する https://site.nicovideo.jp/search-api-docs/snapshot
 let searchApiEndpoint = "https://api.search.nicovideo.jp/api/v2/:service/contents/search"
@@ -184,4 +179,3 @@ struct ApiResponse: Decodable {
     var meta: ApiMeta
     var data: [VideoItem]
 }
-

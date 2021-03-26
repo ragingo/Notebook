@@ -40,7 +40,7 @@ func decodeJpegFromMemory(_ data: Data, completed: @escaping (ImageInfo) -> ()) 
         jpeg_finish_decompress(&cinfo)
     }
 
-    // dst (rgba)
+    // dst (bgra)
     let dst_stride = Int(cinfo.output_width) * 4
     let dst_img = ImagePointer.allocate(capacity: dst_stride * Int(cinfo.output_height))
     let dst_img_ptr = UnsafeMutableRawPointer(dst_img)
@@ -70,9 +70,9 @@ func decodeJpegFromMemory(_ data: Data, completed: @escaping (ImageInfo) -> ()) 
         var s_offset = 0
         var d_offset = 0
         while s_offset < src_stride {
-            dst_row_ptr[d_offset + 0] = src_row_ptr[s_offset + 0]
+            dst_row_ptr[d_offset + 0] = src_row_ptr[s_offset + 2]
             dst_row_ptr[d_offset + 1] = src_row_ptr[s_offset + 1]
-            dst_row_ptr[d_offset + 2] = src_row_ptr[s_offset + 2]
+            dst_row_ptr[d_offset + 2] = src_row_ptr[s_offset + 0]
             dst_row_ptr[d_offset + 3] = 0
             s_offset += 3
             d_offset += 4
