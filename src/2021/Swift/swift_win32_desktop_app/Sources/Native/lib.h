@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <Windows.h>
 #include <CommCtrl.h>
+#include <Uxtheme.h>
 // #include <jpeglib.h> // エラーになる
 #include "../../Tools/vcpkg/installed/x64-windows-static/include/jpeglib.h"
 
@@ -20,6 +21,8 @@ extern "C" {
     int rg_HIWORD(LPARAM);
     int rg_TabCtrl_InsertItem(HWND, UINT, const TCITEMW*);
     int rg_TabCtrl_GetCurSel(HWND);
+    int rg_ListView_InsertColumn(HWND, UINT, const LVCOLUMNW*);
+    int rg_ListView_InsertItem(HWND, const LVITEMW*);
 
     // ligjpeg-turbo
     void rg_jpeg_create_decompress(j_decompress_ptr);

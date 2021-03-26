@@ -18,6 +18,14 @@ extern "C" {
         return TabCtrl_GetCurSel(hWnd);
     }
 
+    int rg_ListView_InsertColumn(HWND hWnd, UINT iCol, const LVCOLUMNW* pCol) {
+        return ListView_InsertColumn(hWnd, iCol, pCol);
+    }
+
+    int rg_ListView_InsertItem(HWND hWnd, const LVITEMW* pItem) {
+        return ListView_InsertItem(hWnd, pItem);
+    }
+
 }
 
 extern "C" {

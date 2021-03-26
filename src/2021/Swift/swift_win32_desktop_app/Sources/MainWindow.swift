@@ -25,6 +25,18 @@ final class MainWindow: RgWindow {
         addTabItem(hTab, 0, "local bmp")
         addTabItem(hTab, 1, "http jpg list")
         addTabItem(hTab, 2, "todo")
+
+        if let lv = createListView(hWnd, hInstance, "VideoListView") {
+            addListViewColumn(lv, 0, "col1")
+            addListViewColumn(lv, 1, "col2")
+            addListViewColumn(lv, 2, "col3")
+            addListViewItem(lv, 0, "item1")
+            addListViewItem(lv, 1, "item2")
+            addListViewItem(lv, 2, "item3")
+            var rect = RECT()
+            GetClientRect(hWnd, &rect)
+            SetWindowPos(lv, nil, 0, TAB_BUTTON_HIGHT, rect.right - rect.left, (rect.bottom - rect.top) - TAB_BUTTON_HIGHT, UINT(SWP_NOMOVE))
+        }
     }
 
     override func onShown() {
@@ -80,16 +92,25 @@ final class MainWindow: RgWindow {
 
         if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
             GetClientRect(hTab, &rect)
+
+            let videoListViewName = RgString("VideoListView")
+            let hListView = FindWindowExW(hWnd, nil, nil, videoListViewName.ptr)
+
             switch rg_TabCtrl_GetCurSel(hTab) {
             case 0:
+                ShowWindow(hListView, SW_HIDE)
                 onTabItem1Paint(hTab, hDC, rect)
             case 1:
+                ShowWindow(hListView, SW_HIDE)
                 onTabItem2Paint(hTab, hDC, rect)
             case 2:
+                ShowWindow(hListView, SW_SHOW)
                 onTabItem3Paint(hTab, hDC, rect)
             default:
                 break
             }
+
+            UpdateWindow(hListView)
         }
     }
 
@@ -126,8 +147,16 @@ final class MainWindow: RgWindow {
 
     override func onSize(_ windowMessage: inout RgWindowMessage) {
         let tabName = RgString("tab")
-        if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
+        let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr)
+        if hTab != nil {
             MoveWindow(hTab, 0, 0, rg_LOWORD(windowMessage.lParam), TAB_BUTTON_HIGHT, true)
+        }
+
+        if rg_TabCtrl_GetCurSel(hTab) == 2 {
+            let videoListViewName = RgString("VideoListView")
+            if let hListView = FindWindowExW(hWnd, nil, nil, videoListViewName.ptr) {
+                MoveWindow(hListView, 0, TAB_BUTTON_HIGHT, rg_LOWORD(windowMessage.lParam), rg_HIWORD(windowMessage.lParam) - TAB_BUTTON_HIGHT, true)
+            }
         }
     }
 

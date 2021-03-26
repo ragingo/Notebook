@@ -3,7 +3,7 @@ SWIFT_OPTIONS = \
 	-g -D DEBUG \
 	-sdk %SDKROOT% \
 	-I %SDKROOT%/usr/lib/swift \
-	-L %SDKROOT%/usr/lib/swift/windows -luser32 -lcomctl32 \
+	-L %SDKROOT%/usr/lib/swift/windows -luser32 -lcomctl32 -luxtheme \
 	-I ./Tools/vcpkg/installed/x64-windows-static/include \
 	-L ./Tools/vcpkg/installed/x64-windows-static/lib -ljpeg
 SWIFT_SOURCES = $(shell shopt -s globstar && ls ./**/*.swift)

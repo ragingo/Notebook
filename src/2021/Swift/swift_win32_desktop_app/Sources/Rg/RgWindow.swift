@@ -77,7 +77,7 @@ class RgWindow {
             hInstance,
             selfPtr
         )
-        ShowWindow(hWnd, SW_SHOW);
+        ShowWindow(hWnd, SW_SHOW)
         UpdateWindow(hWnd)
     }
 
