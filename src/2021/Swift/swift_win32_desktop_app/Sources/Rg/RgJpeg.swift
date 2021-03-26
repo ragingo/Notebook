@@ -40,42 +40,42 @@ func decodeJpegFromMemory(_ data: Data, completed: @escaping (ImageInfo) -> ()) 
         jpeg_finish_decompress(&cinfo)
     }
 
-    let src_stride = Int32(cinfo.output_width) * cinfo.num_components
-    let dst_stride = Int32(cinfo.output_width) * 4
-
-    let dst_img = ImagePointer.allocate(capacity: Int(dst_stride * Int32(cinfo.output_height)))
+    // dst (rgba)
+    let dst_stride = Int(cinfo.output_width) * 4
+    let dst_img = ImagePointer.allocate(capacity: dst_stride * Int(cinfo.output_height))
     let dst_img_ptr = UnsafeMutableRawPointer(dst_img)
-    let dst_pixels = dst_img_ptr.assumingMemoryBound(to: UInt8.self)
+    let dst_pixels = dst_img_ptr.assumingMemoryBound(to: JSAMPLE.self)
 
-    var dst_offset = 0
-    var dst_row_ptr: JSAMPROW?
-
-    // もっとコンパクトになるのかな・・・見直そう
-    let src_img_row = ImagePointer.allocate(capacity: Int(src_stride))
+    // src (rgb)
+    let src_stride = Int(cinfo.output_width) * 3
+    let src_img_row = ImagePointer.allocate(capacity: src_stride)
     let src_img_row_ptr = UnsafeMutableRawPointer(src_img_row)
-    let src_pixels = src_img_row_ptr.assumingMemoryBound(to: UInt8.self)
+    let src_pixels = src_img_row_ptr.assumingMemoryBound(to: JSAMPLE.self)
     var src_row_ptr: JSAMPROW? = src_pixels
     defer {
         src_img_row.deallocate()
     }
 
     while cinfo.output_scanline < cinfo.output_height {
-        dst_offset = Int(cinfo.output_scanline) * Int(dst_stride)
-        dst_row_ptr = dst_pixels + dst_offset
+        let dst_row_ptr = dst_pixels + (Int(cinfo.output_scanline) * dst_stride)
 
-        jpeg_read_scanlines(&cinfo, &src_row_ptr, 1)
+        if jpeg_read_scanlines(&cinfo, &src_row_ptr, 1) != 1 {
+            break
+        }
 
-        var src_pix_offset = 0
-        var dst_pix_offset = 0
-        while src_pix_offset < src_stride {
-            let s = src_row_ptr! + src_pix_offset
-            let d = dst_row_ptr! + dst_pix_offset
-            d[0] = s[0]
-            d[1] = s[1]
-            d[2] = s[2]
-            d[3] = 0
-            src_pix_offset += 3
-            dst_pix_offset += 4
+        guard let src_row_ptr = src_row_ptr else {
+            continue
+        }
+
+        var s_offset = 0
+        var d_offset = 0
+        while s_offset < src_stride {
+            dst_row_ptr[d_offset + 0] = src_row_ptr[s_offset + 0]
+            dst_row_ptr[d_offset + 1] = src_row_ptr[s_offset + 1]
+            dst_row_ptr[d_offset + 2] = src_row_ptr[s_offset + 2]
+            dst_row_ptr[d_offset + 3] = 0
+            s_offset += 3
+            d_offset += 4
         }
     }
 
