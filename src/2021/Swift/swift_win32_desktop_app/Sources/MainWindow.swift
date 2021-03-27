@@ -3,9 +3,11 @@ import WinSDK
 private let WINDOW_TITLE = "Swift で Win32 API を使ってみた"
 private let WINDOW_CLASS_NAME = "SwiftAppSampleForWindowsDesktop"
 
-private let TAB_BUTTON_HIGHT: Int32 = 30
+private let TAB_BUTTON_HEIGHT: Int32 = 30
 
 final class MainWindow: RgWindow {
+    private var tabControl: RgTabControl? = nil
+
     func create(_ hInstance: HINSTANCE?) {
         self.create(hInstance, WINDOW_CLASS_NAME, WINDOW_TITLE)
     }
@@ -18,25 +20,24 @@ final class MainWindow: RgWindow {
 
         loadCommonControls()
 
-        guard let hWnd = hWnd, let hTab = createTabControl(hWnd, hInstance, "tab") else {
-            return
-        }
+        tabControl = RgTabControl(hWndParent: hWnd, name: "tab", hInstance: hInstance)
+        let page1 = tabControl!.addPage(text: "a")
+        let button1 = page1.addChild(type: RgButton.self)
+        button1.resize(width: 100, height: 30)
+        let page2 = tabControl!.addPage(text: "b")
+        let page3 = tabControl!.addPage(text: "c")
 
-        addTabItem(hTab, 0, "local bmp")
-        addTabItem(hTab, 1, "http jpg list")
-        addTabItem(hTab, 2, "todo")
-
-        if let lv = createListView(hWnd, hInstance, "VideoListView") {
-            addListViewColumn(lv, 0, "col1")
-            addListViewColumn(lv, 1, "col2")
-            addListViewColumn(lv, 2, "col3")
-            addListViewItem(lv, 0, "item1")
-            addListViewItem(lv, 1, "item2")
-            addListViewItem(lv, 2, "item3")
-            var rect = RECT()
-            GetClientRect(hWnd, &rect)
-            SetWindowPos(lv, nil, 0, TAB_BUTTON_HIGHT, rect.right - rect.left, (rect.bottom - rect.top) - TAB_BUTTON_HIGHT, UINT(SWP_NOMOVE))
-        }
+        // if let lv = createListView(hWnd, "VideoListView", hInstance) {
+        //     addListViewColumn(lv, 0, "col1")
+        //     addListViewColumn(lv, 1, "col2")
+        //     addListViewColumn(lv, 2, "col3")
+        //     addListViewItem(lv, 0, "item1")
+        //     addListViewItem(lv, 1, "item2")
+        //     addListViewItem(lv, 2, "item3")
+        //     var rect = RECT()
+        //     GetClientRect(hWnd, &rect)
+        //     SetWindowPos(lv, nil, 0, TAB_BUTTON_HEIGHT, rect.right - rect.left, (rect.bottom - rect.top) - TAB_BUTTON_HEIGHT, UINT(SWP_NOMOVE))
+        // }
     }
 
     override func onShown() {
@@ -59,21 +60,21 @@ final class MainWindow: RgWindow {
             "_context": "swifttest",
         ]
 
-        HttpClient.shared.getDecodedObject(videoSearchApiEndpoint, params: params) { (res: ApiResponse?) in
-            guard let res = res else {
-                return
-            }
-            res.data.forEach {
-                print($0);
-                HttpClient.shared.send($0.thumbnailUrl) { [unowned self] data, res, _ in
-                    print("thumbnail downloaded")
-                    guard let data = data else { return }
-                    decodeJpegFromMemory(data) { info in
-                        self.imageInfos.append(info)
-                    }
-                }
-            }
-        }
+        // HttpClient.shared.getDecodedObject(videoSearchApiEndpoint, params: params) { (res: ApiResponse?) in
+        //     guard let res = res else {
+        //         return
+        //     }
+        //     res.data.forEach {
+        //         print($0);
+        //         HttpClient.shared.send($0.thumbnailUrl) { [unowned self] data, res, _ in
+        //             print("thumbnail downloaded")
+        //             guard let data = data else { return }
+        //             decodeJpegFromMemory(data) { info in
+        //                 self.imageInfos.append(info)
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     override func onPaint(_ windowMessage: inout RgWindowMessage) {
@@ -87,44 +88,27 @@ final class MainWindow: RgWindow {
             EndPaint(hWnd, &ps)
         }
 
+        // TODO: ここに描画コードを書く
+    }
+
+    override func onSize(_ windowMessage: inout RgWindowMessage) {
+        // 消したい
         var rect = RECT()
-        let tabName = RgString("tab")
-
-        if let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr) {
-            GetClientRect(hTab, &rect)
-
-            let videoListViewName = RgString("VideoListView")
-            let hListView = FindWindowExW(hWnd, nil, nil, videoListViewName.ptr)
-
-            switch rg_TabCtrl_GetCurSel(hTab) {
-            case 0:
-                ShowWindow(hListView, SW_HIDE)
-                onTabItem1Paint(hTab, hDC, rect)
-            case 1:
-                ShowWindow(hListView, SW_HIDE)
-                onTabItem2Paint(hTab, hDC, rect)
-            case 2:
-                ShowWindow(hListView, SW_SHOW)
-                onTabItem3Paint(hTab, hDC, rect)
-            default:
-                break
-            }
-
-            UpdateWindow(hListView)
-        }
+        GetClientRect(hWnd, &rect)
+        tabControl?.adjustSize(&rect)
     }
 
     private func onTabItem1Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
         if let bmp = hBmp1 {
             let hMemDC = CreateCompatibleDC(hDC)
             SelectObject(hMemDC, bmp)
-            BitBlt(hDC, 0, TAB_BUTTON_HIGHT, 32, 32, hMemDC, 0, 0, SRCCOPY)
+            BitBlt(hDC, 0, TAB_BUTTON_HEIGHT, 32, 32, hMemDC, 0, 0, SRCCOPY)
             DeleteDC(hMemDC)
         }
     }
 
     private func onTabItem2Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
-        var y = TAB_BUTTON_HIGHT
+        var y = TAB_BUTTON_HEIGHT
         for info in imageInfos {
             var bi = BITMAPINFO()
             createBitmapInfo(info, &bi)
@@ -143,28 +127,6 @@ final class MainWindow: RgWindow {
 
     private func onTabItem3Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {
         Rectangle(hDC, 10, rect.bottom - rect.top, 70, rect.bottom - rect.top + 70)
-    }
-
-    override func onSize(_ windowMessage: inout RgWindowMessage) {
-        let tabName = RgString("tab")
-        let hTab = FindWindowExW(hWnd, nil, nil, tabName.ptr)
-        if hTab != nil {
-            MoveWindow(hTab, 0, 0, rg_LOWORD(windowMessage.lParam), TAB_BUTTON_HIGHT, true)
-        }
-
-        if rg_TabCtrl_GetCurSel(hTab) == 2 {
-            let videoListViewName = RgString("VideoListView")
-            if let hListView = FindWindowExW(hWnd, nil, nil, videoListViewName.ptr) {
-                MoveWindow(hListView, 0, TAB_BUTTON_HIGHT, rg_LOWORD(windowMessage.lParam), rg_HIWORD(windowMessage.lParam) - TAB_BUTTON_HIGHT, true)
-            }
-        }
-    }
-
-    override func onNotify(_ windowMessage: inout RgWindowMessage) {
-        let msg = unsafeBitCast(windowMessage.lParam, to: LPNMHDR.self)
-        if msg.pointee.code == TCN_SELCHANGE {
-            InvalidateRect(hWnd, nil, true)
-        }
     }
 
     override func onDestroy() {

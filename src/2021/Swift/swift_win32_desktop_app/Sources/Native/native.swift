@@ -1,2 +1,3 @@
 
+let GWL_WNDPROC: Int32 = -4
 let GWL_USERDATA: Int32 = -21
