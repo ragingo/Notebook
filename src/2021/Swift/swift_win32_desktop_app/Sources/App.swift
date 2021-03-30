@@ -1,11 +1,9 @@
 import WinSDK
 
-private let hInstance = GetModuleHandleW(nil)
-
 struct App {
     static func run() {
         let window = MainWindow()
-        window.create(hInstance)
+        window.create()
 
         var msg = MSG()
         while msg.message != WM_QUIT {

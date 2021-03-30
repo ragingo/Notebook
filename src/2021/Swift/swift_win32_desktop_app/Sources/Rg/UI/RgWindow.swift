@@ -11,12 +11,6 @@ func getInstance<T: RgWindow>(_ type: T.Type, _ hWnd: HWND?) -> T? {
     return unsafeBitCast(ptr, to: T.self)
 }
 
-struct RgWindowMessage {
-    let uMsg: UINT
-    let wParam: WPARAM
-    let lParam: LPARAM
-}
-
 class RgWindow {
     private(set) var hWnd: HWND?
     private var hInstance: HINSTANCE?
@@ -25,13 +19,12 @@ class RgWindow {
     init() {
     }
 
-    func create(_ hInstance: HINSTANCE?, _ windowClass: String, _ windowTitle: String) {
-        self.hInstance = hInstance
+    func create(_ windowClass: String, _ windowTitle: String) {
         let windowClass = RgString(windowClass)
 
         let windowProc: WNDPROC = { (hWnd, uMsg, wParam, lParam) -> LRESULT in
             let lpCreateStruct = unsafeBitCast(lParam, to: LPCREATESTRUCT.self)
-            var windowMessage = RgWindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam)
+            var windowMessage = RgWindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam, handled: false)
 
             if let instance = getInstance(RgWindow.self, hWnd) {
                 instance.windowProc(hWnd, &windowMessage)
@@ -42,7 +35,7 @@ class RgWindow {
                 let params = lpCreateStruct.pointee.lpCreateParams
                 let ptr = unsafeBitCast(params, to: LONG_PTR.self)
                 SetWindowLongPtrW(hWnd, GWL_USERDATA, ptr)
-                getInstance(RgWindow.self, hWnd)?.onCreate(hWnd, lpCreateStruct.pointee.hInstance)
+                getInstance(RgWindow.self, hWnd)?.onCreate(hWnd)
             case UINT(WM_DESTROY):
                 getInstance(RgWindow.self, hWnd)?.onDestroy()
             case UINT(WM_PAINT):
@@ -74,7 +67,7 @@ class RgWindow {
             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
             nil,
             nil,
-            hInstance,
+            GetModuleHandleW(nil),
             selfPtr
         )
         ShowWindow(hWnd, SW_SHOW)
@@ -97,7 +90,7 @@ class RgWindow {
     func windowProc(_ hWnd: HWND?, _ windowMessage: inout RgWindowMessage) {
     }
 
-    func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
+    func onCreate(_ hWnd: HWND?) {
         self.hWnd = hWnd
     }
 
@@ -122,5 +115,10 @@ class RgWindow {
     }
 
     func onShown() {
+    }
+
+    func addChild<T: RgControl>(child: T) -> T {
+        child.setParent(hWnd)
+        return child
     }
 }

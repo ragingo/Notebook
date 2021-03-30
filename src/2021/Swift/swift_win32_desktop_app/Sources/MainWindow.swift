@@ -6,28 +6,33 @@ private let WINDOW_CLASS_NAME = "SwiftAppSampleForWindowsDesktop"
 private let TAB_BUTTON_HEIGHT: Int32 = 30
 
 final class MainWindow: RgWindow {
-    private var tabControl: RgTabControl? = nil
+    // private var tabControl: RgTabControl? = nil
 
-    func create(_ hInstance: HINSTANCE?) {
-        self.create(hInstance, WINDOW_CLASS_NAME, WINDOW_TITLE)
+    func create() {
+        self.create(WINDOW_CLASS_NAME, WINDOW_TITLE)
     }
 
     private var hBmp1: HBITMAP?
     private var imageInfos: [ImageInfo] = []
 
-    override func onCreate(_ hWnd: HWND?, _ hInstance: HINSTANCE) {
-        super.onCreate(hWnd, hInstance)
+    override func onCreate(_ hWnd: HWND?) {
+        super.onCreate(hWnd)
 
         loadCommonControls()
 
-        tabControl = RgTabControl(hWndParent: hWnd, name: "tab", hInstance: hInstance)
-        let page1 = tabControl!.addPage(text: "a")
-        let button1 = page1.addChild(type: RgButton.self)
-        button1.resize(width: 100, height: 30)
-        let page2 = tabControl!.addPage(text: "b")
-        let page3 = tabControl!.addPage(text: "c")
+        let button = RgButton()
+        addChild(child: button)
+        button.moveTo(x: 100, y: 100)
+        button.resize(width: 300, height: 300)
 
-        // if let lv = createListView(hWnd, "VideoListView", hInstance) {
+        // tabControl = RgTabControl(hWndParent: hWnd, name: "tab")
+        // let page1 = tabControl!.addPage(text: "a")
+        // let button1 = page1.addChild(type: RgButton.self)
+        // button1.resize(width: 100, height: 30)
+        // let page2 = tabControl!.addPage(text: "b")
+        // let page3 = tabControl!.addPage(text: "c")
+
+        // if let lv = createListView(hWnd, "VideoListView") {
         //     addListViewColumn(lv, 0, "col1")
         //     addListViewColumn(lv, 1, "col2")
         //     addListViewColumn(lv, 2, "col3")
@@ -52,13 +57,13 @@ final class MainWindow: RgWindow {
     }
 
     private func onTabItem2Create() {
-        let params: [String: Any] = [
-            "q": "game",
-            "targets": "title",
-            "fields": "contentId,thumbnailUrl",
-            "_sort": "-viewCounter",
-            "_context": "swifttest",
-        ]
+        // let params: [String: Any] = [
+        //     "q": "game",
+        //     "targets": "title",
+        //     "fields": "contentId,thumbnailUrl",
+        //     "_sort": "-viewCounter",
+        //     "_context": "swifttest",
+        // ]
 
         // HttpClient.shared.getDecodedObject(videoSearchApiEndpoint, params: params) { (res: ApiResponse?) in
         //     guard let res = res else {
@@ -93,9 +98,9 @@ final class MainWindow: RgWindow {
 
     override func onSize(_ windowMessage: inout RgWindowMessage) {
         // 消したい
-        var rect = RECT()
-        GetClientRect(hWnd, &rect)
-        tabControl?.adjustSize(&rect)
+        // var rect = RECT()
+        // GetClientRect(hWnd, &rect)
+        // tabControl?.adjustSize(&rect)
     }
 
     private func onTabItem1Paint(_ hTab: HWND, _ hDC: HDC, _ rect: RECT) {

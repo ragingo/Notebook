@@ -12,38 +12,52 @@ func getInstance<T: RgControl>(_ type: T.Type, _ hWnd: HWND?) -> T? {
 }
 
 class RgControl {
-    private var hInstance: HINSTANCE?
     var handle: HWND? = nil
     var parentHandle: HWND? = nil
-    private var defaultWndProc: WNDPROC? = nil
 
-    required init(hWndParent: HWND?, name: String = "", hInstance: HINSTANCE? = nil, enableSubClass: Bool = false) {
-        self.hInstance = hInstance
-        parentHandle = hWndParent
+    private(set) var name: String
+    private(set) var className: String
+
+    required init(parentHandle: HWND? = nil, name: String = "", className: String) {
+        self.name = name
+        self.className = className
+        self.parentHandle = parentHandle
 
         let selfPtr = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
-        handle = createStaticControl(hWndParent, hInstance, selfPtr)
 
-        if enableSubClass {
-            let ptr = unsafeBitCast(selfPtr, to: LONG_PTR.self)
-            SetWindowLongPtrW(handle, GWL_USERDATA, ptr)
+        if parentHandle == nil {
+            handle = nil
+        } else {
+            handle = createControl(hWnd: parentHandle, name: name, className: className, hInstance: GetModuleHandleW(nil), lpParam: selfPtr)
             applySubClass()
         }
     }
 
-    func applySubClass() {
-        let ptr = GetWindowLongPtrW(handle, GWL_WNDPROC)
-        defaultWndProc = unsafeBitCast(ptr, to: WNDPROC.self)
+    func setParent(_ parentHandle: HWND?) {
+        self.parentHandle = parentHandle
+        if handle == nil {
+            let selfPtr = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+            handle = createControl(hWnd: parentHandle, name: name, className: className, hInstance: GetModuleHandleW(nil), lpParam: selfPtr)
+            applySubClass()
+        } else {
+            SetParent(handle, parentHandle)
+        }
+    }
 
-        let windowProc: WNDPROC = { (hWnd, uMsg, wParam, lParam) -> LRESULT in
-            var windowMessage = RgWindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam)
+    func applySubClass() {
+        let selfPtr = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+        SetWindowLongPtrW(handle, GWL_USERDATA, unsafeBitCast(selfPtr, to: LONG_PTR.self))
+
+        let windowProc: SUBCLASSPROC = { (hWnd, uMsg, wParam, lParam, uIdSubclass, dwRefData) -> LRESULT in
+            var windowMessage = RgWindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam, handled: false)
             if let instance = getInstance(RgControl.self, hWnd) {
                 instance.windowProc(hWnd, &windowMessage)
-                return CallWindowProcW(instance.defaultWndProc, hWnd, uMsg, wParam, lParam)
+                if windowMessage.handled {
+                    return 0
+                }
             }
-            return 0
+            return DefSubclassProc(hWnd, uMsg, wParam, lParam)
         }
-        SetWindowLongPtrW(handle, GWL_WNDPROC, unsafeBitCast(windowProc, to: LONG_PTR.self))
     }
 
     func windowProc(_ hWnd: HWND?, _ windowMessage: inout RgWindowMessage) {
@@ -75,14 +89,8 @@ class RgControl {
     }
 
     func addChild<T: RgControl>(child: T) -> T {
-        // SetParent(child.handle, nil)
         SetParent(child.handle, handle)
         return child
-    }
-
-    func addChild<T: RgControl>(type _: T.Type) -> T {
-        let child = T(hWndParent: handle, name: String(describing: T.self), hInstance: hInstance)
-        return addChild(child: child)
     }
 
     func adjustSize(_ rect: inout RECT) {
@@ -93,7 +101,7 @@ class RgControl {
         SetWindowPos(handle, nil, 0, 0, width, height, UINT(SWP_NOMOVE))
     }
 
-    func position(x: Int32, y: Int32) {
+    func moveTo(x: Int32, y: Int32) {
         SetWindowPos(handle, nil, x, y, 0, 0, UINT(SWP_NOSIZE))
     }
 
