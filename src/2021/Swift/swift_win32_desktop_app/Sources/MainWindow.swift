@@ -24,6 +24,14 @@ final class MainWindow: RgWindow {
         addChild(child: button)
         button.moveTo(x: 100, y: 100)
         button.resize(width: 300, height: 300)
+        button.text = "ボタン1"
+        button.onClicked += [
+            { [hWnd] (_, _) in
+                print("aaaa")
+                let text = RgString("hello!")
+                MessageBoxW(hWnd, nil, text.ptr, UINT(MB_OK))
+            }
+        ]
 
         // tabControl = RgTabControl(hWndParent: hWnd, name: "tab")
         // let page1 = tabControl!.addPage(text: "a")

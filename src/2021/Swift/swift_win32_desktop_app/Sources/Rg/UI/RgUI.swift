@@ -7,7 +7,7 @@ func loadCommonControls() {
     InitCommonControlsEx(&initCommCtrl)
 }
 
-func createControl(hWnd: HWND?, name: String, className: String, styles: UINT = UINT(WS_CHILD | WS_VISIBLE), x: Int32 = 0, y: Int32 = 0, w: Int32 = 0, h: Int32 = 0, hInstance: HINSTANCE? = nil, lpParam: LPVOID? = nil) -> HWND? {
+func createControl(hWnd: HWND?, name: String, className: String, styles: UINT = UINT(WS_CHILD | WS_VISIBLE), x: Int32 = 0, y: Int32 = 0, w: Int32 = 0, h: Int32 = 0, hMenu: HMENU? = nil, lpParam: LPVOID? = nil) -> HWND? {
     let className = RgString(className)
     let name = RgString(name)
     let handle = CreateWindowExW(
@@ -17,27 +17,27 @@ func createControl(hWnd: HWND?, name: String, className: String, styles: UINT = 
         styles,
         x, y, w, h,
         hWnd,
-        nil,
-        hInstance,
+        hMenu,
+        GetModuleHandleW(nil),
         lpParam
     )
     return handle
 }
 
-func createStaticControl(_ hWnd: HWND?, _ hInstance: HINSTANCE? = nil, _ lpParam: LPVOID? = nil) -> HWND? {
-    return createControl(hWnd: hWnd, name: "", className: WC_STATIC, hInstance: hInstance, lpParam: lpParam)
+func createStaticControl(_ hWnd: HWND?, _ hMenu: HMENU? = nil, _ lpParam: LPVOID? = nil) -> HWND? {
+    return createControl(hWnd: hWnd, name: "", className: WC_STATIC, hMenu: hMenu, lpParam: lpParam)
 }
 
-func createButton(_ hWnd: HWND?, _ text: String, _ hInstance: HINSTANCE? = nil) -> HWND? {
-    return createControl(hWnd: hWnd, name: text, className: WC_BUTTON, hInstance: hInstance)
+func createButton(_ hWnd: HWND?, _ text: String, _ hMenu: HMENU? = nil) -> HWND? {
+    return createControl(hWnd: hWnd, name: text, className: WC_BUTTON, hMenu: hMenu)
 }
 
-func createTabControl(_ hWnd: HWND?, _ name: String, _ hInstance: HINSTANCE? = nil, _ lpParam: LPVOID? = nil) -> HWND? {
-    return createControl(hWnd: hWnd, name: name, className: WC_TABCONTROL, hInstance: hInstance, lpParam: lpParam)
+func createTabControl(_ hWnd: HWND?, _ name: String, _ hMenu: HMENU? = nil, _ lpParam: LPVOID? = nil) -> HWND? {
+    return createControl(hWnd: hWnd, name: name, className: WC_TABCONTROL, hMenu: hMenu, lpParam: lpParam)
 }
 
-func createListView(_ hWnd: HWND?, _ name: String, _ hInstance: HINSTANCE? = nil, _ lpParam: LPVOID? = nil) -> HWND? {
-    return createControl(hWnd: hWnd, name: name, className: WC_LISTVIEW, hInstance: hInstance, lpParam: lpParam)
+func createListView(_ hWnd: HWND?, _ name: String, _ hMenu: HMENU? = nil, _ lpParam: LPVOID? = nil) -> HWND? {
+    return createControl(hWnd: hWnd, name: name, className: WC_LISTVIEW, hMenu: hMenu, lpParam: lpParam)
 }
 
 func addTabItem(_ hTab: HWND?, _ index: UINT, _ text: String) {
