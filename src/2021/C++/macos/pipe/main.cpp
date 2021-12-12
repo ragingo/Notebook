@@ -1,13 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <string_view>
-#include <thread>
 #include <chrono>
-#include <memory>
 #include <iostream>
+#include <string>
+#include <thread>
 #include <unistd.h>
-#include <pthread.h>
 #include <vector>
 
 struct StartupInfo {
@@ -41,7 +36,7 @@ static bool createProcess(std::string name, std::vector<std::string> args, Start
     }
 
     pid_t processID = fork();
-    printf("pid: %d\n", processID);
+    std::cout << "pid: " << processID << std::endl;
 
     if (processID < 0) {
         return false;
@@ -80,11 +75,11 @@ int main() {
         char buf[256] = {};
         int len = read(si.readPipe, buf, sizeof(buf));
         if (len < 0) {
-            printf("read error.\n");
+        std::cout << "read error." << std::endl;
         } else if (len == 0) {
-            printf("eof.\n");
+            std::cout << "eof." << std::endl;
         } else {
-            printf("%s\n", buf);
+            std::cout << buf << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
