@@ -1,0 +1,1 @@
+%define STDOUT_FILENO 1
