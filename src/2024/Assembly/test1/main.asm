@@ -1,20 +1,18 @@
-%include "include/ascii.inc"
-%include "include/stdio.inc"
-%include "include/syscall.inc"
+%include "lib/include/ascii.inc"
+%include "lib/include/stdio.inc"
 
 section .data
-    message db 'Hello, world', ASCII_LF, 0
+    message db 'Hello, world!!!', ASCII_LF, 0
 
 section .text
+    extern puts
+    extern _exit
     global _start
 
 _start:
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT_FILENO
     mov rsi, message
-    mov rdx, 14     ; length
-    syscall
+    call puts
 
-    mov rax, SYS_EXIT
-    xor rdi, rdi    ; exit code 0
-    syscall
+    ;mov rdi, 1
+    xor rdi, rdi
+    call _exit

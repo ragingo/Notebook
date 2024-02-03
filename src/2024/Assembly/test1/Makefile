@@ -3,16 +3,17 @@ ASFLAGS=-f elf64
 LD=ld
 LDFLAGS=
 OUTPUT=test1
-SOURCE=main.asm
-OBJECT=$(SOURCE:.asm=.o)
+
+SRC_FILES := $(shell find . -name '*.asm')
+OBJECTS=$(patsubst %.asm,%.o,$(filter %.asm,$(SRC_FILES)))
 
 all: $(OUTPUT)
 
-$(OUTPUT): $(OBJECT)
-	$(LD) $(LDFLAGS) $(OBJECT) -o $(OUTPUT)
+$(OUTPUT): $(OBJECTS)
+	$(LD) $(LDFLAGS) $(OBJECTS) -o $(OUTPUT)
 
-$(OBJECT): $(SOURCE)
-	$(AS) $(ASFLAGS) $(SOURCE) -o $(OBJECT)
+%.o: %.asm
+	$(AS) $(ASFLAGS) -o $@ $<
 
 clean:
-	rm -f $(OBJECT) $(OUTPUT)
+	-rm $(OBJECTS) $(OUTPUT)
