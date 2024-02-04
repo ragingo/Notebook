@@ -11,3 +11,4 @@ puts:
     mov rax, SYS_WRITE
     mov rdi, STDOUT_FILENO
     syscall
+    ret

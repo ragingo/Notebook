@@ -1,18 +1,12 @@
-%include "lib/include/ascii.inc"
-%include "lib/include/stdio.inc"
-
-section .data
-    message db 'Hello, world!!!', ASCII_LF, 0
-
 section .text
-    extern puts
-    extern _exit
     global _start
+    extern _exit
+    extern sample001_helloworld
+    extern sample002_alphabet
 
 _start:
-    mov rsi, message
-    call puts
+    call sample001_helloworld
+    call sample002_alphabet
 
-    ;mov rdi, 1
     xor rdi, rdi
     call _exit

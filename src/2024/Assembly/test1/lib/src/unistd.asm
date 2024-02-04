@@ -7,3 +7,4 @@ section .text
 _exit:
     mov rax, SYS_EXIT
     syscall
+    ret
