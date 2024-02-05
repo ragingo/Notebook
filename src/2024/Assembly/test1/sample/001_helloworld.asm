@@ -1,8 +1,7 @@
-%include "lib/include/ascii.inc"
 %include "lib/include/stdio.inc"
 
 section .data
-    message db 'Hello, world!', ASCII_LF, 0
+    message db 'Hello, world!', 0
 
 section .text
     global sample001_helloworld
