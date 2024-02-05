@@ -4,8 +4,32 @@
 
 section .text
     extern strlen
+    global putc
     global puts
 
+;==================================================
+; Description
+;   文字を任意のストリームへ出力
+; Parameters
+;   - rdi : character
+;   - rsi : file descriptor (ex. STDOUT_FILENO)
+;==================================================
+putc:
+    push rdi
+    mov rax, SYS_WRITE
+    mov rdi, rsi
+    mov rsi, rsp
+    mov rdx, 1
+    syscall
+    pop rdi
+    ret
+
+;==================================================
+; Description
+;   文字列を標準出力へ出力
+; Parameters
+;   - rsi : buffer
+;==================================================
 puts:
     call strlen
     mov byte [rsi + rax], ASCII_LF
