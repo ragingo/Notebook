@@ -12,7 +12,7 @@ all: setup $(OUTPUT)
 
 setup:
 	mkdir -p build/lib/src
-	mkdir -p build/sample
+	mkdir -p build/sample/utils
 
 $(OUTPUT): $(OBJECTS)
 	$(LD) $(LDFLAGS) $(OBJECTS) -o $(OUTPUT)
