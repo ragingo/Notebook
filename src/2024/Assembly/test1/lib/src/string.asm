@@ -4,12 +4,12 @@ section .text
     global strlen
 
 strlen:
+    xor rax, rax
     xor rcx, rcx
-.loop:
-    cmp byte [rsi + rcx], NULL
-    je .done
-    inc rcx
-    jmp .loop
-.done:
+    dec rcx
+    repne scasb
+
+    not rcx
+    dec rcx
     mov rax, rcx
     ret

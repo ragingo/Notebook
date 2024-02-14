@@ -28,15 +28,18 @@ putc:
 ; Description
 ;   文字列を標準出力へ出力
 ; Parameters
-;   - rsi : buffer
+;   - rdi : buffer
 ;==================================================
 puts:
+    push rdi
     call strlen
-    mov byte [rsi + rax], ASCII_LF
+    pop rdi
+    mov byte [rdi + rax], ASCII_LF
     inc rax
 
     mov rdx, rax
     mov rax, SYS_WRITE
+    mov rsi, rdi
     mov rdi, STDOUT_FILENO
     syscall
 

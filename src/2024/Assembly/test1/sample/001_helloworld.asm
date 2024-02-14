@@ -8,6 +8,6 @@ section .text
     extern puts
 
 sample001_helloworld:
-    mov rsi, message
+    mov rdi, message
     call puts
     ret

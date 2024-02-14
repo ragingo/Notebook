@@ -8,17 +8,17 @@ section .text
     extern puts
 
 sample002_alphabet:
-    mov rsi, buf
+    mov rdi, buf
     mov al, 'A'
 
 loop:
-    mov [rsi], al
+    mov [rdi], al
     inc al
-    inc rsi
+    inc rdi
     cmp al, 'Z'
     jle loop
 
-    mov byte [rsi], NULL
-    mov rsi, buf
+    mov byte [rdi], NULL
+    mov rdi, buf
     call puts
     ret
