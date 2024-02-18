@@ -1,3 +1,5 @@
+%include "lib/include/stdio.inc"
+
 section .text
     global digits
     global itoa
@@ -30,19 +32,20 @@ digits:
 ; Parameters
 ;   - rdi : integer
 ;   - rsi : buffer
-;   - rdx : buffer size
+;   - rdx : buffer size (文字列のバイト数 + '\0')
 ;==================================================
 itoa:
     xor rcx, rcx    ; 文字数カウンタ
     mov rax, rdi    ; 10で割っていく数値
     mov r8, rdx     ; バッファサイズ
+    push rdx
 .itoa.loop:
     mov rdi, 10
     cqo
     idiv rdi
 
     mov r9, r8
-    dec r9
+    sub r9, 2   ; '\0' を考慮した末尾のインデックス
     sub r9, rcx ; バッファのオフセット
     add rdx, '0'
     mov byte [rsi + r9], dl
@@ -50,5 +53,9 @@ itoa:
     inc rcx
     cmp rax, 0
     jnz .itoa.loop
+
+    pop rdx
+    dec rdx
+    mov byte [rsi + rdx], NULL
 
     ret
