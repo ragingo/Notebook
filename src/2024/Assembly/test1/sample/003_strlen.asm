@@ -3,21 +3,27 @@
 section .text
     global sample003_strlen
     extern strlen
-    extern itoa
 
 sample003_strlen:
     push rbp
     mov rbp, rsp
 
-    sub rsp, 16
-    mov byte [rbp - 4], 'a'
-    mov byte [rbp - 3], 'b'
-    mov byte [rbp - 2], 'c'
-    mov byte [rbp - 1], 0
+    sub rsp, 32
 
-    lea rdi, [rbp - 4]
+    mov al, 'a'
+    mov rcx, 0
+
+.sample003_strlen.loop:
+    mov byte [rbp - 32 + rcx], al
+    inc al
+    inc rcx
+    cmp rcx, 26
+    jl .sample003_strlen.loop
+    mov byte [rbp - 32 + rcx], NULL
+
+    lea rdi, [rbp - 32]
     call strlen
 
-    add rsp, 16
+    add rsp, 32
     pop rbp
     ret
