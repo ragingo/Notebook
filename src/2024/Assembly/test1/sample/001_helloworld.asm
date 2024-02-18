@@ -8,6 +8,11 @@ section .text
     extern puts
 
 sample001_helloworld:
+    push rbp
+    mov rbp, rsp
+
     mov rdi, message
     call puts
+
+    leave
     ret

@@ -7,7 +7,6 @@ section .text
 sample003_strlen:
     push rbp
     mov rbp, rsp
-
     sub rsp, 32
 
     mov al, 'a'
@@ -24,6 +23,5 @@ sample003_strlen:
     lea rdi, [rbp - 32]
     call strlen
 
-    add rsp, 32
-    pop rbp
+    leave
     ret

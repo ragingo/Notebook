@@ -6,9 +6,16 @@ section .text
     extern sample003_strlen
 
 _start:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 16
+
     call sample001_helloworld
     call sample002_alphabet
     call sample003_strlen ; peda で rax の値を確認
 
     mov rdi, rax
     call _exit
+
+    leave
+    ret

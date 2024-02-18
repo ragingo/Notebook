@@ -8,6 +8,9 @@ section .text
     extern puts
 
 sample002_alphabet:
+    push rbp
+    mov rbp, rsp
+
     mov rdi, buf
     mov al, 'A'
 
@@ -21,4 +24,6 @@ loop:
     mov byte [rdi], NULL
     mov rdi, buf
     call puts
+
+    leave
     ret
