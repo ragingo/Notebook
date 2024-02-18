@@ -5,7 +5,7 @@ section .text
     extern sample002_alphabet
     extern sample003_strlen
     extern sample004_itoa
-    extern puts_number
+    extern sample005_kuku
 
 _start:
     push rbp
@@ -16,9 +16,7 @@ _start:
     call sample002_alphabet
     call sample003_strlen ; peda で rax の値を確認
     call sample004_itoa
-
-    mov rdi, 9876543210
-    call puts_number
+    call sample005_kuku
 
     mov rdi, rax
     call _exit

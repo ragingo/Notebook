@@ -1,8 +1,8 @@
 section .text
-    global puts_number
+    global print_number
     extern digits
     extern itoa
-    extern puts
+    extern print
 
 ;==================================================
 ; Description
@@ -10,7 +10,7 @@ section .text
 ; Parameters
 ;   - rdi : integer
 ;==================================================
-puts_number:
+print_number:
     push rbp
     mov rbp, rsp
     sub rsp, 32
@@ -26,7 +26,8 @@ puts_number:
     call itoa
 
     mov rdi, rsi
-    call puts
+    xor rsi, rsi
+    call print
 
     leave
     ret
