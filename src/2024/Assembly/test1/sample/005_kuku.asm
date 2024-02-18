@@ -24,6 +24,7 @@ sample005_kuku:
     mul r9
 
     mov rdi, rax
+    mov rsi, 3
     call print_number
 
     pop r9
