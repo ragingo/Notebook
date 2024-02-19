@@ -5,7 +5,7 @@ section .text
 
 ;==================================================
 ; Description
-;   与えられた10進数の数値を文字列に変換
+;   指定された時間だけプロセスを停止
 ; Parameters
 ;   - rdi : const struct timespec *req
 ;   - rsi : struct timespec *rem
