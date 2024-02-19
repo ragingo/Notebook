@@ -9,6 +9,7 @@ section .text
     global puts
     global println
     global print
+    global fopen
 
 ;==================================================
 ; Description
@@ -85,4 +86,25 @@ print:
     mov rdi, STDOUT_FILENO
     syscall
 
+    ret
+
+;==================================================
+; Description
+;   ファイルを開く
+; Parameters
+;   - rdi : ファイル名
+; Returns
+;   - rax : ファイルディスクリプタ
+;==================================================
+fopen:
+    call _open
+    ret
+
+; TODO: モード指定対応
+; TODO: 権限指定対応
+_open:
+    mov rax, SYS_OPEN
+    mov rsi, 0x441 ; O_CREAT| O_WRONLY | O_APPEND
+    mov edx, 0q666 ; permission
+    syscall
     ret
