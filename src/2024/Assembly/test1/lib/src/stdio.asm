@@ -1,9 +1,18 @@
 %include "lib/include/ascii.inc"
+%include "lib/include/fcntl.inc"
+%include "lib/include/stat.inc"
 %include "lib/include/stdio.inc"
 %include "lib/include/syscall.inc"
 
+section .bss
+    buf1 resb 1
+
 section .text
     extern strlen
+    extern sys_open
+    extern sys_write
+
+section .text
     global putc
     global putchar
     global puts
@@ -20,11 +29,15 @@ section .text
 ;==================================================
 putc:
     push rdi
-    mov rax, SYS_WRITE
+    push rsi
+
+    mov byte [buf1], dil
     mov rdi, rsi
-    mov rsi, rsp
+    mov rsi, buf1
     mov rdx, 1
-    syscall
+    call sys_write
+
+    pop rsi
     pop rdi
     ret
 
@@ -80,11 +93,10 @@ print:
 .print.overwrite.done:
     inc rax
 
-    mov rdx, rax
-    mov rax, SYS_WRITE
     mov rsi, rdi
     mov rdi, STDOUT_FILENO
-    syscall
+    mov rdx, rax
+    call sys_write
 
     ret
 
@@ -93,18 +105,49 @@ print:
 ;   ファイルを開く
 ; Parameters
 ;   - rdi : ファイル名
+;   - rsi : モード
+;     - (r|w|a)\+?
 ; Returns
 ;   - rax : ファイルディスクリプタ
 ;==================================================
 fopen:
-    call _open
-    ret
+    push rdi
+    mov rdi, rsi
+    call strlen
 
-; TODO: モード指定対応
-; TODO: 権限指定対応
-_open:
-    mov rax, SYS_OPEN
-    mov rsi, 0x441 ; O_CREAT| O_WRONLY | O_APPEND
-    mov edx, 0q666 ; permission
-    syscall
+    cmp rax, 0
+    je .fopen.mode_default
+    cmp rax, 1
+    je .fopen.mode_simple
+    cmp rax, 2
+    je .fopen.mode_complex
+
+.fopen.mode_default:
+    mov rsi, O_CREAT | O_WRONLY | O_TRUNC
+    jmp .fopen.call_open
+
+.fopen.mode_simple:
+    mov r8b, byte [rsi + 0]
+    cmp r8, 'r'
+    jne .fopen.mode_simple.not_read
+    mov rsi, O_RDONLY
+.fopen.mode_simple.not_read:
+    cmp r8, 'w'
+    jne .fopen.mode_simple.not_write
+    mov rsi, O_WRONLY
+.fopen.mode_simple.not_write:
+    cmp r8, 'a'
+    jne .fopen.mode_default ; デフォルトに飛ばす
+    mov rsi, O_APPEND
+    jmp .fopen.call_open
+
+; TODO: "+" 対応
+.fopen.mode_complex:
+    jmp .fopen.call_open
+
+.fopen.call_open:
+    pop rdi
+    mov rdx, S_IRWXU | S_IRWXG | S_IRWXO
+    call sys_open
+
     ret

@@ -7,5 +7,6 @@
 %define SYS_OPEN         2
 %define SYS_NANOSLEEP   35
 %define SYS_EXIT        60
+%define SYS_CREAT       85
 
 %endif

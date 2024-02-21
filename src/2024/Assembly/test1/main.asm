@@ -1,6 +1,3 @@
-section .data
-    filename db '/home/ragingo/a.txt', 0
-
 section .text
     global _start
     extern _exit
@@ -9,7 +6,7 @@ section .text
     extern sample003_strlen
     extern sample004_itoa
     extern sample005_kuku
-    extern fopen
+    extern sample006_file_write
 
 _start:
     push rbp
@@ -21,9 +18,7 @@ _start:
     call sample003_strlen ; peda で rax の値を確認
     call sample004_itoa
     call sample005_kuku
-
-    mov rdi, filename
-    call fopen
+    call sample006_file_write
 
     mov rdi, rax
     call _exit
