@@ -1,9 +1,18 @@
 %include "lib/include/ascii.inc"
+%include "lib/include/fcntl.inc"
+%include "lib/include/stat.inc"
 %include "lib/include/stdio.inc"
 %include "lib/include/syscall.inc"
 
+section .bss
+    buf1 resb 1
+
 section .text
     extern strlen
+    extern sys_open
+    extern sys_write
+
+section .text
     global putc
     global putchar
     global puts
@@ -20,11 +29,15 @@ section .text
 ;==================================================
 putc:
     push rdi
-    mov rax, SYS_WRITE
+    push rsi
+
+    mov byte [buf1], dil
     mov rdi, rsi
-    mov rsi, rsp
+    mov rsi, buf1
     mov rdx, 1
-    syscall
+    call sys_write
+
+    pop rsi
     pop rdi
     ret
 
@@ -80,11 +93,10 @@ print:
 .print.overwrite.done:
     inc rax
 
-    mov rdx, rax
-    mov rax, SYS_WRITE
     mov rsi, rdi
     mov rdi, STDOUT_FILENO
-    syscall
+    mov rdx, rax
+    call sys_write
 
     ret
 
