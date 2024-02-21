@@ -1,5 +1,5 @@
 section .data
-    filename db '/home/ragingo/a.txt', 0
+    filename db '/home/ragingo/temp/a.txt', 0
 
 section .text
     global _start
@@ -10,6 +10,8 @@ section .text
     extern sample004_itoa
     extern sample005_kuku
     extern fopen
+    extern sys_write
+    extern strlen
 
 _start:
     push rbp
@@ -23,7 +25,20 @@ _start:
     call sample005_kuku
 
     mov rdi, filename
+    push 'w'
+    mov rsi, rsp
     call fopen
+    pop r8
+
+    mov r8, rax ; fd
+
+    mov rdi, filename
+    call strlen
+
+    mov rdi, r8
+    mov rsi, filename
+    mov rdx, rax
+    call sys_write
 
     mov rdi, rax
     call _exit
