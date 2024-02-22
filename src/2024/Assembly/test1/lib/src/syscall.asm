@@ -12,9 +12,7 @@ section .text
 ; Description
 ;   write system call
 ; Parameters
-;   - rdi : file descriptor
-;   - rsi : buffer
-;   - rdx : buffer size
+;   rdi: fd, rsi: buf, rdx: count
 ;==================================================
 sys_write:
     system_call SYS_WRITE
@@ -24,11 +22,9 @@ sys_write:
 ; Description
 ;   open system call
 ; Parameters
-;   - rdi : fileName
-;   - rsi : flags
-;   - rdx : mode (permission)
+;   rdi: filename, rsi: flags, rdx: mode (permission)
 ; Returns
-;   - rax : file descriptor
+;   rax: fd
 ;==================================================
 sys_open:
     system_call SYS_OPEN
@@ -38,10 +34,9 @@ sys_open:
 ; Description
 ;   creat system call
 ; Parameters
-;   - rdi : fileName
-;   - rsi : mode (permission)
+;   rdi: filename, rsi: mode (permission)
 ; Returns
-;   - rax : file descriptor
+;   rax: fd
 ;==================================================
 sys_creat:
     system_call SYS_CREAT
@@ -49,10 +44,9 @@ sys_creat:
 
 ;==================================================
 ; Description
-;   指定された時間だけプロセスを停止
+;   nanosleep system call
 ; Parameters
-;   - rdi : const struct timespec *req
-;   - rsi : struct timespec *rem
+;   rdi: const struct timespec *req, rsi: struct timespec *rem
 ;==================================================
 sys_nanosleep:
     system_call SYS_NANOSLEEP
@@ -60,9 +54,9 @@ sys_nanosleep:
 
 ;==================================================
 ; Description
-;   指定された時間だけプロセスを停止
+;   exit system call
 ; Parameters
-;   - rdi : exit code
+;   rdi: exit code
 ;==================================================
 sys_exit:
     system_call SYS_EXIT
