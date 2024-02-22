@@ -9,4 +9,9 @@
 %define SYS_EXIT        60
 %define SYS_CREAT       85
 
+%macro system_call 1
+    mov rax, %1
+    syscall
+%endmacro
+
 %endif

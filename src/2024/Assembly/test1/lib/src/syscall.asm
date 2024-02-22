@@ -17,8 +17,7 @@ section .text
 ;   - rdx : buffer size
 ;==================================================
 sys_write:
-    mov rax, SYS_WRITE
-    syscall
+    system_call SYS_WRITE
     ret
 
 ;==================================================
@@ -32,8 +31,7 @@ sys_write:
 ;   - rax : file descriptor
 ;==================================================
 sys_open:
-    mov rax, SYS_OPEN
-    syscall
+    system_call SYS_OPEN
     ret
 
 ;==================================================
@@ -46,8 +44,7 @@ sys_open:
 ;   - rax : file descriptor
 ;==================================================
 sys_creat:
-    mov rax, SYS_CREAT
-    syscall
+    system_call SYS_CREAT
     ret
 
 ;==================================================
@@ -58,8 +55,7 @@ sys_creat:
 ;   - rsi : struct timespec *rem
 ;==================================================
 sys_nanosleep:
-    mov rax, SYS_NANOSLEEP
-    syscall
+    system_call SYS_NANOSLEEP
     ret
 
 ;==================================================
@@ -69,6 +65,5 @@ sys_nanosleep:
 ;   - rdi : exit code
 ;==================================================
 sys_exit:
-    mov rax, SYS_EXIT
-    syscall
+    system_call SYS_EXIT
     ret
