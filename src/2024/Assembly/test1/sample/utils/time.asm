@@ -1,6 +1,6 @@
 section .text
     global sleep
-    extern nanosleep
+    extern sys_nanosleep
 
 ;==================================================
 ; Description
@@ -14,7 +14,7 @@ sleep:
 
     lea rdi, [rsp]
     xor rsi, rsi
-    call nanosleep
+    call sys_nanosleep
 
     pop rdi
     pop rdi

@@ -1,6 +1,6 @@
 section .text
     global _start
-    extern _exit
+    extern sys_exit
     extern sample001_helloworld
     extern sample002_alphabet
     extern sample003_strlen
@@ -21,4 +21,4 @@ _start:
     call sample006_file_write
 
     mov rdi, rax
-    call _exit
+    call sys_exit

@@ -5,6 +5,8 @@ section .text
     global sys_write
     global sys_open
     global sys_creat
+    global sys_nanosleep
+    global sys_exit
 
 ;==================================================
 ; Description
@@ -45,5 +47,28 @@ sys_open:
 ;==================================================
 sys_creat:
     mov rax, SYS_CREAT
+    syscall
+    ret
+
+;==================================================
+; Description
+;   指定された時間だけプロセスを停止
+; Parameters
+;   - rdi : const struct timespec *req
+;   - rsi : struct timespec *rem
+;==================================================
+sys_nanosleep:
+    mov rax, SYS_NANOSLEEP
+    syscall
+    ret
+
+;==================================================
+; Description
+;   指定された時間だけプロセスを停止
+; Parameters
+;   - rdi : exit code
+;==================================================
+sys_exit:
+    mov rax, SYS_EXIT
     syscall
     ret
