@@ -10,7 +10,7 @@
 
 namespace jpg
 {
-    enum class Markers : uint16_t
+    enum class Marker : uint16_t
     {
         SOI = 0xFFD8,
         APP0 = 0xFFE0,
@@ -40,12 +40,12 @@ namespace jpg
         EOI = 0xFFD9,
     };
 
-    inline uint8_t marker_lower(Markers marker)
+    inline uint8_t marker_lower(Marker marker)
     {
         return static_cast<uint16_t>(marker) & 0xFF;
     }
 
-    inline uint8_t marker_upper(Markers marker)
+    inline uint8_t marker_upper(Marker marker)
     {
         return static_cast<uint16_t>(marker) >> 8;
     }
@@ -84,58 +84,91 @@ namespace jpg
             uint8_t tableID : 4;
             uint8_t table[64];
         };
+
+        struct SOF0
+        {
+            uint8_t reserved;
+            uint8_t marker;
+            uint16_t length;
+            uint8_t precision;
+            uint16_t height;
+            uint16_t width;
+            uint8_t numComponents;
+
+            struct Component
+            {
+                uint8_t id;
+                uint8_t samplingFactor;
+                uint8_t quantizationTableID;
+            } components[3];
+        };
+
+        struct DHT
+        {
+            uint8_t reserved;
+            uint8_t marker;
+            uint16_t length;
+            uint8_t tableID;
+            uint8_t counts[16];
+            std::vector<uint8_t> symbols;
+        };
+
+        struct SOS
+        {
+            uint8_t reserved;
+            uint8_t marker;
+            uint16_t length;
+            uint8_t numComponents;
+
+            struct Component
+            {
+                uint8_t id;
+                uint8_t huffmanTable;
+            } components[3];
+
+            uint8_t spectralSelectionStart;
+            uint8_t spectralSelectionEnd;
+            uint8_t successiveApproximation;
+        };
+
+        struct EOI
+        {
+            uint8_t reserved;
+            uint8_t marker;
+        };
     }
+
+    class JpegParser final
+    {
+    public:
+        JpegParser(const std::string& fileName);
+        ~JpegParser();
+
+        void parse();
+
+    private:
+        void parseSOI();
+        void parseAPP0();
+        void parseDQT();
+        void parseSOF0();
+        void parseEOI();
+        void parseDHT();
+        void parseSOS();
+        void parseECS();
+
+    private:
+        std::string m_FileName;
+        std::ifstream m_Stream;
+    };
 }
 
 namespace jpg {
-    template<typename T>
-    std::string to_string(const T& value) {}
-
-    template<>
-    std::string to_string<segments::SOI>(const segments::SOI& soi)
-    {
-        std::string result;
-        result += "SOI\n";
-        result += std::format("  reserved: 0x{:02X}\n", soi.reserved);
-        result += std::format("  marker: 0x{:02X}\n", soi.marker);
-        return result;
-    }
-
-    template<>
-    std::string to_string<segments::APP0>(const segments::APP0& app0)
-    {
-        std::string result;
-        result += "APP0\n";
-        result += std::format("  reserved: 0x{:02X}\n", app0.reserved);
-        result += std::format("  marker: 0x{:02X}\n", app0.marker);
-        result += std::format("  length: 0x{:04X}\n", app0.length);
-        result += std::format("  identifier: {}\n", app0.identifier);
-        result += std::format("  version: 0x{:02X}\n", app0.version);
-        result += std::format("  units: 0x{:02X}\n", app0.units);
-        result += std::format("  xDensity: 0x{:04X}\n", app0.xDensity);
-        result += std::format("  yDensity: 0x{:04X}\n", app0.yDensity);
-        result += std::format("  thumbnailWidth: 0x{:02X}\n", app0.thumbnailWidth);
-        result += std::format("  thumbnailHeight: 0x{:02X}\n", app0.thumbnailHeight);
-        return result;
-    }
-
-    template<>
-    std::string to_string<segments::DQT>(const segments::DQT& dqt)
-    {
-        std::string result;
-        result += "DQT\n";
-        result += std::format("  reserved: 0x{:02X}\n", dqt.reserved);
-        result += std::format("  marker: 0x{:02X}\n", dqt.marker);
-        result += std::format("  length: 0x{:04X}\n", dqt.length);
-        result += std::format("  precision: 0x{:01X}\n", dqt.precision);
-        result += std::format("  tableID: 0x{:01X}\n", dqt.tableID);
-        result += "  table:\n";
-        for (int i = 0; i < 64; ++i) {
-            result += std::format("    0x{:02X}", dqt.table[i]);
-            if (i % 8 == 7) {
-                result += '\n';
-            }
-        }
-        return result;
-    }
+    std::string to_string(const segments::SOI& soi);
+    std::string to_string(const segments::APP0& app0);
+    std::string to_string(const segments::DQT& dqt);
+    std::string to_string(const segments::SOF0& sof0);
+    std::string to_string(const segments::DHT& dht);
+    std::string to_string(const segments::SOS& sos);
+    std::string to_string(const std::vector<uint8_t>& ecs);
+    std::string to_string(const segments::EOI& eoi);
 }
