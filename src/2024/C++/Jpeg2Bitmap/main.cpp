@@ -13,8 +13,8 @@ int main()
     const std::string bmpFileName = "D:\\temp\\images\\catman.jpg.bmp";
 
     try {
-        auto parser = jpg::JpegParser(jpegFileName);
-        parser.parse();
+        auto decoder = jpg::JpegDecoder(jpegFileName);
+        decoder.decode();
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

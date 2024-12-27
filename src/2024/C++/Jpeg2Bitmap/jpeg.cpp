@@ -26,7 +26,7 @@ namespace
     }
 }
 
-JpegParser::JpegParser(const std::string& fileName)
+JpegDecoder::JpegDecoder(const std::string& fileName)
     : m_FileName(fileName)
     , m_Stream(fileName, std::ios::binary)
 {
@@ -35,12 +35,19 @@ JpegParser::JpegParser(const std::string& fileName)
     }
 }
 
-JpegParser::~JpegParser()
+JpegDecoder::~JpegDecoder()
 {
     m_Stream.close();
 }
 
-void JpegParser::parse()
+void JpegDecoder::decode()
+{
+    parse();
+
+    // TODO: デコード処理を書いていく
+}
+
+void JpegDecoder::parse()
 {
     auto marker = readMarker(m_Stream);
 
@@ -79,165 +86,159 @@ void JpegParser::parse()
     }
 }
 
-void JpegParser::parseSOI()
+void JpegDecoder::parseSOI()
 {
-    auto soi = jpg::segments::SOI{};
-    soi.reserved = jpg::marker_upper(jpg::Marker::SOI);
-    soi.marker = jpg::marker_lower(jpg::Marker::SOI);
-    std::cout << jpg::to_string(soi) << std::endl;
+    m_SOI.reserved = jpg::marker_upper(jpg::Marker::SOI);
+    m_SOI.marker = jpg::marker_lower(jpg::Marker::SOI);
+    std::cout << jpg::to_string(m_SOI) << std::endl;
 }
 
-void JpegParser::parseAPP0()
+void JpegDecoder::parseAPP0()
 {
-    auto app0 = jpg::segments::APP0{};
-    app0.reserved = jpg::marker_upper(jpg::Marker::APP0);
-    app0.marker = jpg::marker_lower(jpg::Marker::APP0);
-    m_Stream.read(reinterpret_cast<char*>(&app0.length), sizeof(app0.length));
-    app0.length = std::byteswap(app0.length);
-    int remain = app0.length - sizeof(app0.length);
-    if (remain >= sizeof(app0.identifier)) {
-        m_Stream.read(reinterpret_cast<char*>(&app0.identifier), sizeof(app0.identifier));
-        remain -= sizeof(app0.identifier);
+    m_APP0.reserved = jpg::marker_upper(jpg::Marker::APP0);
+    m_APP0.marker = jpg::marker_lower(jpg::Marker::APP0);
+    m_Stream.read(reinterpret_cast<char*>(&m_APP0.length), sizeof(m_APP0.length));
+    m_APP0.length = std::byteswap(m_APP0.length);
+    int remain = m_APP0.length - sizeof(m_APP0.length);
+    if (remain >= sizeof(m_APP0.identifier)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_APP0.identifier), sizeof(m_APP0.identifier));
+        remain -= sizeof(m_APP0.identifier);
     }
-    if (remain >= sizeof(app0.version)) {
-        m_Stream.read(reinterpret_cast<char*>(&app0.version), sizeof(app0.version));
-        app0.version = std::byteswap(app0.version);
-        remain -= sizeof(app0.version);
+    if (remain >= sizeof(m_APP0.version)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_APP0.version), sizeof(m_APP0.version));
+        m_APP0.version = std::byteswap(m_APP0.version);
+        remain -= sizeof(m_APP0.version);
     }
-    if (remain >= sizeof(app0.units)) {
-        m_Stream.read(reinterpret_cast<char*>(&app0.units), sizeof(app0.units));
-        remain -= sizeof(app0.units);
+    if (remain >= sizeof(m_APP0.units)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_APP0.units), sizeof(m_APP0.units));
+        remain -= sizeof(m_APP0.units);
     }
-    if (remain >= sizeof(app0.xDensity) + sizeof(app0.yDensity)) {
-        m_Stream.read(reinterpret_cast<char*>(&app0.xDensity), sizeof(app0.xDensity));
-        m_Stream.read(reinterpret_cast<char*>(&app0.yDensity), sizeof(app0.yDensity));
-        app0.xDensity = std::byteswap(app0.xDensity);
-        app0.yDensity = std::byteswap(app0.yDensity);
-        remain -= sizeof(app0.xDensity) + sizeof(app0.yDensity);
+    if (remain >= sizeof(m_APP0.xDensity) + sizeof(m_APP0.yDensity)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_APP0.xDensity), sizeof(m_APP0.xDensity));
+        m_Stream.read(reinterpret_cast<char*>(&m_APP0.yDensity), sizeof(m_APP0.yDensity));
+        m_APP0.xDensity = std::byteswap(m_APP0.xDensity);
+        m_APP0.yDensity = std::byteswap(m_APP0.yDensity);
+        remain -= sizeof(m_APP0.xDensity) + sizeof(m_APP0.yDensity);
     }
-    if (remain >= sizeof(app0.thumbnailWidth) + sizeof(app0.thumbnailHeight)) {
-        m_Stream.read(reinterpret_cast<char*>(&app0.thumbnailWidth), sizeof(app0.thumbnailWidth));
-        m_Stream.read(reinterpret_cast<char*>(&app0.thumbnailHeight), sizeof(app0.thumbnailHeight));
-        remain -= sizeof(app0.thumbnailWidth) + sizeof(app0.thumbnailHeight);
+    if (remain >= sizeof(m_APP0.thumbnailWidth) + sizeof(m_APP0.thumbnailHeight)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_APP0.thumbnailWidth), sizeof(m_APP0.thumbnailWidth));
+        m_Stream.read(reinterpret_cast<char*>(&m_APP0.thumbnailHeight), sizeof(m_APP0.thumbnailHeight));
+        remain -= sizeof(m_APP0.thumbnailWidth) + sizeof(m_APP0.thumbnailHeight);
     }
 
-    std::cout << jpg::to_string(app0) << std::endl;
+    std::cout << jpg::to_string(m_APP0) << std::endl;
 }
 
-void JpegParser::parseDQT()
+void JpegDecoder::parseDQT()
 {
-    auto dqt = jpg::segments::DQT{};
-    dqt.reserved = jpg::marker_upper(jpg::Marker::DQT);
-    dqt.marker = jpg::marker_lower(jpg::Marker::DQT);
-    m_Stream.read(reinterpret_cast<char*>(&dqt.length), sizeof(dqt.length));
-    dqt.length = std::byteswap(dqt.length);
-    int remain = dqt.length - sizeof(dqt.length);
+    m_DQT.reserved = jpg::marker_upper(jpg::Marker::DQT);
+    m_DQT.marker = jpg::marker_lower(jpg::Marker::DQT);
+    m_Stream.read(reinterpret_cast<char*>(&m_DQT.length), sizeof(m_DQT.length));
+    m_DQT.length = std::byteswap(m_DQT.length);
+    int remain = m_DQT.length - sizeof(m_DQT.length);
     if (remain >= 1) {
         uint8_t value;
         m_Stream.read(reinterpret_cast<char*>(&value), sizeof(uint8_t));
-        dqt.precision = value >> 4;
-        dqt.tableID = value & 0x0F;
+        m_DQT.precision = value >> 4;
+        m_DQT.tableID = value & 0x0F;
         remain--;
     }
-    if (remain >= sizeof(dqt.table)) {
-        m_Stream.read(reinterpret_cast<char*>(&dqt.table), sizeof(dqt.table));
-        remain -= sizeof(dqt.table);
+    if (remain >= sizeof(m_DQT.table)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_DQT.table), sizeof(m_DQT.table));
+        remain -= sizeof(m_DQT.table);
     }
 
-    std::cout << jpg::to_string(dqt) << std::endl;
+    std::cout << jpg::to_string(m_DQT) << std::endl;
 }
 
-void JpegParser::parseSOF0()
+void JpegDecoder::parseSOF0()
 {
-    auto sof0 = jpg::segments::SOF0{};
-    sof0.reserved = jpg::marker_upper(jpg::Marker::SOF0);
-    sof0.marker = jpg::marker_lower(jpg::Marker::SOF0);
-    m_Stream.read(reinterpret_cast<char*>(&sof0.length), sizeof(sof0.length));
-    sof0.length = std::byteswap(sof0.length);
-    int remain = sof0.length - sizeof(sof0.length);
+    m_SOF0.reserved = jpg::marker_upper(jpg::Marker::SOF0);
+    m_SOF0.marker = jpg::marker_lower(jpg::Marker::SOF0);
+    m_Stream.read(reinterpret_cast<char*>(&m_SOF0.length), sizeof(m_SOF0.length));
+    m_SOF0.length = std::byteswap(m_SOF0.length);
+    int remain = m_SOF0.length - sizeof(m_SOF0.length);
     if (remain >= 1) {
-        m_Stream.read(reinterpret_cast<char*>(&sof0.precision), sizeof(sof0.precision));
+        m_Stream.read(reinterpret_cast<char*>(&m_SOF0.precision), sizeof(m_SOF0.precision));
         remain--;
     }
-    if (remain >= sizeof(sof0.height) + sizeof(sof0.width)) {
-        m_Stream.read(reinterpret_cast<char*>(&sof0.height), sizeof(sof0.height));
-        m_Stream.read(reinterpret_cast<char*>(&sof0.width), sizeof(sof0.width));
-        sof0.height = std::byteswap(sof0.height);
-        sof0.width = std::byteswap(sof0.width);
-        remain -= sizeof(sof0.height) + sizeof(sof0.width);
+    if (remain >= sizeof(m_SOF0.height) + sizeof(m_SOF0.width)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_SOF0.height), sizeof(m_SOF0.height));
+        m_Stream.read(reinterpret_cast<char*>(&m_SOF0.width), sizeof(m_SOF0.width));
+        m_SOF0.height = std::byteswap(m_SOF0.height);
+        m_SOF0.width = std::byteswap(m_SOF0.width);
+        remain -= sizeof(m_SOF0.height) + sizeof(m_SOF0.width);
     }
     if (remain >= 1) {
-        m_Stream.read(reinterpret_cast<char*>(&sof0.numComponents), sizeof(sof0.numComponents));
+        m_Stream.read(reinterpret_cast<char*>(&m_SOF0.numComponents), sizeof(m_SOF0.numComponents));
         remain--;
     }
-    for (int i = 0; i < sof0.numComponents; ++i) {
-        if (remain >= sizeof(sof0.components[i])) {
-            m_Stream.read(reinterpret_cast<char*>(&sof0.components[i]), sizeof(sof0.components[i]));
-            remain -= sizeof(sof0.components[i]);
+    for (int i = 0; i < m_SOF0.numComponents; ++i) {
+        if (remain >= sizeof(m_SOF0.components[i])) {
+            m_Stream.read(reinterpret_cast<char*>(&m_SOF0.components[i]), sizeof(m_SOF0.components[i]));
+            remain -= sizeof(m_SOF0.components[i]);
         }
     }
 
-    std::cout << jpg::to_string(sof0) << std::endl;
+    std::cout << jpg::to_string(m_SOF0) << std::endl;
 }
 
-void JpegParser::parseDHT()
+void JpegDecoder::parseDHT()
 {
-    auto dht = jpg::segments::DHT{};
-    dht.reserved = jpg::marker_upper(jpg::Marker::DHT);
-    dht.marker = jpg::marker_lower(jpg::Marker::DHT);
-    m_Stream.read(reinterpret_cast<char*>(&dht.length), sizeof(dht.length));
-    dht.length = std::byteswap(dht.length);
-    int remain = dht.length - sizeof(dht.length);
+    m_DHT.reserved = jpg::marker_upper(jpg::Marker::DHT);
+    m_DHT.marker = jpg::marker_lower(jpg::Marker::DHT);
+    m_Stream.read(reinterpret_cast<char*>(&m_DHT.length), sizeof(m_DHT.length));
+    m_DHT.length = std::byteswap(m_DHT.length);
+    int remain = m_DHT.length - sizeof(m_DHT.length);
     if (remain >= 1) {
         uint8_t value;
         m_Stream.read(reinterpret_cast<char*>(&value), sizeof(uint8_t));
-        dht.tableID = value;
+        m_DHT.tableID = value;
         remain--;
     }
-    if (remain >= sizeof(dht.counts)) {
-        m_Stream.read(reinterpret_cast<char*>(&dht.counts), sizeof(dht.counts));
-        remain -= sizeof(dht.counts);
+    if (remain >= sizeof(m_DHT.counts)) {
+        m_Stream.read(reinterpret_cast<char*>(&m_DHT.counts), sizeof(m_DHT.counts));
+        remain -= sizeof(m_DHT.counts);
     }
     if (remain > 0) {
-        dht.symbols.resize(remain);
-        m_Stream.read(reinterpret_cast<char*>(dht.symbols.data()), remain);
+        m_DHT.symbols.resize(remain);
+        m_Stream.read(reinterpret_cast<char*>(m_DHT.symbols.data()), remain);
         remain = 0;
     }
 
-    std::cout << jpg::to_string(dht) << std::endl;
+    std::cout << jpg::to_string(m_DHT) << std::endl;
 }
 
-void JpegParser::parseSOS()
+void JpegDecoder::parseSOS()
 {
-    auto sos = jpg::segments::SOS{};
-    sos.reserved = jpg::marker_upper(jpg::Marker::SOS);
-    sos.marker = jpg::marker_lower(jpg::Marker::SOS);
-    m_Stream.read(reinterpret_cast<char*>(&sos.length), sizeof(sos.length));
-    sos.length = std::byteswap(sos.length);
-    int remain = sos.length - sizeof(sos.length);
+    m_SOS.reserved = jpg::marker_upper(jpg::Marker::SOS);
+    m_SOS.marker = jpg::marker_lower(jpg::Marker::SOS);
+    m_Stream.read(reinterpret_cast<char*>(&m_SOS.length), sizeof(m_SOS.length));
+    m_SOS.length = std::byteswap(m_SOS.length);
+    int remain = m_SOS.length - sizeof(m_SOS.length);
     if (remain >= 1) {
-        m_Stream.read(reinterpret_cast<char*>(&sos.numComponents), sizeof(sos.numComponents));
+        m_Stream.read(reinterpret_cast<char*>(&m_SOS.numComponents), sizeof(m_SOS.numComponents));
         remain--;
     }
-    for (int i = 0; i < sos.numComponents; ++i) {
-        if (remain >= sizeof(sos.components[i])) {
-            m_Stream.read(reinterpret_cast<char*>(&sos.components[i]), sizeof(sos.components[i]));
-            remain -= sizeof(sos.components[i]);
+    for (int i = 0; i < m_SOS.numComponents; ++i) {
+        if (remain >= sizeof(m_SOS.components[i])) {
+            m_Stream.read(reinterpret_cast<char*>(&m_SOS.components[i]), sizeof(m_SOS.components[i]));
+            remain -= sizeof(m_SOS.components[i]);
         }
     }
     if (remain >= 3) {
-        m_Stream.read(reinterpret_cast<char*>(&sos.spectralSelectionStart), sizeof(sos.spectralSelectionStart));
-        m_Stream.read(reinterpret_cast<char*>(&sos.spectralSelectionEnd), sizeof(sos.spectralSelectionEnd));
-        m_Stream.read(reinterpret_cast<char*>(&sos.successiveApproximation), sizeof(sos.successiveApproximation));
+        m_Stream.read(reinterpret_cast<char*>(&m_SOS.spectralSelectionStart), sizeof(m_SOS.spectralSelectionStart));
+        m_Stream.read(reinterpret_cast<char*>(&m_SOS.spectralSelectionEnd), sizeof(m_SOS.spectralSelectionEnd));
+        m_Stream.read(reinterpret_cast<char*>(&m_SOS.successiveApproximation), sizeof(m_SOS.successiveApproximation));
         remain -= 3;
     }
 
-    std::cout << jpg::to_string(sos) << std::endl;
+    std::cout << jpg::to_string(m_SOS) << std::endl;
 
     parseECS();
 }
 
-void JpegParser::parseECS()
+void JpegDecoder::parseECS()
 {
     auto current_pos = m_Stream.tellg();
     m_Stream.seekg(-2, std::ios::end);
@@ -250,18 +251,17 @@ void JpegParser::parseECS()
 
     m_Stream.seekg(current_pos);
 
-    std::vector<uint8_t> ecs(end_pos - current_pos);
-    m_Stream.read(reinterpret_cast<char*>(ecs.data()), ecs.size());
+    m_ECS.resize(end_pos - current_pos);
+    m_Stream.read(reinterpret_cast<char*>(m_ECS.data()), m_ECS.size());
 
-    std::cout << jpg::to_string(ecs) << std::endl;
+    std::cout << jpg::to_string(m_ECS) << std::endl;
 }
 
-void JpegParser::parseEOI()
+void JpegDecoder::parseEOI()
 {
-    auto eoi = jpg::segments::EOI{};
-    eoi.reserved = jpg::marker_upper(jpg::Marker::EOI);
-    eoi.marker = jpg::marker_lower(jpg::Marker::EOI);
-    std::cout << jpg::to_string(eoi) << std::endl;
+    m_EOI.reserved = jpg::marker_upper(jpg::Marker::EOI);
+    m_EOI.marker = jpg::marker_lower(jpg::Marker::EOI);
+    std::cout << jpg::to_string(m_EOI) << std::endl;
 }
 
 namespace jpg
