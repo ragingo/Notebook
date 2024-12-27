@@ -63,12 +63,19 @@ namespace jpg
 
         struct APP0
         {
+            enum class Units : uint8_t
+            {
+                None = 0,
+                PPI = 1,
+                PPCM = 2,
+            };
+
             uint8_t reserved;
             uint8_t marker;
             uint16_t length;
             char identifier[5];
             uint16_t version;
-            uint8_t units;
+            Units units;
             uint16_t xDensity;
             uint16_t yDensity;
             uint8_t thumbnailWidth;

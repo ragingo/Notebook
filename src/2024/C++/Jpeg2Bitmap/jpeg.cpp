@@ -4,6 +4,7 @@
 #include <iostream>
 #include <format>
 #include <print>
+#include <nameof.hpp>
 #include "jpeg.h"
 
 using namespace jpg;
@@ -284,7 +285,7 @@ namespace jpg
         result += std::format("  length: 0x{:04X}\n", app0.length);
         result += std::format("  identifier: {}\n", app0.identifier);
         result += std::format("  version: 0x{:02X}\n", app0.version);
-        result += std::format("  units: 0x{:02X}\n", app0.units);
+        result += std::format("  units: 0x{:02X} ({})\n", static_cast<uint8_t>(app0.units), NAMEOF_ENUM(app0.units));
         result += std::format("  xDensity: 0x{:04X}\n", app0.xDensity);
         result += std::format("  yDensity: 0x{:04X}\n", app0.yDensity);
         result += std::format("  thumbnailWidth: 0x{:02X}\n", app0.thumbnailWidth);
