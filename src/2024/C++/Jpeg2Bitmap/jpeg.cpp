@@ -1,8 +1,5 @@
-﻿#include <string>
-#include <fstream>
-#include <vector>
+﻿#include <format>
 #include <iostream>
-#include <format>
 #include <print>
 #include <nameof.hpp>
 #include "jpeg.h"
@@ -107,7 +104,7 @@ void JpegDecoder::parseAPP0()
     }
     if (remain >= sizeof(m_APP0.version)) {
         m_Stream.read(reinterpret_cast<char*>(&m_APP0.version), sizeof(m_APP0.version));
-        m_APP0.version = std::byteswap(m_APP0.version);
+        m_APP0.version = static_cast<decltype(m_APP0.version)>(std::byteswap(static_cast<uint16_t>(m_APP0.version)));
         remain -= sizeof(m_APP0.version);
     }
     if (remain >= sizeof(m_APP0.units)) {
@@ -140,13 +137,26 @@ void JpegDecoder::parseDQT()
     if (remain >= 1) {
         uint8_t value;
         m_Stream.read(reinterpret_cast<char*>(&value), sizeof(uint8_t));
-        m_DQT.precision = value >> 4;
+        m_DQT.precision = static_cast<segments::DQT::Precision>(value >> 4);
         m_DQT.tableID = value & 0x0F;
         remain--;
     }
-    if (remain >= sizeof(m_DQT.table)) {
-        m_Stream.read(reinterpret_cast<char*>(&m_DQT.table), sizeof(m_DQT.table));
-        remain -= sizeof(m_DQT.table);
+
+    switch (m_DQT.precision) {
+    case segments::DQT::Precision::BITS_8:
+        if (remain >= sizeof(m_DQT.table8)) {
+            m_Stream.read(reinterpret_cast<char*>(&m_DQT.table8), sizeof(m_DQT.table8));
+            remain -= sizeof(m_DQT.table8);
+        }
+        break;
+    case segments::DQT::Precision::BITS_16:
+        if (remain >= sizeof(m_DQT.table16)) {
+            m_Stream.read(reinterpret_cast<char*>(&m_DQT.table16), sizeof(m_DQT.table16));
+            remain -= sizeof(m_DQT.table16);
+        }
+        break;
+    default:
+        break;
     }
 
     std::cout << jpg::to_string(m_DQT) << std::endl;
@@ -174,6 +184,7 @@ void JpegDecoder::parseSOF0()
         m_Stream.read(reinterpret_cast<char*>(&m_SOF0.numComponents), sizeof(m_SOF0.numComponents));
         remain--;
     }
+    m_SOF0.components.resize(m_SOF0.numComponents);
     for (int i = 0; i < m_SOF0.numComponents; ++i) {
         if (remain >= sizeof(m_SOF0.components[i])) {
             m_Stream.read(reinterpret_cast<char*>(&m_SOF0.components[i]), sizeof(m_SOF0.components[i]));
@@ -194,7 +205,8 @@ void JpegDecoder::parseDHT()
     if (remain >= 1) {
         uint8_t value;
         m_Stream.read(reinterpret_cast<char*>(&value), sizeof(uint8_t));
-        m_DHT.tableID = value;
+        m_DHT.tableClass = static_cast<segments::DHT::TableClass>(value >> 4);
+        m_DHT.tableID = value & 0xFF;
         remain--;
     }
     if (remain >= sizeof(m_DHT.counts)) {
@@ -221,6 +233,7 @@ void JpegDecoder::parseSOS()
         m_Stream.read(reinterpret_cast<char*>(&m_SOS.numComponents), sizeof(m_SOS.numComponents));
         remain--;
     }
+    m_SOS.components.resize(m_SOS.numComponents);
     for (int i = 0; i < m_SOS.numComponents; ++i) {
         if (remain >= sizeof(m_SOS.components[i])) {
             m_Stream.read(reinterpret_cast<char*>(&m_SOS.components[i]), sizeof(m_SOS.components[i]));
@@ -284,7 +297,7 @@ namespace jpg
         result += std::format("  marker: 0x{:02X}\n", app0.marker);
         result += std::format("  length: 0x{:04X}\n", app0.length);
         result += std::format("  identifier: {}\n", app0.identifier);
-        result += std::format("  version: 0x{:02X}\n", app0.version);
+        result += std::format("  version: 0x{:02X} ({})\n", static_cast<uint16_t>(app0.version), NAMEOF_ENUM(app0.version));
         result += std::format("  units: 0x{:02X} ({})\n", static_cast<uint8_t>(app0.units), NAMEOF_ENUM(app0.units));
         result += std::format("  xDensity: 0x{:04X}\n", app0.xDensity);
         result += std::format("  yDensity: 0x{:04X}\n", app0.yDensity);
@@ -300,11 +313,18 @@ namespace jpg
         result += std::format("  reserved: 0x{:02X}\n", dqt.reserved);
         result += std::format("  marker: 0x{:02X}\n", dqt.marker);
         result += std::format("  length: 0x{:04X}\n", dqt.length);
-        result += std::format("  precision: 0x{:01X}\n", dqt.precision);
+        result += std::format("  precision: 0x{:01X} ({})\n", static_cast<uint8_t>(dqt.precision), NAMEOF_ENUM(dqt.precision));
         result += std::format("  tableID: 0x{:01X}\n", dqt.tableID);
         result += "  table:\n";
         for (int i = 0; i < 64; ++i) {
-            result += std::format("    0x{:02X}", dqt.table[i]);
+            switch (dqt.precision) {
+            case segments::DQT::Precision::BITS_8:
+                result += std::format("    0x{:02X}", dqt.table8[i]);
+                break;
+            case segments::DQT::Precision::BITS_16:
+                result += std::format("    0x{:04X}", dqt.table16[i]);
+                break;
+            }
             if (i % 8 == 7) {
                 result += '\n';
             }
@@ -325,8 +345,9 @@ namespace jpg
         result += std::format("  numComponents: 0x{:02X}\n", sof0.numComponents);
         for (int i = 0; i < sof0.numComponents; ++i) {
             result += std::format("  Component[{}]:\n", i);
-            result += std::format("    id: 0x{:02X}\n", sof0.components[i].id);
-            result += std::format("    samplingFactor: 0x{:02X}\n", sof0.components[i].samplingFactor);
+            result += std::format("    id: 0x{:02X} ({})\n", static_cast<uint8_t>(sof0.components[i].id), NAMEOF_ENUM(sof0.components[i].id));
+            result += std::format("    samplingFactorHorizontalRatio: 0x{:02X}\n", sof0.components[i].samplingFactorHorizontalRatio);
+            result += std::format("    samplingFactorVerticalRatio: 0x{:02X}\n", sof0.components[i].samplingFactorVerticalRatio);
             result += std::format("    quantizationTableID: 0x{:02X}\n", sof0.components[i].quantizationTableID);
         }
         return result;
@@ -339,6 +360,7 @@ namespace jpg
         result += std::format("  reserved: 0x{:02X}\n", dht.reserved);
         result += std::format("  marker: 0x{:02X}\n", dht.marker);
         result += std::format("  length: 0x{:04X}\n", dht.length);
+        result += std::format("  tableClass: 0x{:02X} ({})\n", static_cast<uint8_t>(dht.tableClass), NAMEOF_ENUM(dht.tableClass));
         result += std::format("  tableID: 0x{:02X}\n", dht.tableID);
         result += "  counts:\n";
         for (int i = 0; i < 16; ++i) {
@@ -367,8 +389,9 @@ namespace jpg
         result += std::format("  numComponents: 0x{:02X}\n", sos.numComponents);
         for (int i = 0; i < sos.numComponents; ++i) {
             result += std::format("  Component[{}]:\n", i);
-            result += std::format("    id: 0x{:02X}\n", sos.components[i].id);
-            result += std::format("    huffmanTable: 0x{:02X}\n", sos.components[i].huffmanTable);
+            result += std::format("    selector: 0x{:02X}\n", sos.components[i].componentSelector);
+            result += std::format("    dcSelector: 0x{:02X}\n", sos.components[i].dcSelector);
+            result += std::format("    acSelector: 0x{:02X}\n", sos.components[i].acSelector);
         }
         result += std::format("  spectralSelectionStart: 0x{:02X}\n", sos.spectralSelectionStart);
         result += std::format("  spectralSelectionEnd: 0x{:02X}\n", sos.spectralSelectionEnd);

@@ -1,9 +1,5 @@
-﻿#include <bit>
-#include <fstream>
-#include <format>
-#include <iostream>
+﻿#include <iostream>
 #include <string>
-#include <vector>
 
 #include "jpeg.h"
 
