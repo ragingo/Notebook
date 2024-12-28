@@ -1,6 +1,8 @@
-﻿#include <format>
+﻿#include <algorithm>
+#include <format>
 #include <iostream>
 #include <print>
+#include <ranges>
 #include <nameof.hpp>
 #include "jpeg.h"
 
@@ -42,12 +44,15 @@ void JpegDecoder::decode()
 {
     parse();
 
+    dumpSummary();
+
     // TODO: デコード処理を書いていく
 }
 
 void JpegDecoder::parse()
 {
     auto marker = readMarker(m_Stream);
+    m_Markers.push_back(marker);
 
     if (marker != Marker::SOI) {
         throw std::runtime_error("Invalid JPEG file");
@@ -81,6 +86,7 @@ void JpegDecoder::parse()
             return;
         }
         marker = readMarker(m_Stream);
+        m_Markers.push_back(marker);
     }
 }
 
@@ -276,6 +282,30 @@ void JpegDecoder::parseEOI()
     m_EOI.reserved = jpg::marker_upper(jpg::Marker::EOI);
     m_EOI.marker = jpg::marker_lower(jpg::Marker::EOI);
     std::cout << jpg::to_string(m_EOI) << std::endl;
+}
+
+void JpegDecoder::dumpSummary()
+{
+    std::string result;
+
+    result += "==================================================\n";
+
+    m_Stream.seekg(0, std::ios::end);
+    auto fileSize = m_Stream.tellg();
+    result += std::format("File Size: {} bytes\n", static_cast<size_t>(fileSize));
+
+    // dimensions
+    if (std::ranges::contains(m_Markers, Marker::SOF0)) {
+        result += std::format("Dimensions: {}x{}\n", m_SOF0.width, m_SOF0.height);
+    }
+
+    if (std::ranges::contains(m_Markers, Marker::SOF0)) {
+        result += "Frame Type: Baseline\n";
+    }
+
+    result += "==================================================";
+
+    std::cout << result << std::endl;
 }
 
 namespace jpg

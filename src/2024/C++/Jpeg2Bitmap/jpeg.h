@@ -224,10 +224,13 @@ namespace jpg
         void parseDHT();
         void parseSOS();
         void parseECS();
+        void dumpSummary();
 
     private:
         std::string m_FileName;
         std::ifstream m_Stream;
+        std::vector<Marker> m_Markers;
+
         segments::SOI m_SOI = {};
         segments::APP0 m_APP0 = {};
         segments::DQT m_DQT = {};
