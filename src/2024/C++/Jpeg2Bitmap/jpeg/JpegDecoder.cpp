@@ -301,6 +301,27 @@ void JpegDecoder::dumpSummary()
         result += "\n";
     }
 
+    // B.2.4.2 Huffman table-specification syntax
+    if (std::ranges::contains(m_Markers, Marker::DHT)) {
+        result += "Huffman Tables: ";
+
+        namespace r = std::ranges;
+        namespace rv = std::ranges::views;
+
+        int value = 2;
+        for (int i = 0; i < 1; i++) {
+            auto m1 = rv::iota(0, 16)
+                | rv::transform([&](int i) { return m_DHT.counts[i]; })
+                | r::to<std::vector>();
+            auto m2 = r::fold_left(m1, 0, std::plus<>());
+            value += (17 + m2);
+        }
+
+        result += std::format("Lh: 0x{0:02X} ({0})\n", value);
+        
+        result += "\n";
+    }
+
     result += "==================================================";
 
     std::cout << result << std::endl;
