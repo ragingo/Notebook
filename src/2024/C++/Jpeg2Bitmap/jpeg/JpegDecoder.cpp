@@ -75,69 +75,75 @@ void JpegDecoder::parse()
 
 void JpegDecoder::parseSOI()
 {
-    m_SOI.reserved = jpeg::marker_upper(jpeg::Marker::SOI);
-    m_SOI.marker = jpeg::marker_lower(jpeg::Marker::SOI);
-    std::cout << jpeg::debugging::to_string(m_SOI) << std::endl;
+    auto soi = segments::SOI{};
+    soi.reserved = jpeg::marker_upper(jpeg::Marker::SOI);
+    soi.marker = jpeg::marker_lower(jpeg::Marker::SOI);
+    m_Segments.emplace_back(std::make_shared<segments::SOI>(soi));
+
+    std::cout << jpeg::debugging::to_string(soi) << std::endl;
 }
 
 void JpegDecoder::parseAPP0()
 {
-    m_APP0.reserved = jpeg::marker_upper(jpeg::Marker::APP0);
-    m_APP0.marker = jpeg::marker_lower(jpeg::Marker::APP0);
-    m_FileReader.ReadUInt16(m_APP0.length);
-    int remain = m_APP0.length - sizeof(m_APP0.length);
-    if (remain >= sizeof(m_APP0.identifier)) {
-        m_FileReader.ReadBytes(m_APP0.identifier);
-        remain -= sizeof(m_APP0.identifier);
+    auto app0 = segments::APP0{};
+    app0.reserved = jpeg::marker_upper(jpeg::Marker::APP0);
+    app0.marker = jpeg::marker_lower(jpeg::Marker::APP0);
+    m_FileReader.ReadUInt16(app0.length);
+    int remain = app0.length - sizeof(app0.length);
+    if (remain >= sizeof(app0.identifier)) {
+        m_FileReader.ReadBytes(app0.identifier);
+        remain -= sizeof(app0.identifier);
     }
-    if (remain >= sizeof(m_APP0.version)) {
-        m_FileReader.ReadUInt16(m_APP0.version);
-        remain -= sizeof(m_APP0.version);
+    if (remain >= sizeof(app0.version)) {
+        m_FileReader.ReadUInt16(app0.version);
+        remain -= sizeof(app0.version);
     }
-    if (remain >= sizeof(m_APP0.units)) {
-        m_FileReader.ReadUInt8(m_APP0.units);
-        remain -= sizeof(m_APP0.units);
+    if (remain >= sizeof(app0.units)) {
+        m_FileReader.ReadUInt8(app0.units);
+        remain -= sizeof(app0.units);
     }
-    if (remain >= sizeof(m_APP0.xDensity) + sizeof(m_APP0.yDensity)) {
-        m_FileReader.ReadUInt16(m_APP0.xDensity);
-        m_FileReader.ReadUInt16(m_APP0.yDensity);
-        remain -= sizeof(m_APP0.xDensity) + sizeof(m_APP0.yDensity);
+    if (remain >= sizeof(app0.xDensity) + sizeof(app0.yDensity)) {
+        m_FileReader.ReadUInt16(app0.xDensity);
+        m_FileReader.ReadUInt16(app0.yDensity);
+        remain -= sizeof(app0.xDensity) + sizeof(app0.yDensity);
     }
-    if (remain >= sizeof(m_APP0.thumbnailWidth) + sizeof(m_APP0.thumbnailHeight)) {
-        m_FileReader.ReadUInt8(m_APP0.thumbnailWidth);
-        m_FileReader.ReadUInt8(m_APP0.thumbnailHeight);
-        remain -= sizeof(m_APP0.thumbnailWidth) + sizeof(m_APP0.thumbnailHeight);
+    if (remain >= sizeof(app0.thumbnailWidth) + sizeof(app0.thumbnailHeight)) {
+        m_FileReader.ReadUInt8(app0.thumbnailWidth);
+        m_FileReader.ReadUInt8(app0.thumbnailHeight);
+        remain -= sizeof(app0.thumbnailWidth) + sizeof(app0.thumbnailHeight);
     }
+    m_Segments.emplace_back(std::make_shared<segments::APP0>(app0));
 
-    std::cout << jpeg::debugging::to_string(m_APP0) << std::endl;
+    std::cout << jpeg::debugging::to_string(app0) << std::endl;
 }
 
 void JpegDecoder::parseDQT()
 {
-    m_DQT.reserved = jpeg::marker_upper(jpeg::Marker::DQT);
-    m_DQT.marker = jpeg::marker_lower(jpeg::Marker::DQT);
-    m_FileReader.ReadUInt16(m_DQT.length);
-    int remain = m_DQT.length - sizeof(m_DQT.length);
+    auto dqt = segments::DQT{};
+    dqt.reserved = jpeg::marker_upper(jpeg::Marker::DQT);
+    dqt.marker = jpeg::marker_lower(jpeg::Marker::DQT);
+    m_FileReader.ReadUInt16(dqt.length);
+    int remain = dqt.length - sizeof(dqt.length);
     if (remain >= 1) {
         uint8_t value;
         m_FileReader.ReadUInt8(value);
-        m_DQT.precision = static_cast<segments::DQT::Precision>(value >> 4);
-        m_DQT.tableID = value & 0x0F;
+        dqt.precision = static_cast<segments::DQT::Precision>(value >> 4);
+        dqt.tableID = value & 0x0F;
         remain--;
     }
 
-    switch (m_DQT.precision) {
+    switch (dqt.precision) {
     case segments::DQT::Precision::BITS_8:
-        if (int size = sizeof(std::get<segments::DQT::Bits8Table>(m_DQT.table)); remain >= size)
+        if (int size = sizeof(std::get<segments::DQT::Bits8Table>(dqt.table)); remain >= size)
         {
-            m_FileReader.ReadBytes(std::get<segments::DQT::Bits8Table>(m_DQT.table));
+            m_FileReader.ReadBytes(std::get<segments::DQT::Bits8Table>(dqt.table));
             remain -= size;
         }
 
         break;
     case segments::DQT::Precision::BITS_16:
-        if (int size = sizeof(std::get<segments::DQT::Bits16Table>(m_DQT.table)); remain >= size) {
-            m_FileReader.ReadBytes(std::get<segments::DQT::Bits16Table>(m_DQT.table));
+        if (int size = sizeof(std::get<segments::DQT::Bits16Table>(dqt.table)); remain >= size) {
+            m_FileReader.ReadBytes(std::get<segments::DQT::Bits16Table>(dqt.table));
             remain -= size;
         }
         break;
@@ -145,86 +151,97 @@ void JpegDecoder::parseDQT()
         break;
     }
 
-    std::cout << jpeg::debugging::to_string(m_DQT) << std::endl;
+    m_Segments.emplace_back(std::make_shared<segments::DQT>(dqt));
+
+    std::cout << jpeg::debugging::to_string(dqt) << std::endl;
 }
 
 void JpegDecoder::parseSOF0()
 {
-    m_SOF0.reserved = jpeg::marker_upper(jpeg::Marker::SOF0);
-    m_SOF0.marker = jpeg::marker_lower(jpeg::Marker::SOF0);
-    m_FileReader.ReadUInt16(m_SOF0.length);
-    int remain = m_SOF0.length - sizeof(m_SOF0.length);
+    auto sof0 = segments::SOF0{};
+    sof0.reserved = jpeg::marker_upper(jpeg::Marker::SOF0);
+    sof0.marker = jpeg::marker_lower(jpeg::Marker::SOF0);
+    m_FileReader.ReadUInt16(sof0.length);
+    int remain = sof0.length - sizeof(sof0.length);
     if (remain >= 1) {
-        m_FileReader.ReadUInt8(m_SOF0.precision);
+        m_FileReader.ReadUInt8(sof0.precision);
         remain--;
     }
-    if (remain >= sizeof(m_SOF0.height) + sizeof(m_SOF0.width)) {
-        m_FileReader.ReadUInt16(m_SOF0.height);
-        m_FileReader.ReadUInt16(m_SOF0.width);
-        remain -= sizeof(m_SOF0.height) + sizeof(m_SOF0.width);
+    if (remain >= sizeof(sof0.height) + sizeof(sof0.width)) {
+        m_FileReader.ReadUInt16(sof0.height);
+        m_FileReader.ReadUInt16(sof0.width);
+        remain -= sizeof(sof0.height) + sizeof(sof0.width);
     }
     if (remain >= 1) {
-        m_FileReader.ReadUInt8(m_SOF0.numComponents);
+        m_FileReader.ReadUInt8(sof0.numComponents);
         remain--;
     }
-    m_SOF0.components.resize(m_SOF0.numComponents);
-    if (remain >= sizeof(m_SOF0.components[0]) * m_SOF0.numComponents) {
-        m_FileReader.ReadBytes(m_SOF0.components);
-        remain -= sizeof(m_SOF0.components[0]) * m_SOF0.numComponents;
+    sof0.components.resize(sof0.numComponents);
+    if (remain >= sizeof(sof0.components[0]) * sof0.numComponents) {
+        m_FileReader.ReadBytes(sof0.components);
+        remain -= sizeof(sof0.components[0]) * sof0.numComponents;
     }
 
-    std::cout << jpeg::debugging::to_string(m_SOF0) << std::endl;
+    m_Segments.emplace_back(std::make_shared<segments::SOF0>(sof0));
+
+    std::cout << jpeg::debugging::to_string(sof0) << std::endl;
 }
 
 void JpegDecoder::parseDHT()
 {
-    m_DHT.reserved = jpeg::marker_upper(jpeg::Marker::DHT);
-    m_DHT.marker = jpeg::marker_lower(jpeg::Marker::DHT);
-    m_FileReader.ReadUInt16(m_DHT.length);
-    int remain = m_DHT.length - sizeof(m_DHT.length);
+    auto dht = segments::DHT{};
+    dht.reserved = jpeg::marker_upper(jpeg::Marker::DHT);
+    dht.marker = jpeg::marker_lower(jpeg::Marker::DHT);
+    m_FileReader.ReadUInt16(dht.length);
+    int remain = dht.length - sizeof(dht.length);
     if (remain >= 1) {
         uint8_t value;
         m_FileReader.ReadUInt8(value);
-        m_DHT.tableClass = static_cast<segments::DHT::TableClass>(value >> 4);
-        m_DHT.tableID = value & 0xFF;
+        dht.tableClass = static_cast<segments::DHT::TableClass>(value >> 4);
+        dht.tableID = value & 0xFF;
         remain--;
     }
-    if (remain >= sizeof(m_DHT.counts)) {
-        m_FileReader.ReadBytes(m_DHT.counts);
-        remain -= sizeof(m_DHT.counts);
+    if (remain >= sizeof(dht.counts)) {
+        m_FileReader.ReadBytes(dht.counts);
+        remain -= sizeof(dht.counts);
     }
     if (remain > 0) {
-        m_DHT.symbols.resize(remain);
-        m_FileReader.ReadBytes(m_DHT.symbols);
+        dht.symbols.resize(remain);
+        m_FileReader.ReadBytes(dht.symbols);
         remain = 0;
     }
 
-    std::cout << jpeg::debugging::to_string(m_DHT) << std::endl;
+    m_Segments.emplace_back(std::make_shared<segments::DHT>(dht));
+
+    std::cout << jpeg::debugging::to_string(dht) << std::endl;
 }
 
 void JpegDecoder::parseSOS()
 {
-    m_SOS.reserved = jpeg::marker_upper(jpeg::Marker::SOS);
-    m_SOS.marker = jpeg::marker_lower(jpeg::Marker::SOS);
-    m_FileReader.ReadUInt16(m_SOS.length);
-    int remain = m_SOS.length - sizeof(m_SOS.length);
+    auto sos = segments::SOS{};
+    sos.reserved = jpeg::marker_upper(jpeg::Marker::SOS);
+    sos.marker = jpeg::marker_lower(jpeg::Marker::SOS);
+    m_FileReader.ReadUInt16(sos.length);
+    int remain = sos.length - sizeof(sos.length);
     if (remain >= 1) {
-        m_FileReader.ReadUInt8(m_SOS.numComponents);
+        m_FileReader.ReadUInt8(sos.numComponents);
         remain--;
     }
-    m_SOS.components.resize(m_SOS.numComponents);
-    if (remain >= sizeof(m_SOS.components[0]) * m_SOS.numComponents) {
-        m_FileReader.ReadBytes(m_SOS.components);
-        remain -= sizeof(m_SOS.components[0]) * m_SOS.numComponents;
+    sos.components.resize(sos.numComponents);
+    if (remain >= sizeof(sos.components[0]) * sos.numComponents) {
+        m_FileReader.ReadBytes(sos.components);
+        remain -= sizeof(sos.components[0]) * sos.numComponents;
     }
     if (remain >= 3) {
-        m_FileReader.ReadUInt8(m_SOS.spectralSelectionStart);
-        m_FileReader.ReadUInt8(m_SOS.spectralSelectionEnd);
-        m_FileReader.ReadUInt8(m_SOS.successiveApproximation);
+        m_FileReader.ReadUInt8(sos.spectralSelectionStart);
+        m_FileReader.ReadUInt8(sos.spectralSelectionEnd);
+        m_FileReader.ReadUInt8(sos.successiveApproximation);
         remain -= 3;
     }
 
-    std::cout << jpeg::debugging::to_string(m_SOS) << std::endl;
+    m_Segments.emplace_back(std::make_shared<segments::SOS>(sos));
+
+    std::cout << jpeg::debugging::to_string(sos) << std::endl;
 
     parseECS();
 }
@@ -253,9 +270,13 @@ void JpegDecoder::parseECS()
 
 void JpegDecoder::parseEOI()
 {
-    m_EOI.reserved = jpeg::marker_upper(jpeg::Marker::EOI);
-    m_EOI.marker = jpeg::marker_lower(jpeg::Marker::EOI);
-    std::cout << jpeg::debugging::to_string(m_EOI) << std::endl;
+    auto eoi = segments::EOI{};
+    eoi.reserved = jpeg::marker_upper(jpeg::Marker::EOI);
+    eoi.marker = jpeg::marker_lower(jpeg::Marker::EOI);
+
+    m_Segments.emplace_back(std::make_shared<segments::EOI>(eoi));
+
+    std::cout << jpeg::debugging::to_string(eoi) << std::endl;
 }
 
 void JpegDecoder::dumpSummary()
@@ -266,17 +287,21 @@ void JpegDecoder::dumpSummary()
     result += std::format("File Size: {} bytes\n", m_FileReader.GetSize());
 
     if (std::ranges::contains(m_Markers, Marker::SOF0)) {
+        auto sof0s = findSegments<segments::SOF0>(Marker::SOF0);
+        assert(sof0s.size() >= 1);
+        auto sof0 = *(sof0s[0]);
+
         result += "Frame Type: Baseline\n";
-        result += std::format("Resolution: {}x{}\n", m_SOF0.width, m_SOF0.height);
+        result += std::format("Resolution: {}x{}\n", sof0.width, sof0.height);
 
         result += "Components: ";
-        switch (m_SOF0.numComponents) {
+        switch (sof0.numComponents) {
         case 1:
             result += "Grayscale";
             break;
         case 3:
             {
-                auto ids = m_SOF0.components
+                auto ids = sof0.components
                     | std::ranges::views::transform([](const auto& c) { return c.id; })
                     | std::ranges::to<std::vector>();
                 using ID = segments::SOF0::Component::ID;
@@ -303,21 +328,25 @@ void JpegDecoder::dumpSummary()
 
     // B.2.4.2 Huffman table-specification syntax
     if (std::ranges::contains(m_Markers, Marker::DHT)) {
-        result += "Huffman Tables: ";
+        result += "Huffman Tables: \n";
 
         namespace r = std::ranges;
         namespace rv = std::ranges::views;
 
-        int value = 2;
-        for (int i = 0; i < 1; i++) {
-            auto m1 = rv::iota(0, 16)
-                | rv::transform([&](int i) { return m_DHT.counts[i]; })
-                | r::to<std::vector>();
-            auto m2 = r::fold_left(m1, 0, std::plus<>());
-            value += (17 + m2);
-        }
+        auto dhts = findSegments<segments::DHT>(Marker::DHT);
 
-        result += std::format("Lh: 0x{0:02X} ({0})\n", value);
+        for (const auto& dht : dhts) {
+            int value = 2;
+            for (int i = 0; i < 1; i++) {
+                auto m1 = rv::iota(0, 16)
+                    | rv::transform([&](int i) { return dht->counts[i]; })
+                    | r::to<std::vector>();
+                auto m2 = r::fold_left(m1, 0, std::plus<>());
+                value += (17 + m2);
+            }
+
+            result += std::format("  Lh: 0x{0:02X} ({0})\n", value);
+        }
         
         result += "\n";
     }

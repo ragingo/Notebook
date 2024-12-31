@@ -6,13 +6,15 @@
 
 namespace jpeg { namespace segments {
 
-    struct SOI
+    struct Segment
     {
         uint8_t reserved;
         uint8_t marker;
     };
 
-    struct APP0
+    struct SOI : public Segment {};
+
+    struct APP0 : public Segment
     {
         enum Version : uint16_t
         {
@@ -28,8 +30,6 @@ namespace jpeg { namespace segments {
             PPCM = 2,
         };
 
-        uint8_t reserved;
-        uint8_t marker;
         uint16_t length;
         std::array<char, 5> identifier;
         Version version;
@@ -40,7 +40,7 @@ namespace jpeg { namespace segments {
         uint8_t thumbnailHeight;
     };
 
-    struct DQT
+    struct DQT : public Segment
     {
         enum class Precision : uint8_t
         {
@@ -48,8 +48,6 @@ namespace jpeg { namespace segments {
             BITS_16 = 1,
         };
 
-        uint8_t reserved;
-        uint8_t marker;
         uint16_t length;
         Precision precision : 4;
         uint8_t tableID : 4;
@@ -60,10 +58,8 @@ namespace jpeg { namespace segments {
         std::variant<Bits8Table, Bits16Table> table;
     };
 
-    struct SOF0
+    struct SOF0 : public Segment
     {
-        uint8_t reserved;
-        uint8_t marker;
         uint16_t length;
         uint8_t precision;
         uint16_t height;
@@ -88,15 +84,13 @@ namespace jpeg { namespace segments {
         std::vector<Component> components;
     };
 
-    struct DHT
+    struct DHT : public Segment
     {
         enum class TableClass : uint8_t
         {
             DC_OR_LOSSLESS = 0,
             AC = 1,
         };
-        uint8_t reserved;
-        uint8_t marker;
         uint16_t length;
         TableClass tableClass : 4;
         uint8_t tableID : 4;
@@ -104,10 +98,8 @@ namespace jpeg { namespace segments {
         std::vector<uint8_t> symbols;
     };
 
-    struct SOS
+    struct SOS : public Segment
     {
-        uint8_t reserved;
-        uint8_t marker;
         uint16_t length;
         uint8_t numComponents;
 
@@ -124,10 +116,6 @@ namespace jpeg { namespace segments {
         uint8_t successiveApproximation;
     };
 
-    struct EOI
-    {
-        uint8_t reserved;
-        uint8_t marker;
-    };
+    struct EOI : public Segment {};
 
 } } // namespace jpg::segments

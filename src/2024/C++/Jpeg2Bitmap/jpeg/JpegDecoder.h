@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <cstdint>
-#include <string>
+#include <memory>
 #include <vector>
 
 #include "segments.h"
@@ -28,17 +28,23 @@ private:
     void parseECS();
     void dumpSummary();
 
+    template <typename T>
+        requires std::derived_from<T, segments::Segment>
+    std::vector<std::shared_ptr<T>> findSegments(Marker marker) const {
+        std::vector<std::shared_ptr<T>> result;
+        for (const auto& segment : m_Segments) {
+            if (make_marker(segment->reserved, segment->marker) == marker) {
+                // TODO: T と marker の指定を一致させないといけないから、marker 指定が無くせるようにしたい
+                result.emplace_back(std::static_pointer_cast<T>(segment));
+            }
+        }
+        return result;
+    }
+
 private:
     BinaryFileReader m_FileReader;
     std::vector<Marker> m_Markers;
-
-    segments::SOI m_SOI = {};
-    segments::APP0 m_APP0 = {};
-    segments::DQT m_DQT = {};
-    segments::SOF0 m_SOF0 = {};
-    segments::EOI m_EOI = {};
-    segments::DHT m_DHT = {};
-    segments::SOS m_SOS = {};
+    std::vector<std::shared_ptr<segments::Segment>> m_Segments;
     std::vector<uint8_t> m_ECS = {};
 };
 

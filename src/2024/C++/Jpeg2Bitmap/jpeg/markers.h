@@ -67,4 +67,9 @@ namespace jpeg {
         return static_cast<uint16_t>(marker) >> 8;
     }
 
+    inline Marker make_marker(uint8_t upper, uint8_t lower)
+    {
+        return static_cast<Marker>((static_cast<uint16_t>(upper) << 8) | lower);
+    }
+
 } // namespace jpeg
