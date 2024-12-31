@@ -1,7 +1,6 @@
 ﻿#include <algorithm>
 #include <cstdint>
 #include <format>
-#include <fstream>
 #include <iostream>
 #include <print>
 #include <ranges>
@@ -266,13 +265,40 @@ void JpegDecoder::dumpSummary()
     result += "==================================================\n";
     result += std::format("File Size: {} bytes\n", m_FileReader.GetSize());
 
-    // dimensions
-    if (std::ranges::contains(m_Markers, Marker::SOF0)) {
-        result += std::format("Dimensions: {}x{}\n", m_SOF0.width, m_SOF0.height);
-    }
-
     if (std::ranges::contains(m_Markers, Marker::SOF0)) {
         result += "Frame Type: Baseline\n";
+        result += std::format("Resolution: {}x{}\n", m_SOF0.width, m_SOF0.height);
+
+        result += "Components: ";
+        switch (m_SOF0.numComponents) {
+        case 1:
+            result += "Grayscale";
+            break;
+        case 3:
+            {
+                auto ids = m_SOF0.components
+                    | std::ranges::views::transform([](const auto& c) { return c.id; })
+                    | std::ranges::to<std::vector>();
+                using ID = segments::SOF0::Component::ID;
+                if (ids == std::vector{ ID::Y, ID::Cb, ID::Cr }) {
+                    result += "YCbCr";
+                }
+                else if (ids == std::vector{ ID::Y, ID::I, ID::Q }) {
+                    result += "YIQ";
+                }
+                else {
+                    result += "Unknown";
+                }
+            }
+            break;
+        case 4:
+            result += "CMYK";
+            break;
+        default:
+            result += "Unknown";
+            break;
+        }
+        result += "\n";
     }
 
     result += "==================================================";
