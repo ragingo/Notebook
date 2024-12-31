@@ -1,15 +1,13 @@
 ﻿#include <iostream>
 #include <string>
-
-#include "jpeg.h"
+#include "jpeg/jpeg.h"
 
 int main()
 {
-    const std::string jpegFileName = "D:\\temp\\images\\catman.jpg";
-    const std::string bmpFileName = "D:\\temp\\images\\catman.jpg.bmp";
+    const char* jpegFileName = "D:\\temp\\images\\catman.jpg";
 
     try {
-        auto decoder = jpg::JpegDecoder(jpegFileName);
+        auto decoder = jpeg::JpegDecoder(jpegFileName);
         decoder.decode();
     }
     catch (const std::exception& e) {
