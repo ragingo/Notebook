@@ -20,8 +20,8 @@ std::string to_string(const segments::APP0& app0)
     result += std::format("  marker: 0x{:04X}\n", std::to_underlying(app0.marker));
     result += std::format("  length: 0x{:04X}\n", app0.length);
     result += std::format("  identifier: {}\n", static_cast<const char*>(app0.identifier.data()));
-    result += std::format("  version: 0x{:02X} ({})\n", static_cast<uint16_t>(app0.version), NAMEOF_ENUM(app0.version));
-    result += std::format("  units: 0x{:02X} ({})\n", static_cast<uint8_t>(app0.units), NAMEOF_ENUM(app0.units));
+    result += std::format("  version: 0x{:02X} ({})\n", std::to_underlying(app0.version), NAMEOF_ENUM(app0.version));
+    result += std::format("  units: 0x{:02X} ({})\n", std::to_underlying(app0.units), NAMEOF_ENUM(app0.units));
     result += std::format("  xDensity: 0x{:04X}\n", app0.xDensity);
     result += std::format("  yDensity: 0x{:04X}\n", app0.yDensity);
     result += std::format("  thumbnailWidth: 0x{:02X}\n", app0.thumbnailWidth);
@@ -35,8 +35,8 @@ std::string to_string(const segments::DQT& dqt)
     result += "DQT\n";
     result += std::format("  marker: 0x{:04X}\n", std::to_underlying(dqt.marker));
     result += std::format("  length: 0x{:04X}\n", dqt.length);
-    result += std::format("  precision: 0x{:01X} ({})\n", static_cast<uint8_t>(dqt.precision), NAMEOF_ENUM(dqt.precision));
-    result += std::format("  tableID: 0x{:01X}\n", dqt.tableID);
+    result += std::format("  precision: 0x{:01X} ({})\n", std::to_underlying(dqt.precision), NAMEOF_ENUM(dqt.precision));
+    result += std::format("  tableID: 0x{:01X} ({})\n", std::to_underlying(dqt.tableID), NAMEOF_ENUM(dqt.tableID));
     result += "  table:\n";
     for (int i = 0; i < 64; ++i) {
         switch (dqt.precision) {
@@ -72,10 +72,10 @@ std::string to_string(const segments::SOF0& sof0)
     result += std::format("  numComponents: 0x{:02X}\n", sof0.numComponents);
     for (int i = 0; i < sof0.numComponents; ++i) {
         result += std::format("  Component[{}]:\n", i);
-        result += std::format("    id: 0x{:02X} ({})\n", static_cast<uint8_t>(sof0.components[i].id), NAMEOF_ENUM(sof0.components[i].id));
+        result += std::format("    id: 0x{:02X} ({})\n", std::to_underlying(sof0.components[i].id), NAMEOF_ENUM(sof0.components[i].id));
         result += std::format("    samplingFactorHorizontalRatio: 0x{:02X}\n", sof0.components[i].samplingFactorHorizontalRatio);
         result += std::format("    samplingFactorVerticalRatio: 0x{:02X}\n", sof0.components[i].samplingFactorVerticalRatio);
-        result += std::format("    quantizationTableID: 0x{:02X}\n", sof0.components[i].quantizationTableID);
+        result += std::format("    tableID: 0x{:02X} ({})\n", std::to_underlying(sof0.components[i].tableID), NAMEOF_ENUM(sof0.components[i].tableID));
     }
     return result;
 }
@@ -86,8 +86,8 @@ std::string to_string(const segments::DHT& dht)
     result += "DHT\n";
     result += std::format("  marker: 0x{:04X}\n", std::to_underlying(dht.marker));
     result += std::format("  length: 0x{:04X}\n", dht.length);
-    result += std::format("  tableClass: 0x{:02X} ({})\n", static_cast<uint8_t>(dht.tableClass), NAMEOF_ENUM(dht.tableClass));
-    result += std::format("  tableID: 0x{:02X}\n", dht.tableID);
+    result += std::format("  tableClass: 0x{:02X} ({})\n", std::to_underlying(dht.tableClass), NAMEOF_ENUM(dht.tableClass));
+    result += std::format("  tableID: 0x{:02X} ({})\n", std::to_underlying(dht.tableID), NAMEOF_ENUM(dht.tableID));
     result += "  counts:\n";
     for (int i = 0; i < 16; ++i) {
         result += std::format("    0x{:02X}", dht.counts[i]);
@@ -113,10 +113,11 @@ std::string to_string(const segments::SOS& sos)
     result += std::format("  length: 0x{:04X}\n", sos.length);
     result += std::format("  numComponents: 0x{:02X}\n", sos.numComponents);
     for (int i = 0; i < sos.numComponents; ++i) {
+        auto component = sos.components[i];
         result += std::format("  Component[{}]:\n", i);
-        result += std::format("    selector: 0x{:02X}\n", sos.components[i].componentSelector);
-        result += std::format("    dcSelector: 0x{:02X}\n", sos.components[i].dcSelector);
-        result += std::format("    acSelector: 0x{:02X}\n", sos.components[i].acSelector);
+        result += std::format("    selector: 0x{:02X} ({})\n", std::to_underlying(component.componentSelector), NAMEOF_ENUM(component.componentSelector));
+        result += std::format("    dcSelector: 0x{:02X} ({})\n", std::to_underlying(component.dcSelector), NAMEOF_ENUM(component.dcSelector));
+        result += std::format("    acSelector: 0x{:02X} ({})\n", std::to_underlying(component.acSelector), NAMEOF_ENUM(component.acSelector));
     }
     result += std::format("  spectralSelectionStart: 0x{:02X}\n", sos.spectralSelectionStart);
     result += std::format("  spectralSelectionEnd: 0x{:02X}\n", sos.spectralSelectionEnd);

@@ -8,6 +8,32 @@
 
 namespace jpeg { namespace segments {
 
+    enum class QuantizationTableID : uint8_t
+    {
+        LUMINANCE = 0x0,
+        CHROMINANCE = 0x1,
+        RESERVED_2 = 0x2,
+        RESERVED_3 = 0x3,
+    };
+
+    enum class HuffmanTableID : uint8_t
+    {
+        LUMINANCE = 0x0,
+        CHROMINANCE = 0x1,
+        RESERVED_2 = 0x2,
+        RESERVED_3 = 0x3,
+    };
+
+    enum class ComponentID : uint8_t
+    {
+        Y = 1,
+        Cb = 2,
+        Cr = 3,
+        I = 4,
+        Q = 5,
+    };
+
+
     struct Segment
     {
         Marker marker;
@@ -54,7 +80,7 @@ namespace jpeg { namespace segments {
 
         uint16_t length;
         Precision precision : 4;
-        uint8_t tableID : 4;
+        QuantizationTableID tableID : 4;
 
         using Bits8Table = std::array<uint8_t, 64>;
         using Bits16Table = std::array<uint16_t, 64>;
@@ -72,18 +98,10 @@ namespace jpeg { namespace segments {
 
         struct Component
         {
-            enum class ID : uint8_t
-            {
-                Y = 1,
-                Cb = 2,
-                Cr = 3,
-                I = 4,
-                Q = 5,
-            };
-            ID id;
+            ComponentID id;
             uint8_t samplingFactorHorizontalRatio : 4;
             uint8_t samplingFactorVerticalRatio : 4;
-            uint8_t quantizationTableID;
+            QuantizationTableID tableID;
         };
         std::vector<Component> components;
     };
@@ -97,7 +115,7 @@ namespace jpeg { namespace segments {
         };
         uint16_t length;
         TableClass tableClass : 4;
-        uint8_t tableID : 4;
+        HuffmanTableID tableID : 4;
         std::array<uint8_t, 16> counts;
         std::vector<uint8_t> symbols;
     };
@@ -109,9 +127,9 @@ namespace jpeg { namespace segments {
 
         struct Component
         {
-            uint8_t componentSelector;
-            uint8_t dcSelector : 4;
-            uint8_t acSelector : 4;
+            ComponentID componentSelector;
+            HuffmanTableID dcSelector : 4;
+            HuffmanTableID acSelector : 4;
         };
         std::vector<Component> components;
 

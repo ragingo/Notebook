@@ -126,7 +126,7 @@ void JpegDecoder::parseDQT()
         uint8_t value;
         m_FileReader.ReadUInt8(value);
         dqt.precision = static_cast<segments::DQT::Precision>(value >> 4);
-        dqt.tableID = value & 0x0F;
+        dqt.tableID = static_cast<segments::QuantizationTableID>(value & 0x0F);
         remain--;
     }
 
@@ -194,7 +194,7 @@ void JpegDecoder::parseDHT()
         uint8_t value;
         m_FileReader.ReadUInt8(value);
         dht.tableClass = static_cast<segments::DHT::TableClass>(value >> 4);
-        dht.tableID = value & 0xFF;
+        dht.tableID = static_cast<segments::HuffmanTableID>(value & 0xFF);
         remain--;
     }
     if (remain >= sizeof(dht.counts)) {
@@ -298,11 +298,11 @@ void JpegDecoder::dumpSummary()
                 auto ids = sof0.components
                     | std::ranges::views::transform([](const auto& c) { return c.id; })
                     | std::ranges::to<std::vector>();
-                using ID = segments::SOF0::Component::ID;
-                if (ids == std::vector{ ID::Y, ID::Cb, ID::Cr }) {
+                using enum segments::ComponentID;
+                if (ids == std::vector{ Y, Cb, Cr }) {
                     result += "YCbCr";
                 }
-                else if (ids == std::vector{ ID::Y, ID::I, ID::Q }) {
+                else if (ids == std::vector{ Y, I, Q }) {
                     result += "YIQ";
                 }
                 else {
