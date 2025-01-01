@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <ranges>
 
 #include "segments.h"
 #include "../BinaryFileReader.h"
@@ -30,15 +31,11 @@ private:
 
     template <typename T>
         requires std::derived_from<T, segments::Segment>
-    std::vector<std::shared_ptr<T>> findSegments(Marker marker) const {
-        std::vector<std::shared_ptr<T>> result;
-        for (const auto& segment : m_Segments) {
-            if (segment->marker == marker) {
-                // TODO: T と marker の指定を一致させないといけないから、marker 指定が無くせるようにしたい
-                result.emplace_back(std::static_pointer_cast<T>(segment));
-            }
-        }
-        return result;
+    std::vector<std::shared_ptr<T>> findSegments() const {
+        return m_Segments
+            | std::views::transform([](const auto& segment) { return segments::segment_cast<T>(segment); })
+            | std::views::filter([](const auto& segment) { return segment != nullptr; })
+            | std::ranges::to<std::vector>();
     }
 
 private:

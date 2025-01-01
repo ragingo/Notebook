@@ -1,4 +1,5 @@
 ﻿#include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <format>
 #include <iostream>
@@ -280,7 +281,7 @@ void JpegDecoder::dumpSummary()
     result += std::format("File Size: {} bytes\n", m_FileReader.GetSize());
 
     if (std::ranges::contains(m_Markers, Marker::SOF0)) {
-        auto sof0s = findSegments<segments::SOF0>(Marker::SOF0);
+        auto sof0s = findSegments<segments::SOF0>();
         assert(sof0s.size() >= 1);
         auto sof0 = *(sof0s[0]);
 
@@ -326,7 +327,7 @@ void JpegDecoder::dumpSummary()
         namespace r = std::ranges;
         namespace rv = std::ranges::views;
 
-        auto dhts = findSegments<segments::DHT>(Marker::DHT);
+        auto dhts = findSegments<segments::DHT>();
 
         for (const auto& dht : dhts) {
             int value = 2;

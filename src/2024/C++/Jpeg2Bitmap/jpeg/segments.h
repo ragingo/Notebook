@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <variant>
 #include <vector>
 #include "markers.h"
@@ -10,6 +11,7 @@ namespace jpeg { namespace segments {
     struct Segment
     {
         Marker marker;
+        virtual ~Segment() = default;
     };
 
     struct SOI : public Segment
@@ -119,5 +121,20 @@ namespace jpeg { namespace segments {
     };
 
     struct EOI : public Segment {};
+
+
+    template<typename T>
+        requires std::derived_from<T, Segment>
+    inline T* segment_cast(Segment* segment) noexcept
+    {
+        return dynamic_cast<T*>(segment);
+    }
+
+    template<typename T>
+        requires std::derived_from<T, Segment>
+    inline std::shared_ptr<T> segment_cast(std::shared_ptr<Segment> segment) noexcept
+    {
+        return std::dynamic_pointer_cast<T>(segment);
+    }
 
 } } // namespace jpg::segments

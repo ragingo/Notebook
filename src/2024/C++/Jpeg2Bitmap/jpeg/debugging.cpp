@@ -1,4 +1,7 @@
-﻿#include "debugging.h"
+﻿#include <format>
+#include <variant>
+#include <nameof.hpp>
+#include "debugging.h"
 
 namespace jpeg { namespace debugging {
 

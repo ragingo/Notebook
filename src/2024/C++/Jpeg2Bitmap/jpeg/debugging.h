@@ -1,9 +1,7 @@
 ﻿#pragma once
 #include <cstdint>
-#include <format>
 #include <string>
 #include <vector>
-#include <nameof.hpp>
 #include "segments.h"
 
 namespace jpeg { namespace debugging {
