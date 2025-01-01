@@ -57,19 +57,4 @@ namespace jpeg {
         EOI = 0xFFD9,
     };
 
-    inline uint8_t marker_lower(Marker marker)
-    {
-        return static_cast<uint16_t>(marker) & 0xFF;
-    }
-
-    inline uint8_t marker_upper(Marker marker)
-    {
-        return static_cast<uint16_t>(marker) >> 8;
-    }
-
-    inline Marker make_marker(uint8_t upper, uint8_t lower)
-    {
-        return static_cast<Marker>((static_cast<uint16_t>(upper) << 8) | lower);
-    }
-
 } // namespace jpeg

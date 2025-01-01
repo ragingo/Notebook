@@ -76,8 +76,7 @@ void JpegDecoder::parse()
 void JpegDecoder::parseSOI()
 {
     auto soi = segments::SOI{};
-    soi.reserved = jpeg::marker_upper(jpeg::Marker::SOI);
-    soi.marker = jpeg::marker_lower(jpeg::Marker::SOI);
+    soi.marker = Marker::SOI;
     m_Segments.emplace_back(std::make_shared<segments::SOI>(soi));
 
     std::cout << jpeg::debugging::to_string(soi) << std::endl;
@@ -86,8 +85,7 @@ void JpegDecoder::parseSOI()
 void JpegDecoder::parseAPP0()
 {
     auto app0 = segments::APP0{};
-    app0.reserved = jpeg::marker_upper(jpeg::Marker::APP0);
-    app0.marker = jpeg::marker_lower(jpeg::Marker::APP0);
+    app0.marker = Marker::APP0;
     m_FileReader.ReadUInt16(app0.length);
     int remain = app0.length - sizeof(app0.length);
     if (remain >= sizeof(app0.identifier)) {
@@ -120,8 +118,7 @@ void JpegDecoder::parseAPP0()
 void JpegDecoder::parseDQT()
 {
     auto dqt = segments::DQT{};
-    dqt.reserved = jpeg::marker_upper(jpeg::Marker::DQT);
-    dqt.marker = jpeg::marker_lower(jpeg::Marker::DQT);
+    dqt.marker = Marker::DQT;
     m_FileReader.ReadUInt16(dqt.length);
     int remain = dqt.length - sizeof(dqt.length);
     if (remain >= 1) {
@@ -159,8 +156,7 @@ void JpegDecoder::parseDQT()
 void JpegDecoder::parseSOF0()
 {
     auto sof0 = segments::SOF0{};
-    sof0.reserved = jpeg::marker_upper(jpeg::Marker::SOF0);
-    sof0.marker = jpeg::marker_lower(jpeg::Marker::SOF0);
+    sof0.marker = Marker::SOF0;
     m_FileReader.ReadUInt16(sof0.length);
     int remain = sof0.length - sizeof(sof0.length);
     if (remain >= 1) {
@@ -190,8 +186,7 @@ void JpegDecoder::parseSOF0()
 void JpegDecoder::parseDHT()
 {
     auto dht = segments::DHT{};
-    dht.reserved = jpeg::marker_upper(jpeg::Marker::DHT);
-    dht.marker = jpeg::marker_lower(jpeg::Marker::DHT);
+    dht.marker = Marker::DHT;
     m_FileReader.ReadUInt16(dht.length);
     int remain = dht.length - sizeof(dht.length);
     if (remain >= 1) {
@@ -219,8 +214,7 @@ void JpegDecoder::parseDHT()
 void JpegDecoder::parseSOS()
 {
     auto sos = segments::SOS{};
-    sos.reserved = jpeg::marker_upper(jpeg::Marker::SOS);
-    sos.marker = jpeg::marker_lower(jpeg::Marker::SOS);
+    sos.marker = Marker::SOS;
     m_FileReader.ReadUInt16(sos.length);
     int remain = sos.length - sizeof(sos.length);
     if (remain >= 1) {
@@ -271,8 +265,7 @@ void JpegDecoder::parseECS()
 void JpegDecoder::parseEOI()
 {
     auto eoi = segments::EOI{};
-    eoi.reserved = jpeg::marker_upper(jpeg::Marker::EOI);
-    eoi.marker = jpeg::marker_lower(jpeg::Marker::EOI);
+    eoi.marker = Marker::EOI;
 
     m_Segments.emplace_back(std::make_shared<segments::EOI>(eoi));
 

@@ -33,7 +33,7 @@ private:
     std::vector<std::shared_ptr<T>> findSegments(Marker marker) const {
         std::vector<std::shared_ptr<T>> result;
         for (const auto& segment : m_Segments) {
-            if (make_marker(segment->reserved, segment->marker) == marker) {
+            if (segment->marker == marker) {
                 // TODO: T と marker の指定を一致させないといけないから、marker 指定が無くせるようにしたい
                 result.emplace_back(std::static_pointer_cast<T>(segment));
             }

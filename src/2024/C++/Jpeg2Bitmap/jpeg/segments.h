@@ -3,16 +3,18 @@
 #include <cstdint>
 #include <variant>
 #include <vector>
+#include "markers.h"
 
 namespace jpeg { namespace segments {
 
     struct Segment
     {
-        uint8_t reserved;
-        uint8_t marker;
+        Marker marker;
     };
 
-    struct SOI : public Segment {};
+    struct SOI : public Segment
+    {
+    };
 
     struct APP0 : public Segment
     {

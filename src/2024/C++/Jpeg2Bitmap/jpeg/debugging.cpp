@@ -6,8 +6,7 @@ std::string to_string(const segments::SOI& soi)
 {
     std::string result;
     result += "SOI\n";
-    result += std::format("  reserved: 0x{:02X}\n", soi.reserved);
-    result += std::format("  marker: 0x{:02X}\n", soi.marker);
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(soi.marker));
     return result;
 }
 
@@ -15,8 +14,7 @@ std::string to_string(const segments::APP0& app0)
 {
     std::string result;
     result += "APP0\n";
-    result += std::format("  reserved: 0x{:02X}\n", app0.reserved);
-    result += std::format("  marker: 0x{:02X}\n", app0.marker);
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(app0.marker));
     result += std::format("  length: 0x{:04X}\n", app0.length);
     result += std::format("  identifier: {}\n", static_cast<const char*>(app0.identifier.data()));
     result += std::format("  version: 0x{:02X} ({})\n", static_cast<uint16_t>(app0.version), NAMEOF_ENUM(app0.version));
@@ -32,8 +30,7 @@ std::string to_string(const segments::DQT& dqt)
 {
     std::string result;
     result += "DQT\n";
-    result += std::format("  reserved: 0x{:02X}\n", dqt.reserved);
-    result += std::format("  marker: 0x{:02X}\n", dqt.marker);
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(dqt.marker));
     result += std::format("  length: 0x{:04X}\n", dqt.length);
     result += std::format("  precision: 0x{:01X} ({})\n", static_cast<uint8_t>(dqt.precision), NAMEOF_ENUM(dqt.precision));
     result += std::format("  tableID: 0x{:01X}\n", dqt.tableID);
@@ -64,8 +61,7 @@ std::string to_string(const segments::SOF0& sof0)
 {
     std::string result;
     result += "SOF0\n";
-    result += std::format("  reserved: 0x{:02X}\n", sof0.reserved);
-    result += std::format("  marker: 0x{:02X}\n", sof0.marker);
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(sof0.marker));
     result += std::format("  length: 0x{:04X}\n", sof0.length);
     result += std::format("  precision: 0x{:01X}\n", sof0.precision);
     result += std::format("  height: 0x{:04X}\n", sof0.height);
@@ -85,8 +81,7 @@ std::string to_string(const segments::DHT& dht)
 {
     std::string result;
     result += "DHT\n";
-    result += std::format("  reserved: 0x{:02X}\n", dht.reserved);
-    result += std::format("  marker: 0x{:02X}\n", dht.marker);
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(dht.marker));
     result += std::format("  length: 0x{:04X}\n", dht.length);
     result += std::format("  tableClass: 0x{:02X} ({})\n", static_cast<uint8_t>(dht.tableClass), NAMEOF_ENUM(dht.tableClass));
     result += std::format("  tableID: 0x{:02X}\n", dht.tableID);
@@ -111,8 +106,7 @@ std::string to_string(const segments::SOS& sos)
 {
     std::string result;
     result += "SOS\n";
-    result += std::format("  reserved: 0x{:02X}\n", sos.reserved);
-    result += std::format("  marker: 0x{:02X}\n", sos.marker);
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(sos.marker));
     result += std::format("  length: 0x{:04X}\n", sos.length);
     result += std::format("  numComponents: 0x{:02X}\n", sos.numComponents);
     for (int i = 0; i < sos.numComponents; ++i) {
@@ -145,8 +139,7 @@ std::string to_string(const segments::EOI& eoi)
 {
     std::string result;
     result += "EOI\n";
-    result += std::format("  reserved: 0x{:02X}\n", eoi.reserved);
-    result += std::format("  marker: 0x{:02X}\n", eoi.marker);
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(eoi.marker));
     return result;
 }
 
