@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <ranges>
 #include <variant>
 #include <vector>
 #include "markers.h"
@@ -153,6 +154,28 @@ namespace jpeg { namespace segments {
     inline std::shared_ptr<T> segment_cast(std::shared_ptr<Segment> segment) noexcept
     {
         return std::dynamic_pointer_cast<T>(segment);
+    }
+
+    template <typename T>
+        requires std::derived_from<T, segments::Segment>
+    std::vector<std::shared_ptr<T>> findSegments(std::vector<std::shared_ptr<segments::Segment>> segments)
+    {
+        return segments
+            | std::views::transform([](const auto& segment) { return segments::segment_cast<T>(segment); })
+            | std::views::filter([](const auto& segment) { return segment != nullptr; })
+            | std::ranges::to<std::vector>();
+    }
+
+    template <typename T>
+        requires std::derived_from<T, segments::Segment>
+    std::shared_ptr<T> findFirstSegment(std::vector<std::shared_ptr<segments::Segment>> segments)
+    {
+        auto view = segments
+            | std::views::transform([](const auto& segment) { return segments::segment_cast<T>(segment); })
+            | std::views::filter([](const auto& segment) { return segment != nullptr; })
+            | std::views::take(1);
+
+        return std::ranges::empty(view) ? nullptr : *std::ranges::begin(view);
     }
 
 } } // namespace jpg::segments

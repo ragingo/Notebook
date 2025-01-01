@@ -1,11 +1,8 @@
-﻿#include <algorithm>
-#include <cassert>
+﻿#include <cassert>
 #include <cstdint>
 #include <format>
 #include <iostream>
 #include <print>
-#include <ranges>
-#include <string>
 #include <vector>
 
 #include "jpeg.h"
@@ -13,6 +10,7 @@
 #include "debugging.h"
 
 using namespace jpeg;
+using namespace jpeg::segments;
 
 JpegDecoder::JpegDecoder(const char* fileName)
     : m_FileReader(fileName)
@@ -27,9 +25,17 @@ void JpegDecoder::decode()
 {
     parse();
 
-    dumpSummary();
+    debugging::dumpSummary(m_Markers, m_Segments);
 
-    // TODO: デコード処理を書いていく
+    auto sos = findFirstSegment<SOS>(m_Segments);
+    assert(sos);
+    auto dhts = findSegments<DHT>(m_Segments);
+    assert(!dhts.empty());
+
+    for (const auto& dht : dhts) {
+        auto bits = dht->counts;
+        auto symbols = dht->symbols;
+    }
 }
 
 void JpegDecoder::parse()
@@ -76,18 +82,17 @@ void JpegDecoder::parse()
 
 void JpegDecoder::parseSOI()
 {
-    auto soi = segments::SOI{};
+    auto soi = SOI{};
     soi.marker = Marker::SOI;
-    m_Segments.emplace_back(std::make_shared<segments::SOI>(soi));
-
-    std::cout << jpeg::debugging::to_string(soi) << std::endl;
+    m_Segments.emplace_back(std::make_shared<SOI>(soi));
 }
 
 void JpegDecoder::parseAPP0()
 {
-    auto app0 = segments::APP0{};
+    auto app0 = APP0{};
     app0.marker = Marker::APP0;
     m_FileReader.ReadUInt16(app0.length);
+
     int remain = app0.length - sizeof(app0.length);
     if (remain >= sizeof(app0.identifier)) {
         m_FileReader.ReadBytes(app0.identifier);
@@ -111,37 +116,36 @@ void JpegDecoder::parseAPP0()
         m_FileReader.ReadUInt8(app0.thumbnailHeight);
         remain -= sizeof(app0.thumbnailWidth) + sizeof(app0.thumbnailHeight);
     }
-    m_Segments.emplace_back(std::make_shared<segments::APP0>(app0));
-
-    std::cout << jpeg::debugging::to_string(app0) << std::endl;
+    m_Segments.emplace_back(std::make_shared<APP0>(app0));
 }
 
 void JpegDecoder::parseDQT()
 {
-    auto dqt = segments::DQT{};
+    auto dqt = DQT{};
     dqt.marker = Marker::DQT;
     m_FileReader.ReadUInt16(dqt.length);
+
     int remain = dqt.length - sizeof(dqt.length);
     if (remain >= 1) {
         uint8_t value;
         m_FileReader.ReadUInt8(value);
-        dqt.precision = static_cast<segments::DQT::Precision>(value >> 4);
-        dqt.tableID = static_cast<segments::QuantizationTableID>(value & 0x0F);
+        dqt.precision = static_cast<DQT::Precision>(value >> 4);
+        dqt.tableID = static_cast<QuantizationTableID>(value & 0x0F);
         remain--;
     }
 
     switch (dqt.precision) {
-    case segments::DQT::Precision::BITS_8:
-        if (int size = sizeof(std::get<segments::DQT::Bits8Table>(dqt.table)); remain >= size)
+    case DQT::Precision::BITS_8:
+        if (int size = sizeof(std::get<DQT::Bits8Table>(dqt.table)); remain >= size)
         {
-            m_FileReader.ReadBytes(std::get<segments::DQT::Bits8Table>(dqt.table));
+            m_FileReader.ReadBytes(std::get<DQT::Bits8Table>(dqt.table));
             remain -= size;
         }
 
         break;
-    case segments::DQT::Precision::BITS_16:
-        if (int size = sizeof(std::get<segments::DQT::Bits16Table>(dqt.table)); remain >= size) {
-            m_FileReader.ReadBytes(std::get<segments::DQT::Bits16Table>(dqt.table));
+    case DQT::Precision::BITS_16:
+        if (int size = sizeof(std::get<DQT::Bits16Table>(dqt.table)); remain >= size) {
+            m_FileReader.ReadBytes(std::get<DQT::Bits16Table>(dqt.table));
             remain -= size;
         }
         break;
@@ -149,16 +153,15 @@ void JpegDecoder::parseDQT()
         break;
     }
 
-    m_Segments.emplace_back(std::make_shared<segments::DQT>(dqt));
-
-    std::cout << jpeg::debugging::to_string(dqt) << std::endl;
+    m_Segments.emplace_back(std::make_shared<DQT>(dqt));
 }
 
 void JpegDecoder::parseSOF0()
 {
-    auto sof0 = segments::SOF0{};
+    auto sof0 = SOF0{};
     sof0.marker = Marker::SOF0;
     m_FileReader.ReadUInt16(sof0.length);
+
     int remain = sof0.length - sizeof(sof0.length);
     if (remain >= 1) {
         m_FileReader.ReadUInt8(sof0.precision);
@@ -179,22 +182,21 @@ void JpegDecoder::parseSOF0()
         remain -= sizeof(sof0.components[0]) * sof0.numComponents;
     }
 
-    m_Segments.emplace_back(std::make_shared<segments::SOF0>(sof0));
-
-    std::cout << jpeg::debugging::to_string(sof0) << std::endl;
+    m_Segments.emplace_back(std::make_shared<SOF0>(sof0));
 }
 
 void JpegDecoder::parseDHT()
 {
-    auto dht = segments::DHT{};
+    auto dht = DHT{};
     dht.marker = Marker::DHT;
     m_FileReader.ReadUInt16(dht.length);
+
     int remain = dht.length - sizeof(dht.length);
     if (remain >= 1) {
         uint8_t value;
         m_FileReader.ReadUInt8(value);
-        dht.tableClass = static_cast<segments::DHT::TableClass>(value >> 4);
-        dht.tableID = static_cast<segments::HuffmanTableID>(value & 0xFF);
+        dht.tableClass = static_cast<DHT::TableClass>(value >> 4);
+        dht.tableID = static_cast<HuffmanTableID>(value & 0xFF);
         remain--;
     }
     if (remain >= sizeof(dht.counts)) {
@@ -207,14 +209,12 @@ void JpegDecoder::parseDHT()
         remain = 0;
     }
 
-    m_Segments.emplace_back(std::make_shared<segments::DHT>(dht));
-
-    std::cout << jpeg::debugging::to_string(dht) << std::endl;
+    m_Segments.emplace_back(std::make_shared<DHT>(dht));
 }
 
 void JpegDecoder::parseSOS()
 {
-    auto sos = segments::SOS{};
+    auto sos = SOS{};
     sos.marker = Marker::SOS;
     m_FileReader.ReadUInt16(sos.length);
     int remain = sos.length - sizeof(sos.length);
@@ -234,9 +234,7 @@ void JpegDecoder::parseSOS()
         remain -= 3;
     }
 
-    m_Segments.emplace_back(std::make_shared<segments::SOS>(sos));
-
-    std::cout << jpeg::debugging::to_string(sos) << std::endl;
+    m_Segments.emplace_back(std::make_shared<SOS>(sos));
 
     parseECS();
 }
@@ -259,93 +257,11 @@ void JpegDecoder::parseECS()
 
     m_ECS.resize(end_pos - current_pos);
     m_FileReader.ReadBytes(m_ECS);
-
-    std::cout << jpeg::debugging::to_string(m_ECS) << std::endl;
 }
 
 void JpegDecoder::parseEOI()
 {
-    auto eoi = segments::EOI{};
+    auto eoi = EOI{};
     eoi.marker = Marker::EOI;
-
-    m_Segments.emplace_back(std::make_shared<segments::EOI>(eoi));
-
-    std::cout << jpeg::debugging::to_string(eoi) << std::endl;
-}
-
-void JpegDecoder::dumpSummary()
-{
-    std::string result;
-
-    result += "==================================================\n";
-    result += std::format("File Size: {} bytes\n", m_FileReader.GetSize());
-
-    if (std::ranges::contains(m_Markers, Marker::SOF0)) {
-        auto sof0s = findSegments<segments::SOF0>();
-        assert(sof0s.size() >= 1);
-        auto sof0 = *(sof0s[0]);
-
-        result += "Frame Type: Baseline\n";
-        result += std::format("Resolution: {}x{}\n", sof0.width, sof0.height);
-
-        result += "Components: ";
-        switch (sof0.numComponents) {
-        case 1:
-            result += "Grayscale";
-            break;
-        case 3:
-            {
-                auto ids = sof0.components
-                    | std::ranges::views::transform([](const auto& c) { return c.id; })
-                    | std::ranges::to<std::vector>();
-                using enum segments::ComponentID;
-                if (ids == std::vector{ Y, Cb, Cr }) {
-                    result += "YCbCr";
-                }
-                else if (ids == std::vector{ Y, I, Q }) {
-                    result += "YIQ";
-                }
-                else {
-                    result += "Unknown";
-                }
-            }
-            break;
-        case 4:
-            result += "CMYK";
-            break;
-        default:
-            result += "Unknown";
-            break;
-        }
-        result += "\n";
-    }
-
-    // B.2.4.2 Huffman table-specification syntax
-    if (std::ranges::contains(m_Markers, Marker::DHT)) {
-        result += "Huffman Tables: \n";
-
-        namespace r = std::ranges;
-        namespace rv = std::ranges::views;
-
-        auto dhts = findSegments<segments::DHT>();
-
-        for (const auto& dht : dhts) {
-            int value = 2;
-            for (int i = 0; i < 1; i++) {
-                auto m1 = rv::iota(0, 16)
-                    | rv::transform([&](int i) { return dht->counts[i]; })
-                    | r::to<std::vector>();
-                auto m2 = r::fold_left(m1, 0, std::plus<>());
-                value += (17 + m2);
-            }
-
-            result += std::format("  Lh: 0x{0:02X} ({0})\n", value);
-        }
-        
-        result += "\n";
-    }
-
-    result += "==================================================";
-
-    std::cout << result << std::endl;
+    m_Segments.emplace_back(std::make_shared<EOI>(eoi));
 }
