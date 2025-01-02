@@ -55,6 +55,7 @@ void JpegDecoder::decode()
     for (const auto& dht : dhts) {
         auto bits = dht->counts;
         auto symbols = dht->symbols;
+        auto huffSize = createHuffSize(bits);
     }
 }
 
