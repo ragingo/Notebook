@@ -12,6 +12,26 @@
 using namespace jpeg;
 using namespace jpeg::segments;
 
+namespace
+{
+    // Figure C.1 – Generation of table of Huffman code sizes
+    // counts (BITS) には、各ビット長(1～16)のハフマン符号の数が格納されている。
+    // 例えば、 counts[] = { 0, 5, 1, 1 } の場合、
+    // ハフマン符号のビット長は 1ビットが5つ、2ビットが1つ、3ビットが1つとなる。
+    // input: counts[0] = 0, counts[1] = 5, counts[2] = 1, counts[3] = 1
+    // output: { 1, 1, 1, 1, 1, 2, 3 }
+    std::vector<int> createHuffSize(const std::array<uint8_t, 16>& counts)
+    {
+        std::vector<int> huffSize;
+        for (int bits = 1; bits <= counts.size(); ++bits) {
+            for (int count = 0; count < counts[bits - 1]; ++count) {
+                huffSize.push_back(bits);
+            }
+        }
+        return huffSize;
+    }
+}
+
 JpegDecoder::JpegDecoder(const char* fileName)
     : m_FileReader(fileName)
 {
