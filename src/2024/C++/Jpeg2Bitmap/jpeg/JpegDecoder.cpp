@@ -30,6 +30,36 @@ namespace
         }
         return huffSize;
     }
+
+    // Figure C.2 – Generation of table of Huffman codes
+    // ハフマン符号のビット長からハフマン符号を生成する。
+    // 例えば、 huffSize[] = { 2, 2, 3, 3, 3, 5 } の場合、
+    // ハフマン符号は { 00, 01, 100, 101, 110, 11111 } となる。
+    std::vector<int> createHuffCode(const std::vector<int>& huffSize)
+    {
+        assert(!huffSize.empty());
+
+        std::vector<int> huffCode(huffSize.size());
+        int code = 0;
+        int si = huffSize[0];
+
+        for (int i = 0; i < huffSize.size(); ++i) {
+            int bits = huffSize[i];
+
+            if (bits == 0) {
+                break;
+            }
+
+            if (bits != si) {
+                code <<= (bits - si);
+                si = bits;
+            }
+
+            huffCode[i] = code;
+            code++;
+        }
+        return huffCode;
+    }
 }
 
 JpegDecoder::JpegDecoder(const char* fileName)
@@ -56,6 +86,7 @@ void JpegDecoder::decode()
         auto bits = dht->counts;
         auto symbols = dht->symbols;
         auto huffSize = createHuffSize(bits);
+        auto huffCode = createHuffCode(huffSize);
     }
 }
 
