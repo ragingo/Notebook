@@ -60,6 +60,36 @@ namespace
         }
         return huffCode;
     }
+
+    struct HuffmanTable
+    {
+        std::vector<int> minCode;
+        std::vector<int> maxCode;
+        std::vector<int> valPtr;
+    };
+
+    HuffmanTable createHuffmanTable(const std::array<uint8_t, 16>& bits, const std::vector<int>& huffCode)
+    {
+        HuffmanTable table{};
+        table.minCode.resize(16, 0);
+        table.maxCode.resize(16, -1);
+        table.valPtr.resize(16, 0);
+
+        int j = 0;
+        for (int i = 0; i < 16; ++i) {
+            auto bit = bits[i];
+            if (bit == 0) {
+                continue;
+            }
+            table.valPtr[i] = j;
+            table.minCode[i] = huffCode[j];
+            j = j + bit - 1;
+            table.maxCode[i] = huffCode[j];
+            j++;
+        }
+
+        return table;
+    }
 }
 
 JpegDecoder::JpegDecoder(const char* fileName)
@@ -87,6 +117,7 @@ void JpegDecoder::decode()
         auto symbols = dht->symbols;
         auto huffSize = createHuffSize(bits);
         auto huffCode = createHuffCode(huffSize);
+        auto huffmanTable = createHuffmanTable(bits, huffCode);
     }
 }
 
