@@ -112,12 +112,22 @@ void JpegDecoder::decode()
     auto dhts = findSegments<DHT>(m_Segments);
     assert(!dhts.empty());
 
+    std::vector<HuffmanTable> dcTables(4);
+    std::vector<HuffmanTable> acTables(4);
+
     for (const auto& dht : dhts) {
         auto bits = dht->counts;
         auto symbols = dht->symbols;
         auto huffSize = createHuffSize(bits);
         auto huffCode = createHuffCode(huffSize);
         auto huffmanTable = createHuffmanTable(bits, huffCode);
+
+        if (dht->tableClass == segments::DHT::TableClass::DC_OR_LOSSLESS) {
+            dcTables[std::to_underlying(dht->tableID)] = huffmanTable;
+        }
+        else {
+            acTables[std::to_underlying(dht->tableID)] = huffmanTable;
+        }
     }
 }
 
