@@ -157,6 +157,13 @@ namespace
         int value = symbols[j];
         return value;
     }
+
+    // Figure F.14 – Decoding a non-zero AC coefficient
+    int decodeZZ(const std::vector<uint8_t>& stream, int& dataIndex, int ssss, int& cnt)
+    {
+        int value = receive(ssss, stream, dataIndex, cnt);
+        return extend(value, ssss);
+    }
 }
 
 namespace
