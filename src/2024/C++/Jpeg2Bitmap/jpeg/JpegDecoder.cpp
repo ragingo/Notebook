@@ -130,7 +130,8 @@ namespace
     {
         int vt = 1 << (t - 1);
         if (v < vt) {
-            v = v + (-1 << t) + 1;
+            vt = (-1 << t) + 1;
+            v += vt;
         }
         return v;
     }
