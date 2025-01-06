@@ -129,6 +129,34 @@ namespace
         int value = stream.receive(ssss);
         return extend(value, ssss);
     }
+
+    // Figure F.13 – Huffman decoding procedure for AC coefficients
+    std::array<int, 64> decodeACCoeffs(BitStreamReader& stream, HuffmanTable& table, const std::vector<uint8_t>& symbols)
+    {
+        std::array<int, 64> zz{};
+        int k = 1;
+
+        while (k < 64) {
+            int symbol = decodeHuffmanSymbol(stream, table, symbols);
+            int ssss = symbol % 16;
+            int rrrr = symbol >> 4;
+            int r = rrrr;
+
+            if (ssss == 0) {
+                if (r == 15) {
+                    k += 16;
+                    continue;
+                }
+                break;
+            } else {
+                k += r;
+                zz[k] = decodeZZ(stream, ssss);
+                k++;
+            }
+        }
+
+        return zz;
+    }
 }
 
 namespace
