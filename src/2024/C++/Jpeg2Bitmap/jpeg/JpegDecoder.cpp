@@ -124,6 +124,16 @@ namespace
         }
         return v;
     }
+
+    // Figure F.12 – Extending the sign bit of a decoded value in V
+    int extend(int v, int t)
+    {
+        int vt = 1 << (t - 1);
+        if (v < vt) {
+            v = v + (-1 << t) + 1;
+        }
+        return v;
+    }
 }
 
 namespace
