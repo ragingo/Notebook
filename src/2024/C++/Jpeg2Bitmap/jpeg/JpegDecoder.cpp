@@ -91,6 +91,29 @@ namespace
         return table;
     }
 
+    // Figure F.18 – Procedure for fetching the next bit of compressed data
+    int getNextBit(const std::vector<uint8_t>& stream, int& dataIndex, int& cnt)
+    {
+        uint8_t b = 0;
+
+        if (cnt == 0) {
+            b = stream[++dataIndex];
+            cnt = 8;
+            if (b == 0xFF) {
+                uint8_t b2 = stream[++dataIndex];
+                if (b2 != 0x00) {
+                    // TODO: DNL マーカー対応
+                    throw std::runtime_error("Invalid JPEG file");
+                }
+            }
+        }
+
+        uint8_t bit = b >> 7;
+        cnt--;
+        b <<= 1;
+
+        return bit;
+    }
 }
 
 namespace
