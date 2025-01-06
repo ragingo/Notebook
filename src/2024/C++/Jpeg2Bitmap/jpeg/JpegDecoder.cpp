@@ -92,7 +92,7 @@ namespace
     }
 
     // Figure F.18 – Procedure for fetching the next bit of compressed data
-    int getNextBit(const std::vector<uint8_t>& stream, int& dataIndex, int& cnt)
+    uint8_t getNextBit(const std::vector<uint8_t>& stream, int& dataIndex, int& cnt)
     {
         uint8_t b = 0;
 
@@ -113,6 +113,16 @@ namespace
         b <<= 1;
 
         return bit;
+    }
+
+    // Figure F.17 - Procedure for RECEIVE(SSSS)
+    uint8_t receive(int ssss, const std::vector<uint8_t>& stream, int& dataIndex, int& cnt)
+    {
+        uint8_t v = 0;
+        for (int i = 0; i < ssss; ++i) {
+            v = (v << 1) + getNextBit(stream, dataIndex, cnt);
+        }
+        return v;
     }
 }
 
