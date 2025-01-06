@@ -167,7 +167,7 @@ namespace
         BitmapInfoHeader infoHeader{};
 
         fileHeader.bfType = 0x4D42;
-        fileHeader.bfSize = sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader) + pixels.size();
+        fileHeader.bfSize = static_cast<uint32_t>(sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader) + pixels.size());
         fileHeader.bfOffBits = sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader);
 
         infoHeader.biSize = sizeof(BitmapInfoHeader);
@@ -175,7 +175,7 @@ namespace
         infoHeader.biHeight = -height;
         infoHeader.biPlanes = 1;
         infoHeader.biBitCount = 24;
-        infoHeader.biSizeImage = pixels.size();
+        infoHeader.biSizeImage = static_cast<uint32_t>(pixels.size());
 
         std::ofstream file(filename, std::ios::binary);
         if (!file) {
