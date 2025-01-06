@@ -1,45 +1,30 @@
 #pragma once
-#include <fstream>
-#include <iostream>
-#include <string>
+#include <cstdint>
 
-struct BITMAPFILEHEADER
+#pragma pack(push, 1)
+
+struct BitmapFileHeader
 {
-    unsigned short bfType;
-    unsigned int bfSize;
-    unsigned short bfReserved1;
-    unsigned short bfReserved2;
-    unsigned int bfOffBits;
+    uint16_t bfType;
+    uint32_t bfSize;
+    uint16_t bfReserved1;
+    uint16_t bfReserved2;
+    uint32_t bfOffBits;
 };
 
-struct BITMAPINFOHEADER
+struct BitmapInfoHeader
 {
-    unsigned int biSize;
-    int biWidth;
-    int biHeight;
-    unsigned short biPlanes;
-    unsigned short biBitCount;
-    unsigned int biCompression;
-    unsigned int biSizeImage;
-    int biXPelsPerMeter;
-    int biYPelsPerMeter;
-    unsigned int biClrUsed;
-    unsigned int biClrImportant;
+    uint32_t biSize;
+    int32_t biWidth;
+    int32_t biHeight;
+    uint16_t biPlanes;
+    uint16_t biBitCount;
+    uint32_t biCompression;
+    uint32_t biSizeImage;
+    int32_t biXPelsPerMeter;
+    int32_t biYPelsPerMeter;
+    uint32_t biClrUsed;
+    uint32_t biClrImportant;
 };
 
-void createBitmapFile(
-    const std::string& fileName,
-    const BITMAPFILEHEADER& fileHeader,
-    const BITMAPINFOHEADER& infoHeader,
-    const uint8_t* data
-)
-{
-    std::ofstream bmpFile(fileName, std::ios::binary);
-    if (!bmpFile) {
-        std::cerr << "Error: Cannot create " << fileName << std::endl;
-        return;
-    }
-    bmpFile.write(reinterpret_cast<const char*>(&fileHeader), sizeof(fileHeader));
-    bmpFile.write(reinterpret_cast<const char*>(&infoHeader), sizeof(infoHeader));
-    bmpFile.write(reinterpret_cast<const char*>(data), infoHeader.biSizeImage);
-}
+#pragma pack(pop)

@@ -90,6 +90,36 @@ namespace
 
         return table;
     }
+
+}
+
+namespace
+{
+    void writeBitmap(const std::string& filename, int width, int height, const std::vector<uint8_t>& pixels)
+    {
+        BitmapFileHeader fileHeader{};
+        BitmapInfoHeader infoHeader{};
+
+        fileHeader.bfType = 0x4D42;
+        fileHeader.bfSize = sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader) + pixels.size();
+        fileHeader.bfOffBits = sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader);
+
+        infoHeader.biSize = sizeof(BitmapInfoHeader);
+        infoHeader.biWidth = width;
+        infoHeader.biHeight = -height;
+        infoHeader.biPlanes = 1;
+        infoHeader.biBitCount = 24;
+        infoHeader.biSizeImage = pixels.size();
+
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) {
+            return;
+        }
+
+        file.write(reinterpret_cast<const char*>(&fileHeader), sizeof(fileHeader));
+        file.write(reinterpret_cast<const char*>(&infoHeader), sizeof(infoHeader));
+        file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size());
+    }
 }
 
 JpegDecoder::JpegDecoder(const char* fileName)
@@ -111,6 +141,10 @@ void JpegDecoder::decode()
     assert(sos);
     auto dhts = findSegments<DHT>(m_Segments);
     assert(!dhts.empty());
+    auto sof0 = findFirstSegment<SOF0>(m_Segments);
+    assert(sof0);
+    auto dqts = findSegments<DQT>(m_Segments);
+    assert(!dqts.empty());
 
     std::vector<HuffmanTable> dcTables(4);
     std::vector<HuffmanTable> acTables(4);
@@ -129,6 +163,15 @@ void JpegDecoder::decode()
             acTables[std::to_underlying(dht->tableID)] = huffmanTable;
         }
     }
+
+    const auto width = sof0->width;
+    const auto height = sof0->height;
+    const auto numComponents = sof0->numComponents;
+    std::vector<uint8_t> pixels(width * height * numComponents);
+
+    // TODO: pixels の更新
+
+    writeBitmap("d:\\temp\\images\\x.bmp", width, height, pixels);
 }
 
 void JpegDecoder::parse()
