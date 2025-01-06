@@ -158,6 +158,14 @@ namespace
         return zz;
     }
 
+    // F.2.2.1 Huffman decoding of DC coefficients
+    int decodeDCCoeff(BitStreamReader& stream, HuffmanTable& table, const std::vector<uint8_t>& symbols)
+    {
+        int symbol = decodeHuffmanSymbol(stream, table, symbols);
+        int diff = stream.receive(symbol);
+        return extend(diff, symbol);
+    }
+
     // Figure A.6 – Zig-zag sequence of quantized DCT coefficients
     const std::array<int, 64> ZIGZAG = {
          0,  1,  5,  6, 14, 15, 27, 28,
