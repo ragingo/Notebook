@@ -133,12 +133,14 @@
   <ItemGroup>
     <ClCompile Include="BinaryFileReader.h" />
     <ClCompile Include="bitmap.h" />
+    <ClCompile Include="jpeg\BitStreamReader.cpp" />
     <ClCompile Include="jpeg\debugging.cpp" />
     <ClCompile Include="jpeg\JpegDecoder.cpp" />
     <ClCompile Include="jpeg\debugging.h" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="jpeg\BitStreamReader.h" />
     <ClInclude Include="jpeg\JpegDecoder.h" />
     <ClInclude Include="jpeg\jpeg.h" />
     <ClInclude Include="jpeg\markers.h" />

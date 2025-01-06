@@ -92,40 +92,6 @@ namespace
         return table;
     }
 
-    // Figure F.18 – Procedure for fetching the next bit of compressed data
-    uint8_t getNextBit(const std::vector<uint8_t>& stream, int& dataIndex, int& cnt)
-    {
-        uint8_t b = 0;
-
-        if (cnt == 0) {
-            b = stream[++dataIndex];
-            cnt = 8;
-            if (b == 0xFF) {
-                uint8_t b2 = stream[++dataIndex];
-                if (b2 != 0x00) {
-                    // TODO: DNL マーカー対応
-                    throw std::runtime_error("Invalid JPEG file");
-                }
-            }
-        }
-
-        uint8_t bit = b >> 7;
-        cnt--;
-        b <<= 1;
-
-        return bit;
-    }
-
-    // Figure F.17 - Procedure for RECEIVE(SSSS)
-    uint8_t receive(int ssss, const std::vector<uint8_t>& stream, int& dataIndex, int& cnt)
-    {
-        uint8_t v = 0;
-        for (int i = 0; i < ssss; ++i) {
-            v = (v << 1) + getNextBit(stream, dataIndex, cnt);
-        }
-        return v;
-    }
-
     // Figure F.12 – Extending the sign bit of a decoded value in V
     int extend(int v, int t)
     {
@@ -138,18 +104,17 @@ namespace
     }
 
     // Figure F.16 – Procedure for DECODE
-    int decodeHuffmanSymbol(const std::vector<uint8_t>& stream, int& dataIndex, HuffmanTable& table, const std::vector<uint8_t>& symbols)
+    int decodeHuffmanSymbol(BitStreamReader& stream, HuffmanTable& table, const std::vector<uint8_t>& symbols)
     {
         int code = 0;
-        int cnt = 0;
         int i = 0;
 
         for (; i < 16; ++i) {
-            code = getNextBit(stream, dataIndex, cnt);
+            code = stream.getNextBit();
             if (code <= table.maxCode[i]) {
                 break;
             }
-            code = (code << 1) + getNextBit(stream, dataIndex, cnt);
+            code = (code << 1) + stream.getNextBit();
         }
 
         int j = table.valPtr[i];
@@ -159,9 +124,9 @@ namespace
     }
 
     // Figure F.14 – Decoding a non-zero AC coefficient
-    int decodeZZ(const std::vector<uint8_t>& stream, int& dataIndex, int ssss, int& cnt)
+    int decodeZZ(BitStreamReader& stream, int ssss)
     {
-        int value = receive(ssss, stream, dataIndex, cnt);
+        int value = stream.receive(ssss);
         return extend(value, ssss);
     }
 }
