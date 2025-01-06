@@ -8,6 +8,7 @@
 #include "jpeg.h"
 #include "JpegDecoder.h"
 #include "debugging.h"
+#include "../bitmap.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;
