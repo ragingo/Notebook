@@ -135,6 +135,27 @@ namespace
         }
         return v;
     }
+
+    // Figure F.16 – Procedure for DECODE
+    int decodeHuffmanSymbol(const std::vector<uint8_t>& stream, int& dataIndex, HuffmanTable& table, const std::vector<uint8_t>& symbols)
+    {
+        int code = 0;
+        int cnt = 0;
+        int i = 0;
+
+        for (; i < 16; ++i) {
+            code = getNextBit(stream, dataIndex, cnt);
+            if (code <= table.maxCode[i]) {
+                break;
+            }
+            code = (code << 1) + getNextBit(stream, dataIndex, cnt);
+        }
+
+        int j = table.valPtr[i];
+        j = j + code - table.minCode[i];
+        int value = symbols[j];
+        return value;
+    }
 }
 
 namespace
