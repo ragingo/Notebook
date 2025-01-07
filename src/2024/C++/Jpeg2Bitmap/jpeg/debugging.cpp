@@ -197,36 +197,7 @@ void dumpSummary(
 
         result += "Frame Type: Baseline\n";
         result += std::format("Resolution: {}x{}\n", sof0.width, sof0.height);
-
-        result += "Components: ";
-        switch (sof0.numComponents) {
-        case 1:
-            result += "Grayscale";
-            break;
-        case 3:
-        {
-            auto ids = sof0.components
-                | std::ranges::views::transform([](const auto& c) { return c.id; })
-                | std::ranges::to<std::vector>();
-            using enum ComponentID;
-            if (ids == std::vector{ Y, Cb, Cr }) {
-                result += "YCbCr";
-            }
-            else if (ids == std::vector{ Y, I, Q }) {
-                result += "YIQ";
-            }
-            else {
-                result += "Unknown";
-            }
-        }
-        break;
-        case 4:
-            result += "CMYK";
-            break;
-        default:
-            result += "Unknown";
-            break;
-        }
+        result += std::format("ColorSpace: {}", NAMEOF_ENUM(getColorSpace(sof0)));
         result += "\n";
     }
 

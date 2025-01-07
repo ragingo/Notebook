@@ -34,6 +34,15 @@ namespace jpeg { namespace segments {
         Q = 5,
     };
 
+    enum class ColorSpace
+    {
+        GRAYSCALE,
+        YCbCr,
+        YIQ,
+        CMYK,
+        UNKNOWN,
+    };
+
 
     struct Segment
     {
@@ -227,6 +236,27 @@ namespace jpeg { namespace segments {
             | std::views::take(1);
 
         return std::ranges::empty(view) ? nullptr : *std::ranges::begin(view);
+    }
+
+    constexpr inline ColorSpace getColorSpace(const SOF0& sof0)
+    {
+        auto ids = sof0.components
+            | std::ranges::views::transform([](const auto& c) { return c.id; })
+            | std::ranges::to<std::vector>();
+        
+        if (ids == std::vector{ ComponentID::Y, ComponentID::Cb, ComponentID::Cr }) {
+            return ColorSpace::YCbCr;
+        }
+        if (ids == std::vector{ ComponentID::Y, ComponentID::I, ComponentID::Q }) {
+            return ColorSpace::YIQ;
+        }
+        if (ids.size() == 4) {
+            return ColorSpace::CMYK;
+        }
+        if (ids.size() == 1) {
+            return ColorSpace::GRAYSCALE;
+        }
+        return ColorSpace::UNKNOWN;
     }
 
 } } // namespace jpg::segments

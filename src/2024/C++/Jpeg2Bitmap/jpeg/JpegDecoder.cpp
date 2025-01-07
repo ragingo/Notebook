@@ -4,7 +4,7 @@
 #include <iostream>
 #include <print>
 #include <vector>
-
+#include <nameof.hpp>
 #include "jpeg.h"
 #include "JpegDecoder.h"
 #include "debugging.h"
@@ -231,6 +231,11 @@ void JpegDecoder::decode()
     assert(sof0);
     auto dqts = findSegments<DQT>(m_Segments);
     assert(!dqts.empty());
+
+    if (auto colorSpace = getColorSpace(*sof0); colorSpace != ColorSpace::YCbCr) {
+        std::println("Unsupported color space: {}", NAMEOF_ENUM(colorSpace));
+        return;
+    }
 
     std::vector<HuffmanTable> dcTables(4);
     std::vector<HuffmanTable> acTables(4);
