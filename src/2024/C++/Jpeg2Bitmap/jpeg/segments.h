@@ -41,10 +41,14 @@ namespace jpeg { namespace segments {
         virtual ~Segment() = default;
     };
 
+    // Start of Image
+    // SOI マーカーは、JPEG ファイルの開始を示す。
+    // MotionJPEG では、連続する JPEG 画像の区切りを示すために使用される。
     struct SOI : public Segment
     {
     };
 
+    // JFIF Extension APP0 Marker Segment
     struct APP0 : public Segment
     {
         enum Version : uint16_t
@@ -57,20 +61,31 @@ namespace jpeg { namespace segments {
         enum class Units : uint8_t
         {
             NONE = 0,
-            PPI = 1,
-            PPCM = 2,
+            DPI = 1,
+            DPCM = 2,
         };
 
+        // length
         uint16_t length;
+        // identifier
         std::array<char, 5> identifier;
+        // version
         Version version;
+        // units
         Units units;
+        // Xdensity
         uint16_t xDensity;
+        // Ydensity
         uint16_t yDensity;
+        // Xthumbnail
         uint8_t thumbnailWidth;
+        // Ythumbnail
         uint8_t thumbnailHeight;
+
+        // TODO: thumbnail (RGB 24bit, Xthumbnail * Ythumbnail * 3 pixels)
     };
 
+    // B.2.4.1 Quantization table-specification syntax
     struct DQT : public Segment
     {
         enum class Precision : uint8_t
@@ -79,34 +94,50 @@ namespace jpeg { namespace segments {
             BITS_16 = 1,
         };
 
+        // Lq: Quantization table definition length
         uint16_t length;
+        // Pq: Quantization table element precision
         Precision precision : 4;
+        // Tq: Quantization table destination identifier
         QuantizationTableID tableID : 4;
 
         using Bits8Table = std::array<uint8_t, 64>;
         using Bits16Table = std::array<uint16_t, 64>;
-
+        // Qk: Quantization table element
         std::variant<Bits8Table, Bits16Table> table;
     };
 
+    // B.2.2 Frame header syntax
+    // Baseline DCT
     struct SOF0 : public Segment
     {
+        // Lf: Frame header length
         uint16_t length;
+        // P: Sample precision
         uint8_t precision;
+        // Y: Number of lines
         uint16_t height;
+        // X: Number of samples per line
         uint16_t width;
+        // Nf: Number of image components in frame
         uint8_t numComponents;
 
         struct Component
         {
+            // Ci: Component identifier
             ComponentID id;
+            // Hi: Horizontal sampling factor
             uint8_t samplingFactorHorizontalRatio : 4;
+            // Vi: Vertical sampling factor
             uint8_t samplingFactorVerticalRatio : 4;
+            // Tqi: Quantization table destination selector
             QuantizationTableID tableID;
         };
+        // Component-specification parameters
         std::vector<Component> components;
     };
 
+    // B.2.4.2 Huffman table-specification syntax
     struct DHT : public Segment
     {
         enum class TableClass : uint8_t
@@ -114,33 +145,53 @@ namespace jpeg { namespace segments {
             DC_OR_LOSSLESS = 0,
             AC = 1,
         };
+
+        // Lh: Huffman table definition length
         uint16_t length;
+        // Tc: Table class
         TableClass tableClass : 4;
+        // Th: Huffman table destination identifier
         HuffmanTableID tableID : 4;
+        // Li: Number of Huffman codes of length i
+        // BITS の要素が Li
         std::array<uint8_t, 16> counts;
+        // Vi,j: Value associated with each Huffman code
+        // HUFFVAL の要素が Vi,j
         std::vector<uint8_t> symbols;
     };
 
+    // B.2.3 Scan header syntax
     struct SOS : public Segment
     {
+        // Ls: Scan header length
         uint16_t length;
+        // Ns: Number of image components in scan
         uint8_t numComponents;
 
         struct Component
         {
+            // Csj: Scan component selector
             ComponentID componentSelector;
+            // Tdj: DC entropy coding table destination selector
             HuffmanTableID dcSelector : 4;
+            // Taj: AC entropy coding table destination selector
             HuffmanTableID acSelector : 4;
         };
+        // Scan component-specification parameters
         std::vector<Component> components;
 
+        // Ss: Start of spectral or predictor selection
         uint8_t spectralSelectionStart;
+        // Se: End of spectral selection
         uint8_t spectralSelectionEnd;
+        // Ah: Successive approximation bit position high
         uint8_t successiveApproximation;
     };
 
+    // End of Image
+    // EOI マーカーは、JPEG ファイルの終了を示す。
+    // MotionJPEG では、連続する JPEG 画像の区切りを示すために使用される。
     struct EOI : public Segment {};
-
 
     template<typename T>
         requires std::derived_from<T, Segment>
