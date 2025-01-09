@@ -4,9 +4,9 @@
 namespace jpeg {
 
     // Figure F.17 - Procedure for RECEIVE(SSSS)
-    uint8_t BitStreamReader::receive(int ssss)
+    int BitStreamReader::receive(int ssss)
     {
-        uint8_t v = 0;
+        int v = 0;
         for (int i = 0; i < ssss; ++i) {
             v = (v << 1) + getNextBit();
         }
@@ -16,12 +16,10 @@ namespace jpeg {
     // Figure F.18 – Procedure for fetching the next bit of compressed data
     uint8_t BitStreamReader::getNextBit()
     {
-        uint8_t b = 0;
-
         if (m_ReadBitCount == 0) {
-            b = m_Stream[++m_DataIndex];
+            m_CurrentByte = m_Stream[++m_DataIndex];
             m_ReadBitCount = 8;
-            if (b == 0xFF) {
+            if (m_CurrentByte == 0xFF) {
                 uint8_t b2 = m_Stream[++m_DataIndex];
                 if (b2 != 0x00) {
                     // TODO: DNL マーカー対応
@@ -30,9 +28,9 @@ namespace jpeg {
             }
         }
 
-        uint8_t bit = b >> 7;
+        uint8_t bit = m_CurrentByte >> 7;
         m_ReadBitCount--;
-        b <<= 1;
+        m_CurrentByte <<= 1;
 
         return bit;
     }

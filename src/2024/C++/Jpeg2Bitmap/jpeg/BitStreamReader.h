@@ -15,11 +15,12 @@ namespace jpeg {
 
         ~BitStreamReader() = default;
 
-        uint8_t receive(int ssss);
+        int receive(int ssss);
         uint8_t getNextBit();
 
     private:
         std::vector<uint8_t> m_Stream;
+        uint8_t m_CurrentByte = 0;
         int m_DataIndex = 0;
         int m_ReadBitCount = 0;
     };
