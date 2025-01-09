@@ -259,4 +259,15 @@ namespace jpeg { namespace segments {
         return ColorSpace::UNKNOWN;
     }
 
+    inline std::tuple<uint8_t, uint8_t> getMaxSamplingFactor(const SOF0& sof0)
+    {
+        uint8_t h = 0;
+        uint8_t v = 0;
+        for (const auto& component : sof0.components) {
+            h = std::max(h, component.samplingFactorHorizontalRatio);
+            v = std::max(v, component.samplingFactorVerticalRatio);
+        }
+        return { h, v };
+    }
+
 } } // namespace jpg::segments
