@@ -3,6 +3,7 @@
 #include <format>
 #include <iostream>
 #include <print>
+#include <tuple>
 #include <vector>
 #include <nameof.hpp>
 #include "jpeg.h"
@@ -110,11 +111,10 @@ namespace
         int i = 0;
 
         for (; i < 16; ++i) {
-            code = stream.getNextBit();
+            code = (code << 1) + stream.getNextBit();
             if (code <= table.maxCode[i]) {
                 break;
             }
-            code = (code << 1) + stream.getNextBit();
         }
 
         int j = table.valPtr[i];
@@ -134,7 +134,7 @@ namespace
     std::array<int, 64> decodeACCoeffs(BitStreamReader& stream, HuffmanTable& table, const std::vector<uint8_t>& symbols)
     {
         std::array<int, 64> zz{};
-        int k = 1;
+        int k = 0;
 
         while (k < 64) {
             int symbol = decodeHuffmanSymbol(stream, table, symbols);
@@ -150,6 +150,9 @@ namespace
                 break;
             } else {
                 k += r;
+                if (k > 63) {
+                    break;
+                }
                 zz[k] = decodeZZ(stream, ssss);
                 k++;
             }
@@ -237,8 +240,9 @@ void JpegDecoder::decode()
         return;
     }
 
-    std::vector<HuffmanTable> dcTables(4);
-    std::vector<HuffmanTable> acTables(4);
+    m_BitStreamReader = std::make_unique<BitStreamReader>(m_ECS);
+    std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> dcTables(4);
+    std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> acTables(4);
 
     for (const auto& dht : dhts) {
         auto bits = dht->counts;
@@ -248,10 +252,10 @@ void JpegDecoder::decode()
         auto huffmanTable = createHuffmanTable(bits, huffCode);
 
         if (dht->tableClass == segments::DHT::TableClass::DC_OR_LOSSLESS) {
-            dcTables[std::to_underlying(dht->tableID)] = huffmanTable;
+            dcTables[std::to_underlying(dht->tableID)] = { huffmanTable, dht };
         }
         else {
-            acTables[std::to_underlying(dht->tableID)] = huffmanTable;
+            acTables[std::to_underlying(dht->tableID)] = { huffmanTable, dht };
         }
     }
 
