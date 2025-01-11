@@ -145,6 +145,7 @@
     <ClInclude Include="jpeg\jpeg.h" />
     <ClInclude Include="jpeg\markers.h" />
     <ClInclude Include="jpeg\segments.h" />
+    <ClInclude Include="math\math.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />
