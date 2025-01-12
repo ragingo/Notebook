@@ -1,5 +1,4 @@
 ﻿#include <iostream>
-#include <string>
 #include "jpeg/jpeg.h"
 
 int main()

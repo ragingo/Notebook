@@ -1,8 +1,8 @@
 #pragma once
 #include <array>
+#include <concepts>
 #include <mdspan>
 #include <numbers>
-#include <concepts>
 
 namespace math
 {

@@ -4,7 +4,7 @@
 #include <vector>
 #include "segments.h"
 
-namespace jpeg { namespace debugging {
+namespace jpeg::debugging {
 
     std::string to_string(const segments::SOI& soi);
     std::string to_string(const segments::APP0& app0);
@@ -16,4 +16,4 @@ namespace jpeg { namespace debugging {
     std::string to_string(const std::vector<uint8_t>& ecs);
     void dumpSummary(std::vector<Marker> markers, std::vector<std::shared_ptr<segments::Segment>> segments);
 
-} } // namespace jpg::debugging
+} // namespace jpg::debugging

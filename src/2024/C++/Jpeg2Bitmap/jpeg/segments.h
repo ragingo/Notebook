@@ -7,7 +7,7 @@
 #include <vector>
 #include "markers.h"
 
-namespace jpeg { namespace segments {
+namespace jpeg::segments {
 
     enum class QuantizationTableID : uint8_t
     {
@@ -270,4 +270,4 @@ namespace jpeg { namespace segments {
         return { h, v };
     }
 
-} } // namespace jpg::segments
+} // namespace jpg::segments

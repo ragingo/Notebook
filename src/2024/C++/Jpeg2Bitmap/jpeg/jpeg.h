@@ -1,8 +1,5 @@
 ﻿#pragma once
-#include <cstdint>
 
-#include "markers.h"
-#include "segments.h"
 #include "JpegDecoder.h"
 
 // 参考資料

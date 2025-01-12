@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <cstdint>
 #include <filesystem>
-#include <fstream>
 #include <format>
+#include <fstream>
 #include <ranges>
 
 class BinaryFileReader final

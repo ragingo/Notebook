@@ -1,14 +1,11 @@
-﻿#include <cassert>
-#include <cstdint>
-#include <format>
-#include <iostream>
-#include <print>
-#include <tuple>
-#include <vector>
+﻿#include "JpegDecoder.h"
+#include <cassert>
+#include <mdspan>
+#include <memory>
 #include <nameof.hpp>
-#include "jpeg.h"
-#include "JpegDecoder.h"
+#include <print>
 #include "debugging.h"
+#include "../math/math.h"
 #include "../bitmap.h"
 
 using namespace jpeg;
@@ -212,7 +209,7 @@ namespace
 }
 
 JpegDecoder::JpegDecoder(const char* fileName)
-    : m_FileReader(fileName)
+    : m_Parser(fileName)
 {
 }
 
@@ -222,17 +219,15 @@ JpegDecoder::~JpegDecoder()
 
 void JpegDecoder::decode()
 {
-    parse();
+    debugging::dumpSummary(m_Parser.getMarkers(), m_Parser.getSegments());
 
-    debugging::dumpSummary(m_Markers, m_Segments);
-
-    auto sos = findFirstSegment<SOS>(m_Segments);
+    auto sos = findFirstSegment<SOS>(m_Parser.getSegments());
     assert(sos);
-    auto dhts = findSegments<DHT>(m_Segments);
+    auto dhts = findSegments<DHT>(m_Parser.getSegments());
     assert(!dhts.empty());
-    auto sof0 = findFirstSegment<SOF0>(m_Segments);
+    auto sof0 = findFirstSegment<SOF0>(m_Parser.getSegments());
     assert(sof0);
-    auto dqts = findSegments<DQT>(m_Segments);
+    auto dqts = findSegments<DQT>(m_Parser.getSegments());
     assert(!dqts.empty());
 
     if (auto colorSpace = getColorSpace(*sof0); colorSpace != ColorSpace::YCbCr) {
@@ -240,7 +235,7 @@ void JpegDecoder::decode()
         return;
     }
 
-    m_BitStreamReader = std::make_unique<BitStreamReader>(m_ECS);
+    m_BitStreamReader = std::make_unique<BitStreamReader>(m_Parser.getECS());
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> dcTables(4);
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> acTables(4);
 

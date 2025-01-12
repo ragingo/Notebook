@@ -1,14 +1,14 @@
-﻿#include <algorithm>
+﻿#include "debugging.h"
+#include <algorithm>
 #include <format>
 #include <iostream>
 #include <variant>
 #include <ranges>
 #include <nameof.hpp>
-#include "debugging.h"
 
 using namespace jpeg::segments;
 
-namespace jpeg { namespace debugging {
+namespace jpeg::debugging {
 
 std::string to_string(const SOI& soi)
 {
@@ -231,4 +231,4 @@ void dumpSummary(
     std::cout << result << std::endl;
 }
 
-} } // namespace jpg::debugging
+} // namespace jpg::debugging
