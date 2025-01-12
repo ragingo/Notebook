@@ -13,8 +13,10 @@ using namespace jpeg::segments;
 
 namespace
 {
+    using MCUBlock8x8 = std::array<int, 64>;
+
     // Figure A.6 – Zig-zag sequence of quantized DCT coefficients
-    const std::array<int, 64> ZIGZAG = {
+    constexpr MCUBlock8x8 ZIGZAG = {
          0,  1,  5,  6, 14, 15, 27, 28,
          2,  4,  7, 13, 16, 26, 29, 42,
          3,  8, 12, 17, 25, 30, 41, 43,
@@ -26,7 +28,7 @@ namespace
     };
 
     // Figure F.12 – Extending the sign bit of a decoded value in V
-    int extend(int v, int t)
+    constexpr int extend(int v, int t)
     {
         int vt = 1 << (t - 1);
         if (v < vt) {
@@ -36,10 +38,35 @@ namespace
         return v;
     }
 
-    void levelShift(std::array<int, 64>& zz)
+    inline void dequantize(MCUBlock8x8& block, const DQT& dqt)
     {
-        for (int j = 0; j < 64; ++j) {
-            zz[j] = std::clamp(zz[j] + 128, 0, 255);
+        if (dqt.precision == DQT::Precision::BITS_8) {
+            auto table = std::get<DQT::Bits8Table>(dqt.table);
+            for (int i = 0; i < block.size(); ++i) {
+                block[i] *= table[i];
+            }
+        }
+        else if (dqt.precision == DQT::Precision::BITS_16) {
+            auto table = std::get<DQT::Bits16Table>(dqt.table);
+            for (int i = 0; i < block.size(); ++i) {
+                block[i] *= table[i];
+            }
+        }
+    }
+
+    constexpr void reorder(MCUBlock8x8& block)
+    {
+        MCUBlock8x8 temp{};
+        for (int i = 0; i < block.size(); ++i) {
+            temp[i] = block[ZIGZAG[i]];
+        }
+        block.swap(temp);
+    }
+
+    constexpr void levelShift(MCUBlock8x8& zz)
+    {
+        for (int i = 0; i < zz.size(); ++i) {
+            zz[i] = std::clamp(zz[i] + 128, 0, 255);
         }
     }
 }
@@ -84,6 +111,8 @@ JpegDecoder::~JpegDecoder()
 
 void JpegDecoder::decode()
 {
+    m_Parser.parse();
+
     debugging::dumpSummary(m_Parser.getMarkers(), m_Parser.getSegments());
 
     auto sos = findFirstSegment<SOS>(m_Parser.getSegments());
