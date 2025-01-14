@@ -37,7 +37,7 @@ private:
     // ハフマン符号は { 00, 01, 100, 101, 110, 11111 } となる。
     std::vector<int> createHuffCode(const std::vector<int>& huffSize);
 
-    HuffmanTable createHuffmanTable(const std::array<uint8_t, 16>& bits, const std::vector<int>& huffCode);
+    HuffmanTable createHuffmanTable(const std::array<uint8_t, 16>& counts);
 
     // Figure F.16 – Procedure for DECODE
     int decodeHuffmanSymbol(HuffmanTable& table, const std::vector<uint8_t>& symbols);

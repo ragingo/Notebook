@@ -134,11 +134,7 @@ void JpegDecoder::decode()
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> acTables(4);
 
     for (const auto& dht : dhts) {
-        auto bits = dht->counts;
-        auto symbols = dht->symbols;
-        auto huffSize = createHuffSize(bits);
-        auto huffCode = createHuffCode(huffSize);
-        auto huffmanTable = createHuffmanTable(bits, huffCode);
+        auto huffmanTable = createHuffmanTable(dht->counts);
 
         if (dht->tableClass == segments::DHT::TableClass::DC_OR_LOSSLESS) {
             dcTables[std::to_underlying(dht->tableID)] = { huffmanTable, dht };
@@ -147,6 +143,16 @@ void JpegDecoder::decode()
             acTables[std::to_underlying(dht->tableID)] = { huffmanTable, dht };
         }
     }
+
+    auto getDCTable = [&](int componentIndex) -> std::tuple<HuffmanTable, std::shared_ptr<DHT>>& {
+        auto component = sof0->components[componentIndex];
+        return dcTables[std::to_underlying(component.tableID)];
+    };
+
+    auto getACTable = [&](int componentIndex) -> std::tuple<HuffmanTable, std::shared_ptr<DHT>>& {
+        auto component = sof0->components[componentIndex];
+        return acTables[std::to_underlying(component.tableID)];
+    };
 
     const auto width = sof0->width;
     const auto height = sof0->height;
@@ -195,8 +201,11 @@ std::vector<int> JpegDecoder::createHuffCode(const std::vector<int>& huffSize)
     return huffCode;
 }
 
-JpegDecoder::HuffmanTable JpegDecoder::createHuffmanTable(const std::array<uint8_t, 16>& bits, const std::vector<int>& huffCode)
+JpegDecoder::HuffmanTable JpegDecoder::createHuffmanTable(const std::array<uint8_t, 16>& counts)
 {
+    auto huffSize = createHuffSize(counts);
+    auto huffCode = createHuffCode(huffSize);
+
     HuffmanTable table{};
     table.minCode.resize(16, 0);
     table.maxCode.resize(16, -1);
@@ -204,7 +213,7 @@ JpegDecoder::HuffmanTable JpegDecoder::createHuffmanTable(const std::array<uint8
 
     int j = 0;
     for (int i = 0; i < 16; ++i) {
-        auto bit = bits[i];
+        auto bit = counts[i];
         if (bit == 0) {
             continue;
         }

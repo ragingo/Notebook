@@ -231,4 +231,32 @@ void dumpSummary(
     std::cout << result << std::endl;
 }
 
+void dumpMCU(std::vector<int> mcu)
+{
+    std::string result;
+    for (int i = 0; i < mcu.size(); ++i) {
+        result += std::format("  {:3}", mcu[i]);
+        if (i % 8 == 7) {
+            result += '\n';
+        }
+    }
+    result += "\n";
+    std::cout << result;
+}
+
+void dumpBlock(std::string_view label, std::array<int, 64> block)
+{
+    std::mdspan<int, std::extents<int, 8, 8>> blockSpan(block.data());
+    std::string result;
+    result += std::format("{}\n", label);
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            result += std::format("  {:3}", blockSpan[i, j]);
+        }
+        result += '\n';
+    }
+    result += "\n";
+    std::cout << result;
+}
+
 } // namespace jpg::debugging
