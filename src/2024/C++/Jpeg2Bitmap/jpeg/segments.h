@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <memory>
 #include <ranges>
@@ -268,6 +269,24 @@ namespace jpeg::segments {
             v = std::max(v, component.samplingFactorVerticalRatio);
         }
         return { h, v };
+    }
+
+    inline bool isInterleaved(const SOF0& sof0)
+    {
+        uint8_t prev_h = 0;
+        uint8_t prev_v = 0;
+        for (auto i = 0; i < sof0.components.size(); ++i) {
+            auto& component = sof0.components[i];
+            if (i == 0) {
+                prev_h = component.samplingFactorHorizontalRatio;
+                prev_v = component.samplingFactorVerticalRatio;
+                continue;
+            }
+            if (prev_h != component.samplingFactorHorizontalRatio || prev_v != component.samplingFactorVerticalRatio) {
+                return true;
+            }
+        }
+        return false;
     }
 
 } // namespace jpg::segments

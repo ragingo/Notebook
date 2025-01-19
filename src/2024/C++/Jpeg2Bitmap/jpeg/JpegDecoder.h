@@ -7,13 +7,20 @@
 
 namespace jpeg {
 
+struct DecodeResult
+{
+    int width;
+    int height;
+    std::vector<uint8_t> pixels;
+};
+
 class JpegDecoder final
 {
 public:
     JpegDecoder(const char* fileName);
     ~JpegDecoder();
 
-    void decode();
+    void decode(DecodeResult& result);
 
 private:
     struct HuffmanTable
@@ -51,6 +58,15 @@ private:
     // F.2.2.1 Huffman decoding of DC coefficients
     int decodeDCCoeff(HuffmanTable& table, const std::vector<uint8_t>& symbols, int& pred);
 
+    void decodeBlock(
+        HuffmanTable& dcTable,
+        std::shared_ptr<segments::DHT> dcDHT,
+        HuffmanTable& acTable,
+        std::shared_ptr<segments::DHT> acDHT,
+        std::shared_ptr<segments::DQT> dqt,
+        std::array<int, 64>& block,
+        int& dcPred
+    );
 private:
     JpegParser m_Parser;
     std::unique_ptr<BitStreamReader> m_BitStreamReader;

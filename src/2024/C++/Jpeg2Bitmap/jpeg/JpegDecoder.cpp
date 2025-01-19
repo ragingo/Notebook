@@ -6,7 +6,6 @@
 #include <print>
 #include "debugging.h"
 #include "../math/math.h"
-#include "../bitmap.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;
@@ -69,34 +68,26 @@ namespace
             zz[i] = std::clamp(zz[i] + 128, 0, 255);
         }
     }
-}
 
-namespace
-{
-    void writeBitmap(const std::string& filename, int width, int height, const std::vector<uint8_t>& pixels)
+    void convertRGB(const std::vector<int>& ys, const std::vector<int>& cbs, const std::vector<int>& crs, std::vector<uint8_t>& pixels, int width, int height)
     {
-        BitmapFileHeader fileHeader{};
-        BitmapInfoHeader infoHeader{};
-
-        fileHeader.bfType = 0x4D42;
-        fileHeader.bfSize = static_cast<uint32_t>(sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader) + pixels.size());
-        fileHeader.bfOffBits = sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader);
-
-        infoHeader.biSize = sizeof(BitmapInfoHeader);
-        infoHeader.biWidth = width;
-        infoHeader.biHeight = -height;
-        infoHeader.biPlanes = 1;
-        infoHeader.biBitCount = 24;
-        infoHeader.biSizeImage = static_cast<uint32_t>(pixels.size());
-
-        std::ofstream file(filename, std::ios::binary);
-        if (!file) {
-            return;
+        for (int row = 0; row < height; ++row) {
+            for (int col = 0; col < width; ++col) {
+                int offset = row * width + col;
+                int yy = ys[offset];
+                int cb = cbs[offset];
+                int cr = crs[offset];
+                int r = yy + 1.402 * (cr - 128);
+                int g = yy - 0.344136 * (cb - 128) - 0.714136 * (cr - 128);
+                int b = yy + 1.772 * (cb - 128);
+                r = std::clamp(r, 0, 255);
+                g = std::clamp(g, 0, 255);
+                b = std::clamp(b, 0, 255);
+                pixels[offset * 3 + 0] = static_cast<uint8_t>(r);
+                pixels[offset * 3 + 1] = static_cast<uint8_t>(g);
+                pixels[offset * 3 + 2] = static_cast<uint8_t>(b);
+            }
         }
-
-        file.write(reinterpret_cast<const char*>(&fileHeader), sizeof(fileHeader));
-        file.write(reinterpret_cast<const char*>(&infoHeader), sizeof(infoHeader));
-        file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size());
     }
 }
 
@@ -109,7 +100,7 @@ JpegDecoder::~JpegDecoder()
 {
 }
 
-void JpegDecoder::decode()
+void JpegDecoder::decode(DecodeResult& result)
 {
     m_Parser.parse();
 
@@ -129,6 +120,11 @@ void JpegDecoder::decode()
         return;
     }
 
+    if (!isInterleaved(*sof0)) {
+        std::println("Unsupported non-interleaved MCU");
+        return;
+    }
+
     m_BitStreamReader = std::make_unique<BitStreamReader>(m_Parser.getECS());
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> dcTables(4);
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> acTables(4);
@@ -144,24 +140,71 @@ void JpegDecoder::decode()
         }
     }
 
-    auto getDCTable = [&](int componentIndex) -> std::tuple<HuffmanTable, std::shared_ptr<DHT>>& {
-        auto component = sof0->components[componentIndex];
-        return dcTables[std::to_underlying(component.tableID)];
-    };
-
-    auto getACTable = [&](int componentIndex) -> std::tuple<HuffmanTable, std::shared_ptr<DHT>>& {
-        auto component = sof0->components[componentIndex];
-        return acTables[std::to_underlying(component.tableID)];
-    };
-
     const auto width = sof0->width;
     const auto height = sof0->height;
     const auto numComponents = sof0->numComponents;
-    std::vector<uint8_t> pixels(width * height * numComponents);
+    std::vector<uint8_t> pixels(width * height * numComponents, 0);
+    std::vector<int> ys(width * height, 0);
+    std::vector<int> crs(width * height, 0);
+    std::vector<int> cbs(width * height, 0);
 
-    // TODO: pixels の更新
+    const auto [horizFactor, vertFactor] = getMaxSamplingFactor(*sof0);
+    const int mcuWidth = horizFactor * 8;
+    const int mcuHeight = vertFactor * 8;
+    const int mcuHorizCount = (width + mcuWidth - 1) / mcuWidth;
+    const int mcuVertCount = (height + mcuHeight - 1) / mcuHeight;
 
-    writeBitmap("d:\\temp\\images\\x.bmp", width, height, pixels);
+    assert(mcuHorizCount * mcuWidth >= width);
+    assert(mcuVertCount * mcuHeight >= height);
+
+    std::array<int, 3> dcPred = { 0, 0, 0 };
+
+    for (int mcuRow = 0; mcuRow < mcuVertCount; ++mcuRow) {
+        for (int mcuCol = 0; mcuCol < mcuHorizCount; ++mcuCol) {
+            for (int componentIndex = 0; auto&& component : sof0->components) {
+                auto [dcTable, dcDHT] = dcTables[std::to_underlying(component.tableID)];
+                auto [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
+                auto dqt = dqts[std::to_underlying(component.tableID)];
+
+                // 1 MCU 16x16 を 8x8 のブロックに分割して処理
+                for (int blockRow = 0; blockRow < 2; ++blockRow) {
+                    for (int blockCol = 0; blockCol < 2; ++blockCol) {
+                        std::println("MCU: ({}, {})", mcuCol, mcuRow);
+                        MCUBlock8x8 block{};
+                        decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
+
+                        for (int y = 0; y < 8; ++y) {
+                            for (int x = 0; x < 8; ++x) {
+                                int px = mcuCol * mcuWidth + blockCol * 8 + x;
+                                int py = mcuRow * mcuHeight + blockRow * 8 + y;
+                                if (px < width && py < height) {
+                                    switch (component.id) {
+                                    case ComponentID::Y:
+                                        ys[py * width + px] = block[y * 8 + x];
+                                        break;
+                                    case ComponentID::Cb:
+                                        cbs[py * width + px] = block[y * 8 + x];
+                                        break;
+                                    case ComponentID::Cr:
+                                        crs[py * width + px] = block[y * 8 + x];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    convertRGB(ys, cbs, crs, pixels, width, height);
+
+    result = {
+        .width = width,
+        .height = height,
+        .pixels = pixels
+    };
 }
 
 std::vector<int> JpegDecoder::createHuffSize(const std::array<uint8_t, 16>& counts)
@@ -289,4 +332,36 @@ int JpegDecoder::decodeDCCoeff(HuffmanTable& table, const std::vector<uint8_t>& 
     int dcCoeff = pred + diff;
     pred = dcCoeff;
     return dcCoeff;
+}
+
+void JpegDecoder::decodeBlock(
+    HuffmanTable& dcTable,
+    std::shared_ptr<DHT> dcDHT,
+    HuffmanTable& acTable,
+    std::shared_ptr<DHT> acDHT,
+    std::shared_ptr<DQT> dqt,
+    MCUBlock8x8& block,
+    int& dcPred
+)
+{
+    block[0] = decodeDCCoeff(dcTable, dcDHT->symbols, dcPred);
+    debugging::dumpBlock(" dc coeff", block);
+
+    auto zz = decodeACCoeffs(acTable, acDHT->symbols);
+    for (int j = 1; j < 64; ++j) {
+        block[j] = zz[j];
+    }
+    debugging::dumpBlock(" ac coeff", block);
+
+    dequantize(block, *dqt);
+    debugging::dumpBlock(" dequantize", block);
+
+    reorder(block);
+    debugging::dumpBlock(" reorder", block);
+
+    math::idct<int, 8, 8>(block);
+    debugging::dumpBlock(" idct", block);
+
+    levelShift(block);
+    debugging::dumpBlock(" level shift", block);
 }
