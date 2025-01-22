@@ -44,6 +44,16 @@ namespace jpeg::segments {
         UNKNOWN,
     };
 
+    enum class YUVFormat
+    {
+        YUV444,
+        YUV422,
+        YUV420,
+        YUV411,
+        YUV410,
+        YUV400,
+        UNKNOWN,
+    };
 
     struct Segment
     {
@@ -287,6 +297,44 @@ namespace jpeg::segments {
             }
         }
         return false;
+    }
+
+    inline YUVFormat getYUVFormat(const SOF0& sof0)
+    {
+        switch (sof0.numComponents)
+        {
+        case 1:
+            return YUVFormat::YUV400;
+        case 3:
+            if (sof0.components[0].samplingFactorHorizontalRatio == 1 && sof0.components[0].samplingFactorVerticalRatio == 1 &&
+                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
+                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+                return YUVFormat::YUV444;
+            }
+            if (sof0.components[0].samplingFactorHorizontalRatio == 2 && sof0.components[0].samplingFactorVerticalRatio == 1 &&
+                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
+                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+                return YUVFormat::YUV422;
+            }
+            if (sof0.components[0].samplingFactorHorizontalRatio == 2 && sof0.components[0].samplingFactorVerticalRatio == 2 &&
+                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
+                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+                return YUVFormat::YUV420;
+            }
+            if (sof0.components[0].samplingFactorHorizontalRatio == 4 && sof0.components[0].samplingFactorVerticalRatio == 1 &&
+                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
+                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+                return YUVFormat::YUV411;
+            }
+            if (sof0.components[0].samplingFactorHorizontalRatio == 4 && sof0.components[0].samplingFactorVerticalRatio == 4 &&
+                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
+                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+                return YUVFormat::YUV410;
+            }
+            return YUVFormat::UNKNOWN;
+        default:
+            return YUVFormat::UNKNOWN;
+        }
     }
 
 } // namespace jpg::segments

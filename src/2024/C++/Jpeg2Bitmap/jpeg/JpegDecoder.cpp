@@ -125,6 +125,11 @@ void JpegDecoder::decode(DecodeResult& result)
         return;
     }
 
+    if (auto format = getYUVFormat(*sof0); format != YUVFormat::YUV420) {
+        std::println("Unsupported YUV format: {}", NAMEOF_ENUM(format));
+        return;
+    }
+
     m_BitStreamReader = std::make_unique<BitStreamReader>(m_Parser.getECS());
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> dcTables(4);
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> acTables(4);
