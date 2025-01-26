@@ -281,6 +281,16 @@ namespace jpeg::segments {
         return { h, v };
     }
 
+    inline std::tuple<uint8_t, uint8_t> getSamplingFactor(const SOF0& sof0, ComponentID id)
+    {
+        for (const auto& component : sof0.components) {
+            if (component.id == id) {
+                return { component.samplingFactorHorizontalRatio, component.samplingFactorVerticalRatio };
+            }
+        }
+        return { 0, 0 };
+    }
+
     inline bool isInterleaved(const SOF0& sof0)
     {
         uint8_t prev_h = 0;

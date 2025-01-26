@@ -74,15 +74,17 @@ namespace
         for (int row = 0; row < height; ++row) {
             for (int col = 0; col < width; ++col) {
                 int offset = row * width + col;
-                int yy = ys[offset];
-                int cb = cbs[offset];
-                int cr = crs[offset];
-                int r = yy + 1.402 * (cr - 128);
-                int g = yy - 0.344136 * (cb - 128) - 0.714136 * (cr - 128);
-                int b = yy + 1.772 * (cb - 128);
-                r = std::clamp(r, 0, 255);
-                g = std::clamp(g, 0, 255);
-                b = std::clamp(b, 0, 255);
+                int y = ys[offset];
+                int cb = cbs[(row / 2) * (width / 2) + (col / 2)];
+                int cr = crs[(row / 2) * (width / 2) + (col / 2)];
+                cb -= 128;
+                cr -= 128;
+                double r = y + 1.402 * cr;
+                double g = y - 0.344136 * cb - 0.714136 * cr;
+                double b = y + 1.772 * cb;
+                r = std::clamp(r, 0.0, 255.0);
+                g = std::clamp(g, 0.0, 255.0);
+                b = std::clamp(b, 0.0, 255.0);
                 pixels[offset * 3 + 0] = static_cast<uint8_t>(r);
                 pixels[offset * 3 + 1] = static_cast<uint8_t>(g);
                 pixels[offset * 3 + 2] = static_cast<uint8_t>(b);
@@ -150,8 +152,8 @@ void JpegDecoder::decode(DecodeResult& result)
     const auto numComponents = sof0->numComponents;
     std::vector<uint8_t> pixels(width * height * numComponents, 0);
     std::vector<int> ys(width * height, 0);
-    std::vector<int> crs(width * height, 0);
-    std::vector<int> cbs(width * height, 0);
+    std::vector<int> crs((width / 2) * (height / 2), 0);
+    std::vector<int> cbs((width / 2) * (height / 2), 0);
 
     const auto [horizFactor, vertFactor] = getMaxSamplingFactor(*sof0);
     const int mcuWidth = horizFactor * 8;
@@ -162,6 +164,8 @@ void JpegDecoder::decode(DecodeResult& result)
     assert(mcuHorizCount * mcuWidth >= width);
     assert(mcuVertCount * mcuHeight >= height);
 
+    // 全体を通して更新し続ける。
+    // ただし、リスタートマーカーがある場合は、この値をリセットする。
     std::array<int, 3> dcPred = { 0, 0, 0 };
 
     for (int mcuRow = 0; mcuRow < mcuVertCount; ++mcuRow) {
@@ -171,27 +175,34 @@ void JpegDecoder::decode(DecodeResult& result)
                 auto [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
                 auto dqt = dqts[std::to_underlying(component.tableID)];
 
-                // 1 MCU 16x16 を 8x8 のブロックに分割して処理
-                for (int blockRow = 0; blockRow < 2; ++blockRow) {
-                    for (int blockCol = 0; blockCol < 2; ++blockCol) {
-                        std::println("MCU: ({}, {})", mcuCol, mcuRow);
+                // 1 MCU Y 16x16 Cb 8x8 Cr 8x8 を、 8x8 のブロックに分割して処理
+                for (int blockRow = 0; blockRow < component.samplingFactorVerticalRatio; ++blockRow) {
+                    for (int blockCol = 0; blockCol < component.samplingFactorHorizontalRatio; ++blockCol) {
+                        //std::println("MCU: ({}, {})", mcuCol, mcuRow);
                         MCUBlock8x8 block{};
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
+                        std::mdspan<int, std::extents<int, 8, 8>> blockView(block.data(), 8, 8);
 
                         for (int y = 0; y < 8; ++y) {
                             for (int x = 0; x < 8; ++x) {
                                 int px = mcuCol * mcuWidth + blockCol * 8 + x;
                                 int py = mcuRow * mcuHeight + blockRow * 8 + y;
-                                if (px < width && py < height) {
-                                    switch (component.id) {
-                                    case ComponentID::Y:
-                                        ys[py * width + px] = block[y * 8 + x];
-                                        break;
-                                    case ComponentID::Cb:
-                                        cbs[py * width + px] = block[y * 8 + x];
-                                        break;
-                                    case ComponentID::Cr:
-                                        crs[py * width + px] = block[y * 8 + x];
+
+                                switch (component.id) {
+                                case ComponentID::Y:
+                                    if (px < width && py < height) {
+                                        ys[py * width + px] = blockView[y, x];
+                                    }
+                                    break;
+                                case ComponentID::Cb:
+                                case ComponentID::Cr:
+                                    {
+                                        int cp_x = (px / 2);
+                                        int cp_y = (py / 2);
+                                        if (cp_x < (width / 2) && cp_y < (height / 2)) {
+                                            auto& target = (component.id == ComponentID::Cb) ? cbs : crs;
+                                            target[cp_y * (width / 2) + cp_x] = blockView[y, x];
+                                        }
                                         break;
                                     }
                                 }
@@ -306,6 +317,10 @@ std::array<int, 64> JpegDecoder::decodeACCoeffs(HuffmanTable& table, const std::
 
     while (k < 64) {
         int symbol = decodeHuffmanSymbol(table, symbols);
+        if (symbol == 0) {
+            break;
+        }
+
         int ssss = symbol % 16;
         int rrrr = symbol >> 4;
         int r = rrrr;
@@ -350,23 +365,25 @@ void JpegDecoder::decodeBlock(
 )
 {
     block[0] = decodeDCCoeff(dcTable, dcDHT->symbols, dcPred);
-    debugging::dumpBlock(" dc coeff", block);
+    //debugging::dumpBlock(" dc coeff", block);
 
     auto zz = decodeACCoeffs(acTable, acDHT->symbols);
     for (int j = 1; j < 64; ++j) {
         block[j] = zz[j];
     }
-    debugging::dumpBlock(" ac coeff", block);
+    //debugging::dumpBlock(" ac coeff", block);
 
     dequantize(block, *dqt);
-    debugging::dumpBlock(" dequantize", block);
+    //debugging::dumpBlock(" dequantize", block);
 
     reorder(block);
-    debugging::dumpBlock(" reorder", block);
+    //debugging::dumpBlock(" reorder", block);
 
-    math::idct<int, 8, 8>(block);
-    debugging::dumpBlock(" idct", block);
+    MCUBlock8x8 temp = block;
+    math::idct<int, 8, 8>(block, temp);
+    block = temp;
+    //debugging::dumpBlock(" idct", block);
 
     levelShift(block);
-    debugging::dumpBlock(" level shift", block);
+    //debugging::dumpBlock(" level shift", block);
 }

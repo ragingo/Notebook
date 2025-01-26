@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <cmath>
 #include <concepts>
 #include <mdspan>
 #include <numbers>
@@ -11,32 +12,34 @@ namespace math
         int M,
         int N,
         typename Extents = std::extents<int, M, N>,
-        typename Input = std::array<ElementType, M * N>,
-        typename View = std::mdspan<ElementType, Extents>
+        typename InOut = std::array<ElementType, M * N>,
+        typename InputView = std::mdspan<const ElementType, Extents>,
+        typename OutputView = std::mdspan<ElementType, Extents>
     >
-    inline void idct(Input& input)
+    inline void idct(const InOut& input, InOut& output)
     {
-        auto cu = [](int u) {
-            return u == 0 ? std::sqrt(1.0 / M) : std::sqrt(2.0 / M);
-        };
-        auto cv = [](int v) {
-            return v == 0 ? std::sqrt(1.0 / N) : std::sqrt(2.0 / N);
-        };
+        const double cu0 = 1.0 / std::sqrt(M);
+        const double cv0 = 1.0 / std::sqrt(N);
+        const double cu1 = std::sqrt(2.0 / M);
+        const double cv1 = std::sqrt(2.0 / N);
         double pi = std::numbers::pi;
 
-        auto view = View(input.data(), M, N);
+        auto input_view = InputView(input.data(), M, N);
+        auto output_view = OutputView(output.data(), M, N);
 
-        for (int v = 0; v < N; ++v) {
-            for (int u = 0; u < M; ++u) {
+        for (int y = 0; y < N; ++y) {
+            for (int x = 0; x < M; ++x) {
                 double sum = 0.0;
-                for (int y = 0; y < N; ++y) {
-                    for (int x = 0; x < M; ++x) {
+                for (int v = 0; v < N; ++v) {
+                    for (int u = 0; u < M; ++u) {
                         double cosu = std::cos((2 * x + 1) * u * pi / (2 * M));
                         double cosv = std::cos((2 * y + 1) * v * pi / (2 * N));
-                        sum += static_cast<double>(view[y, x]) * cosu * cosv * cu(u) * cv(v);
+                        double cu = (u == 0) ? cu0 : cu1;
+                        double cv = (v == 0) ? cv0 : cv1;
+                        sum += static_cast<double>(input_view[v, u]) * cosu * cosv * cu * cv;
                     }
                 }
-                view[v, u] = static_cast<ElementType>(sum);
+                output_view[y, x] = static_cast<ElementType>(sum);
             }
         }
     }
