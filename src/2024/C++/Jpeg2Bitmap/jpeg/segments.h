@@ -288,7 +288,7 @@ namespace jpeg::segments {
                 return { component.samplingFactorHorizontalRatio, component.samplingFactorVerticalRatio };
             }
         }
-        return { 0, 0 };
+        return { 0ui8, 0ui8 };
     }
 
     inline bool isInterleaved(const SOF0& sof0)

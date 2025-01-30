@@ -360,7 +360,7 @@ void JpegDecoder::decodeBlock(
     HuffmanTable& acTable,
     std::shared_ptr<DHT> acDHT,
     std::shared_ptr<DQT> dqt,
-    MCUBlock8x8& block,
+    std::array<int, 64>& block,
     int& dcPred
 )
 {
