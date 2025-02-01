@@ -77,9 +77,6 @@ namespace
         int height,
         const std::unordered_map<ComponentID, int>& hSampleFactors,
         const std::unordered_map<ComponentID, int>& vSampleFactors,
-        int hMax,
-        int vMax,
-        int yWidth,
         int cbWidth,
         int crWidth)
     {
@@ -193,39 +190,32 @@ void JpegDecoder::decode(DecodeResult& result)
 
     const auto width = sof0->width;
     const auto height = sof0->height;
-    const auto numComponents = sof0->numComponents;
-    std::vector<uint8_t> pixels(width * height * numComponents, 0);
+    const auto [hMaxFactor, vMaxFactor] = getMaxSamplingFactor(*sof0);
 
-    const auto [horizFactor, vertFactor] = getMaxSamplingFactor(*sof0);
-    int hMax = horizFactor;
-    int vMax = vertFactor;
-
-    // 各コンポーネントのサンプリング係数を取得
     std::unordered_map<ComponentID, int> hSampleFactors;
     std::unordered_map<ComponentID, int> vSampleFactors;
-    for (const auto& component : sof0->components) {
-        hSampleFactors[component.id] = component.samplingFactorHorizontalRatio;
-        vSampleFactors[component.id] = component.samplingFactorVerticalRatio;
-    }
-    // コンポーネントの幅と高さを計算
     std::unordered_map<ComponentID, int> componentWidths;
     std::unordered_map<ComponentID, int> componentHeights;
+    std::unordered_map<ComponentID, std::vector<int>> componentBuffers;
+
     for (const auto& component : sof0->components) {
-        int compWidth = (width * hSampleFactors[component.id] + hMax - 1) / hMax;
-        int compHeight = (height * vSampleFactors[component.id] + vMax - 1) / vMax;
+        // 各コンポーネントのサンプリング係数を取得
+        hSampleFactors[component.id] = component.samplingFactorHorizontalRatio;
+        vSampleFactors[component.id] = component.samplingFactorVerticalRatio;
+
+        // コンポーネントの幅と高さを計算
+        int compWidth = (width * hSampleFactors[component.id] + hMaxFactor - 1) / hMaxFactor;
+        int compHeight = (height * vSampleFactors[component.id] + vMaxFactor - 1) / vMaxFactor;
         componentWidths[component.id] = compWidth;
         componentHeights[component.id] = compHeight;
-    }
 
-    // バッファの初期化
-    std::unordered_map<ComponentID, std::vector<int>> componentBuffers;
-    for (const auto& component : sof0->components) {
+        // バッファの初期化
         int size = componentWidths[component.id] * componentHeights[component.id];
         componentBuffers[component.id] = std::vector<int>(size, 0);
     }
 
-    const int mcuWidth = horizFactor * 8;
-    const int mcuHeight = vertFactor * 8;
+    const int mcuWidth = hMaxFactor * 8;
+    const int mcuHeight = vMaxFactor * 8;
     const int mcuHorizCount = (width + mcuWidth - 1) / mcuWidth;
     const int mcuVertCount = (height + mcuHeight - 1) / mcuHeight;
 
@@ -275,9 +265,11 @@ void JpegDecoder::decode(DecodeResult& result)
         }
     }
 
+    const auto numComponents = sof0->numComponents;
+    std::vector<uint8_t> pixels(width* height* numComponents, 0);
+
     // RGB変換の呼び出し
-    convertRGB(componentBuffers, pixels, width, height, hSampleFactors, vSampleFactors, hMax, vMax,
-        componentWidths.at(ComponentID::Y),
+    convertRGB(componentBuffers, pixels, width, height, hSampleFactors, vSampleFactors,
         componentWidths.at(ComponentID::Cb),
         componentWidths.at(ComponentID::Cr));
 
