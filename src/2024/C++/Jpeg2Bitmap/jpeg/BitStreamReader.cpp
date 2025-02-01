@@ -18,7 +18,6 @@ namespace jpeg {
     {
         if (m_ReadBitCount == 0) {
             m_CurrentByte = m_Stream[++m_DataIndex];
-            m_ReadBitCount = 8;
             if (m_CurrentByte == 0xFF) {
                 uint8_t b2 = m_Stream[++m_DataIndex];
                 if (b2 != 0x00) {
@@ -26,6 +25,7 @@ namespace jpeg {
                     throw std::runtime_error("Invalid JPEG file");
                 }
             }
+            m_ReadBitCount = 8;
         }
 
         uint8_t bit = m_CurrentByte >> 7;

@@ -4,6 +4,7 @@
 #include <memory>
 #include <nameof.hpp>
 #include <print>
+#include <unordered_map>
 #include "debugging.h"
 #include "../math/math.h"
 
@@ -69,25 +70,68 @@ namespace
         }
     }
 
-    void convertRGB(const std::vector<int>& ys, const std::vector<int>& cbs, const std::vector<int>& crs, std::vector<uint8_t>& pixels, int width, int height)
+    void convertRGB(
+        const std::unordered_map<ComponentID, std::vector<int>>& componentBuffers,
+        std::vector<uint8_t>& pixels,
+        int width,
+        int height,
+        const std::unordered_map<ComponentID, int>& hSampleFactors,
+        const std::unordered_map<ComponentID, int>& vSampleFactors,
+        int hMax,
+        int vMax,
+        int yWidth,
+        int cbWidth,
+        int crWidth)
     {
+        const auto& ys = componentBuffers.at(ComponentID::Y);
+        const auto& cbs = componentBuffers.at(ComponentID::Cb);
+        const auto& crs = componentBuffers.at(ComponentID::Cr);
+
+        double hY = static_cast<double>(hSampleFactors.at(ComponentID::Y));
+        double vY = static_cast<double>(vSampleFactors.at(ComponentID::Y));
+        double hCb = static_cast<double>(hSampleFactors.at(ComponentID::Cb));
+        double vCb = static_cast<double>(vSampleFactors.at(ComponentID::Cb));
+        double hCr = static_cast<double>(hSampleFactors.at(ComponentID::Cr));
+        double vCr = static_cast<double>(vSampleFactors.at(ComponentID::Cr));
+
+        double cbSampleRatioH = hCb / hY;
+        double cbSampleRatioV = vCb / vY;
+        double crSampleRatioH = hCr / hY;
+        double crSampleRatioV = vCr / vY;
+
         for (int row = 0; row < height; ++row) {
+            int yOffset = row * width;
+
+            int cbRow = static_cast<int>(row * cbSampleRatioV);
+            int crRow = static_cast<int>(row * crSampleRatioV);
+
             for (int col = 0; col < width; ++col) {
-                int offset = row * width + col;
-                int y = ys[offset];
-                int cb = cbs[(row / 2) * (width / 2) + (col / 2)];
-                int cr = crs[(row / 2) * (width / 2) + (col / 2)];
+                int y = ys[yOffset + col];
+
+                int cbCol = static_cast<int>(col * cbSampleRatioH);
+                int crCol = static_cast<int>(col * crSampleRatioH);
+
+                int cbIndex = cbRow * cbWidth + cbCol;
+                int crIndex = crRow * crWidth + crCol;
+
+                int cb = cbs[cbIndex];
+                int cr = crs[crIndex];
+
+                // 色変換
                 cb -= 128;
                 cr -= 128;
+
                 double r = y + 1.402 * cr;
                 double g = y - 0.344136 * cb - 0.714136 * cr;
                 double b = y + 1.772 * cb;
+
                 r = std::clamp(r, 0.0, 255.0);
                 g = std::clamp(g, 0.0, 255.0);
                 b = std::clamp(b, 0.0, 255.0);
-                pixels[offset * 3 + 0] = static_cast<uint8_t>(r);
-                pixels[offset * 3 + 1] = static_cast<uint8_t>(g);
-                pixels[offset * 3 + 2] = static_cast<uint8_t>(b);
+
+                pixels[(yOffset + col) * 3 + 0] = static_cast<uint8_t>(b);
+                pixels[(yOffset + col) * 3 + 1] = static_cast<uint8_t>(g);
+                pixels[(yOffset + col) * 3 + 2] = static_cast<uint8_t>(r);
             }
         }
     }
@@ -151,11 +195,35 @@ void JpegDecoder::decode(DecodeResult& result)
     const auto height = sof0->height;
     const auto numComponents = sof0->numComponents;
     std::vector<uint8_t> pixels(width * height * numComponents, 0);
-    std::vector<int> ys(width * height, 0);
-    std::vector<int> crs((width / 2) * (height / 2), 0);
-    std::vector<int> cbs((width / 2) * (height / 2), 0);
 
     const auto [horizFactor, vertFactor] = getMaxSamplingFactor(*sof0);
+    int hMax = horizFactor;
+    int vMax = vertFactor;
+
+    // 各コンポーネントのサンプリング係数を取得
+    std::unordered_map<ComponentID, int> hSampleFactors;
+    std::unordered_map<ComponentID, int> vSampleFactors;
+    for (const auto& component : sof0->components) {
+        hSampleFactors[component.id] = component.samplingFactorHorizontalRatio;
+        vSampleFactors[component.id] = component.samplingFactorVerticalRatio;
+    }
+    // コンポーネントの幅と高さを計算
+    std::unordered_map<ComponentID, int> componentWidths;
+    std::unordered_map<ComponentID, int> componentHeights;
+    for (const auto& component : sof0->components) {
+        int compWidth = (width * hSampleFactors[component.id] + hMax - 1) / hMax;
+        int compHeight = (height * vSampleFactors[component.id] + vMax - 1) / vMax;
+        componentWidths[component.id] = compWidth;
+        componentHeights[component.id] = compHeight;
+    }
+
+    // バッファの初期化
+    std::unordered_map<ComponentID, std::vector<int>> componentBuffers;
+    for (const auto& component : sof0->components) {
+        int size = componentWidths[component.id] * componentHeights[component.id];
+        componentBuffers[component.id] = std::vector<int>(size, 0);
+    }
+
     const int mcuWidth = horizFactor * 8;
     const int mcuHeight = vertFactor * 8;
     const int mcuHorizCount = (width + mcuWidth - 1) / mcuWidth;
@@ -170,7 +238,8 @@ void JpegDecoder::decode(DecodeResult& result)
 
     for (int mcuRow = 0; mcuRow < mcuVertCount; ++mcuRow) {
         for (int mcuCol = 0; mcuCol < mcuHorizCount; ++mcuCol) {
-            for (int componentIndex = 0; auto&& component : sof0->components) {
+            for (auto&& component : sof0->components) {
+                auto componentIndex = std::distance(sof0->components.data(), &component);
                 auto [dcTable, dcDHT] = dcTables[std::to_underlying(component.tableID)];
                 auto [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
                 auto dqt = dqts[std::to_underlying(component.tableID)];
@@ -183,28 +252,20 @@ void JpegDecoder::decode(DecodeResult& result)
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
                         std::mdspan<int, std::extents<int, 8, 8>> blockView(block.data(), 8, 8);
 
+                        // MCU内のブロック処理ループ内
                         for (int y = 0; y < 8; ++y) {
                             for (int x = 0; x < 8; ++x) {
-                                int px = mcuCol * mcuWidth + blockCol * 8 + x;
-                                int py = mcuRow * mcuHeight + blockRow * 8 + y;
+                                int hSamplingFactor = component.samplingFactorHorizontalRatio;
+                                int vSamplingFactor = component.samplingFactorVerticalRatio;
 
-                                switch (component.id) {
-                                case ComponentID::Y:
-                                    if (px < width && py < height) {
-                                        ys[py * width + px] = blockView[y, x];
-                                    }
-                                    break;
-                                case ComponentID::Cb:
-                                case ComponentID::Cr:
-                                    {
-                                        int cp_x = (px / 2);
-                                        int cp_y = (py / 2);
-                                        if (cp_x < (width / 2) && cp_y < (height / 2)) {
-                                            auto& target = (component.id == ComponentID::Cb) ? cbs : crs;
-                                            target[cp_y * (width / 2) + cp_x] = blockView[y, x];
-                                        }
-                                        break;
-                                    }
+                                int xInComp = ((mcuCol * hSamplingFactor + blockCol) * 8) + x;
+                                int yInComp = ((mcuRow * vSamplingFactor + blockRow) * 8) + y;
+                                // バッファへの格納
+                                int compWidth = componentWidths[component.id];
+                                int compHeight = componentHeights[component.id];
+                                if (xInComp < compWidth && yInComp < compHeight) {
+                                    int index = yInComp * compWidth + xInComp;
+                                    componentBuffers[component.id][index] = blockView[y, x];
                                 }
                             }
                         }
@@ -214,7 +275,11 @@ void JpegDecoder::decode(DecodeResult& result)
         }
     }
 
-    convertRGB(ys, cbs, crs, pixels, width, height);
+    // RGB変換の呼び出し
+    convertRGB(componentBuffers, pixels, width, height, hSampleFactors, vSampleFactors, hMax, vMax,
+        componentWidths.at(ComponentID::Y),
+        componentWidths.at(ComponentID::Cb),
+        componentWidths.at(ComponentID::Cr));
 
     result = {
         .width = width,
@@ -313,31 +378,30 @@ int JpegDecoder::decodeZZ(int ssss)
 std::array<int, 64> JpegDecoder::decodeACCoeffs(HuffmanTable& table, const std::vector<uint8_t>& symbols)
 {
     std::array<int, 64> zz{};
-    int k = 0;
+    int k = 1; // DC係数は既にデコード済みなので、kを1から開始
 
     while (k < 64) {
         int symbol = decodeHuffmanSymbol(table, symbols);
         if (symbol == 0) {
-            break;
+            break; // EOBマーカー
         }
 
-        int ssss = symbol % 16;
-        int rrrr = symbol >> 4;
-        int r = rrrr;
+        int rrrr = symbol >> 4;   // ランレングス（連続するゼロの個数）
+        int ssss = symbol & 0x0F; // 非ゼロ係数のビット長
 
         if (ssss == 0) {
-            if (r == 15) {
-                k += 16;
-                continue;
+            if (rrrr == 15) {
+                k += 16; // ZRL（16個のゼロ）
+            } else {
+                break; // 他に非ゼロ係数はない
             }
-            break;
-        }
-        else {
-            k += r;
-            if (k > 63) {
-                break;
+        } else {
+            k += rrrr; // ランレングス分インデックスを進める
+            if (k >= 64) {
+                break; // 範囲外アクセス防止
             }
-            zz[k] = decodeZZ(ssss);
+            int coeff = decodeZZ(ssss);
+            zz[k] = coeff;
             k++;
         }
     }
