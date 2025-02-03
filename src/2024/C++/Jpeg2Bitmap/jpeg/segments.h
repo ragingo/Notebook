@@ -147,9 +147,9 @@ namespace jpeg::segments {
             // Ci: Component identifier
             ComponentID id;
             // Hi: Horizontal sampling factor
-            uint8_t samplingFactorHorizontalRatio : 4;
+            uint8_t horizonalSamplingFactor : 4;
             // Vi: Vertical sampling factor
-            uint8_t samplingFactorVerticalRatio : 4;
+            uint8_t verticalSamplingFactor : 4;
             // Tqi: Quantization table destination selector
             QuantizationTableID tableID;
         };
@@ -275,8 +275,8 @@ namespace jpeg::segments {
         uint8_t h = 0;
         uint8_t v = 0;
         for (const auto& component : sof0.components) {
-            h = std::max(h, component.samplingFactorHorizontalRatio);
-            v = std::max(v, component.samplingFactorVerticalRatio);
+            h = std::max(h, component.horizonalSamplingFactor);
+            v = std::max(v, component.verticalSamplingFactor);
         }
         return { h, v };
     }
@@ -285,7 +285,7 @@ namespace jpeg::segments {
     {
         for (const auto& component : sof0.components) {
             if (component.id == id) {
-                return { component.samplingFactorHorizontalRatio, component.samplingFactorVerticalRatio };
+                return { component.horizonalSamplingFactor, component.verticalSamplingFactor };
             }
         }
         return { 0ui8, 0ui8 };
@@ -298,11 +298,11 @@ namespace jpeg::segments {
         for (auto i = 0; i < sof0.components.size(); ++i) {
             auto& component = sof0.components[i];
             if (i == 0) {
-                prev_h = component.samplingFactorHorizontalRatio;
-                prev_v = component.samplingFactorVerticalRatio;
+                prev_h = component.horizonalSamplingFactor;
+                prev_v = component.verticalSamplingFactor;
                 continue;
             }
-            if (prev_h != component.samplingFactorHorizontalRatio || prev_v != component.samplingFactorVerticalRatio) {
+            if (prev_h != component.horizonalSamplingFactor || prev_v != component.verticalSamplingFactor) {
                 return true;
             }
         }
@@ -316,29 +316,29 @@ namespace jpeg::segments {
         case 1:
             return YUVFormat::YUV400;
         case 3:
-            if (sof0.components[0].samplingFactorHorizontalRatio == 1 && sof0.components[0].samplingFactorVerticalRatio == 1 &&
-                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
-                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+            if (sof0.components[0].horizonalSamplingFactor == 1 && sof0.components[0].verticalSamplingFactor == 1 &&
+                sof0.components[1].horizonalSamplingFactor == 1 && sof0.components[1].verticalSamplingFactor == 1 &&
+                sof0.components[2].horizonalSamplingFactor == 1 && sof0.components[2].verticalSamplingFactor == 1) {
                 return YUVFormat::YUV444;
             }
-            if (sof0.components[0].samplingFactorHorizontalRatio == 2 && sof0.components[0].samplingFactorVerticalRatio == 1 &&
-                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
-                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+            if (sof0.components[0].horizonalSamplingFactor == 2 && sof0.components[0].verticalSamplingFactor == 1 &&
+                sof0.components[1].horizonalSamplingFactor == 1 && sof0.components[1].verticalSamplingFactor == 1 &&
+                sof0.components[2].horizonalSamplingFactor == 1 && sof0.components[2].verticalSamplingFactor == 1) {
                 return YUVFormat::YUV422;
             }
-            if (sof0.components[0].samplingFactorHorizontalRatio == 2 && sof0.components[0].samplingFactorVerticalRatio == 2 &&
-                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
-                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+            if (sof0.components[0].horizonalSamplingFactor == 2 && sof0.components[0].verticalSamplingFactor == 2 &&
+                sof0.components[1].horizonalSamplingFactor == 1 && sof0.components[1].verticalSamplingFactor == 1 &&
+                sof0.components[2].horizonalSamplingFactor == 1 && sof0.components[2].verticalSamplingFactor == 1) {
                 return YUVFormat::YUV420;
             }
-            if (sof0.components[0].samplingFactorHorizontalRatio == 4 && sof0.components[0].samplingFactorVerticalRatio == 1 &&
-                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
-                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+            if (sof0.components[0].horizonalSamplingFactor == 4 && sof0.components[0].verticalSamplingFactor == 1 &&
+                sof0.components[1].horizonalSamplingFactor == 1 && sof0.components[1].verticalSamplingFactor == 1 &&
+                sof0.components[2].horizonalSamplingFactor == 1 && sof0.components[2].verticalSamplingFactor == 1) {
                 return YUVFormat::YUV411;
             }
-            if (sof0.components[0].samplingFactorHorizontalRatio == 4 && sof0.components[0].samplingFactorVerticalRatio == 4 &&
-                sof0.components[1].samplingFactorHorizontalRatio == 1 && sof0.components[1].samplingFactorVerticalRatio == 1 &&
-                sof0.components[2].samplingFactorHorizontalRatio == 1 && sof0.components[2].samplingFactorVerticalRatio == 1) {
+            if (sof0.components[0].horizonalSamplingFactor == 4 && sof0.components[0].verticalSamplingFactor == 4 &&
+                sof0.components[1].horizonalSamplingFactor == 1 && sof0.components[1].verticalSamplingFactor == 1 &&
+                sof0.components[2].horizonalSamplingFactor == 1 && sof0.components[2].verticalSamplingFactor == 1) {
                 return YUVFormat::YUV410;
             }
             return YUVFormat::UNKNOWN;

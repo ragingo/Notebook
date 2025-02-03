@@ -96,22 +96,22 @@ namespace
         double hCr = static_cast<double>(componentCr.horizontalSamplingFactor);
         double vCr = static_cast<double>(componentCr.verticalSamplingFactor);
 
-        double cbSampleRatioH = hCb / hY;
-        double cbSampleRatioV = vCb / vY;
-        double crSampleRatioH = hCr / hY;
-        double crSampleRatioV = vCr / vY;
+        double cbSampleFactorH = hCb / hY;
+        double cbSampleFactorV = vCb / vY;
+        double crSampleFactorH = hCr / hY;
+        double crSampleFactorV = vCr / vY;
 
         for (int row = 0; row < height; ++row) {
             int yOffset = row * width;
 
-            int cbRow = static_cast<int>(row * cbSampleRatioV);
-            int crRow = static_cast<int>(row * crSampleRatioV);
+            int cbRow = static_cast<int>(row * cbSampleFactorV);
+            int crRow = static_cast<int>(row * crSampleFactorV);
 
             for (int col = 0; col < width; ++col) {
                 int y = componentY.buffer[yOffset + col];
 
-                int cbCol = static_cast<int>(col * cbSampleRatioH);
-                int crCol = static_cast<int>(col * crSampleRatioH);
+                int cbCol = static_cast<int>(col * cbSampleFactorH);
+                int crCol = static_cast<int>(col * crSampleFactorH);
 
                 int cbIndex = cbRow * componentCb.width + cbCol;
                 int crIndex = crRow * componentCr.width + crCol;
@@ -119,7 +119,6 @@ namespace
                 int cb = componentCb.buffer[cbIndex];
                 int cr = componentCr.buffer[crIndex];
 
-                // 色変換
                 cb -= 128;
                 cr -= 128;
 
@@ -215,8 +214,8 @@ void JpegDecoder::decode(DecodeResult& result)
     for (const auto& component : sof0->components) {
         auto& info = componentSelector(component.id);
         // 各コンポーネントのサンプリング係数を取得
-        info.horizontalSamplingFactor = component.samplingFactorHorizontalRatio;
-        info.verticalSamplingFactor = component.samplingFactorVerticalRatio;
+        info.horizontalSamplingFactor = component.horizonalSamplingFactor;
+        info.verticalSamplingFactor = component.verticalSamplingFactor;
 
         // コンポーネントの幅と高さを計算
         info.width = (sof0->width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
@@ -248,8 +247,8 @@ void JpegDecoder::decode(DecodeResult& result)
                 auto dqt = dqts[std::to_underlying(component.tableID)];
 
                 // 1 MCU Y 16x16 Cb 8x8 Cr 8x8 を、 8x8 のブロックに分割して処理
-                for (int blockRow = 0; blockRow < component.samplingFactorVerticalRatio; ++blockRow) {
-                    for (int blockCol = 0; blockCol < component.samplingFactorHorizontalRatio; ++blockCol) {
+                for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
+                    for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
                         //std::println("MCU: ({}, {})", mcuCol, mcuRow);
                         MCUBlock8x8 block{};
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
@@ -258,8 +257,8 @@ void JpegDecoder::decode(DecodeResult& result)
                         // MCU内のブロック処理ループ内
                         for (int y = 0; y < 8; ++y) {
                             for (int x = 0; x < 8; ++x) {
-                                int cx = ((mcuCol * component.samplingFactorHorizontalRatio + blockCol) * 8) + x;
-                                int cy = ((mcuRow * component.samplingFactorVerticalRatio + blockRow) * 8) + y;
+                                int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
+                                int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
 
                                 int width = componentSelector(component.id).width;
                                 int height = componentSelector(component.id).height;

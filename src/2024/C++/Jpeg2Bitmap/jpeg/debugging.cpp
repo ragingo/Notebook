@@ -78,8 +78,8 @@ std::string to_string(const SOF0& sof0)
     for (int i = 0; i < sof0.numComponents; ++i) {
         result += std::format("  Component[{}]:\n", i);
         result += std::format("    id: 0x{:02X} ({})\n", std::to_underlying(sof0.components[i].id), NAMEOF_ENUM(sof0.components[i].id));
-        result += std::format("    samplingFactorHorizontalRatio: 0x{:02X}\n", sof0.components[i].samplingFactorHorizontalRatio);
-        result += std::format("    samplingFactorVerticalRatio: 0x{:02X}\n", sof0.components[i].samplingFactorVerticalRatio);
+        result += std::format("    horizonalSamplingFactor: 0x{:02X}\n", sof0.components[i].horizonalSamplingFactor);
+        result += std::format("    verticalSamplingFactor: 0x{:02X}\n", sof0.components[i].verticalSamplingFactor);
         result += std::format("    tableID: 0x{:02X} ({})\n", std::to_underlying(sof0.components[i].tableID), NAMEOF_ENUM(sof0.components[i].tableID));
     }
     return result;
