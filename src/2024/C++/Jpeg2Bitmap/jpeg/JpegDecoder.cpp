@@ -193,8 +193,6 @@ void JpegDecoder::decode(DecodeResult& result)
         }
     }
 
-    const auto width = sof0->width;
-    const auto height = sof0->height;
     const auto [hMaxFactor, vMaxFactor] = getMaxSamplingFactor(*sof0);
 
     ComponentInfo componentY{};
@@ -221,10 +219,8 @@ void JpegDecoder::decode(DecodeResult& result)
         info.verticalSamplingFactor = component.samplingFactorVerticalRatio;
 
         // コンポーネントの幅と高さを計算
-        int compWidth = (width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
-        int compHeight = (height * info.verticalSamplingFactor + vMaxFactor - 1) / vMaxFactor;
-        info.width = compWidth;
-        info.height = compHeight;
+        info.width = (sof0->width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
+        info.height = (sof0->height * info.verticalSamplingFactor + vMaxFactor - 1) / vMaxFactor;
 
         // バッファの初期化
         int size = info.width * info.height;
@@ -233,11 +229,11 @@ void JpegDecoder::decode(DecodeResult& result)
 
     const int mcuWidth = hMaxFactor * 8;
     const int mcuHeight = vMaxFactor * 8;
-    const int mcuHorizCount = (width + mcuWidth - 1) / mcuWidth;
-    const int mcuVertCount = (height + mcuHeight - 1) / mcuHeight;
+    const int mcuHorizCount = (sof0->width + mcuWidth - 1) / mcuWidth;
+    const int mcuVertCount = (sof0->height + mcuHeight - 1) / mcuHeight;
 
-    assert(mcuHorizCount * mcuWidth >= width);
-    assert(mcuVertCount * mcuHeight >= height);
+    assert(mcuHorizCount * mcuWidth >= sof0->width);
+    assert(mcuVertCount * mcuHeight >= sof0->height);
 
     // ファイル全体を通して更新し続ける。
     // ただし、リスタートマーカーがある場合は、この値をリセットする。
@@ -262,13 +258,13 @@ void JpegDecoder::decode(DecodeResult& result)
                         // MCU内のブロック処理ループ内
                         for (int y = 0; y < 8; ++y) {
                             for (int x = 0; x < 8; ++x) {
-                                int xInComp = ((mcuCol * component.samplingFactorHorizontalRatio + blockCol) * 8) + x;
-                                int yInComp = ((mcuRow * component.samplingFactorVerticalRatio + blockRow) * 8) + y;
+                                int cx = ((mcuCol * component.samplingFactorHorizontalRatio + blockCol) * 8) + x;
+                                int cy = ((mcuRow * component.samplingFactorVerticalRatio + blockRow) * 8) + y;
 
-                                int compWidth = componentSelector(component.id).width;
-                                int compHeight = componentSelector(component.id).height;
-                                if (xInComp < compWidth && yInComp < compHeight) {
-                                    int index = yInComp * compWidth + xInComp;
+                                int width = componentSelector(component.id).width;
+                                int height = componentSelector(component.id).height;
+                                if (cx < width && cy < height) {
+                                    int index = cy * width + cx;
                                     componentSelector(component.id).buffer[index] = blockView[y, x];
                                 }
                             }
@@ -279,21 +275,20 @@ void JpegDecoder::decode(DecodeResult& result)
         }
     }
 
-    const auto numComponents = sof0->numComponents;
-    std::vector<uint8_t> pixels(width * height * numComponents, 0);
+    std::vector<uint8_t> pixels(sof0->width * sof0->height * sof0->numComponents, 0);
 
     convertRGB(
         pixels,
-        width,
-        height,
+        sof0->width,
+        sof0->height,
         componentY,
         componentCb,
         componentCr
     );
 
     result = {
-        .width = width,
-        .height = height,
+        .width = sof0->width,
+        .height = sof0->height,
         .pixels = pixels
     };
 }
