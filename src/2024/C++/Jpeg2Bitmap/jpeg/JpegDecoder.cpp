@@ -80,6 +80,19 @@ namespace
         }
     }
 
+    constexpr std::tuple<uint8_t, uint8_t, uint8_t> yuvToRGB(int y, int cb, int cr)
+    {
+        cb -= 128;
+        cr -= 128;
+        double r = y + 1.402 * cr;
+        double g = y - 0.344136 * cb - 0.714136 * cr;
+        double b = y + 1.772 * cb;
+        r = std::clamp(r, 0.0, 255.0);
+        g = std::clamp(g, 0.0, 255.0);
+        b = std::clamp(b, 0.0, 255.0);
+        return { static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b) };
+    }
+
     void convertRGB(
         std::vector<uint8_t>& pixels,
         int width,
@@ -108,31 +121,21 @@ namespace
             int crRow = static_cast<int>(row * crSampleFactorV);
 
             for (int col = 0; col < width; ++col) {
-                int y = componentY.buffer[yOffset + col];
-
                 int cbCol = static_cast<int>(col * cbSampleFactorH);
                 int crCol = static_cast<int>(col * crSampleFactorH);
 
-                int cbIndex = cbRow * componentCb.width + cbCol;
-                int crIndex = crRow * componentCr.width + crCol;
+                int cbOffset = cbRow * componentCb.width + cbCol;
+                int crOffset = crRow * componentCr.width + crCol;
 
-                int cb = componentCb.buffer[cbIndex];
-                int cr = componentCr.buffer[crIndex];
+                int y = componentY.buffer[yOffset + col];
+                int cb = componentCb.buffer[cbOffset];
+                int cr = componentCr.buffer[crOffset];
 
-                cb -= 128;
-                cr -= 128;
+                auto [r, g, b] = yuvToRGB(y, cb, cr);
 
-                double r = y + 1.402 * cr;
-                double g = y - 0.344136 * cb - 0.714136 * cr;
-                double b = y + 1.772 * cb;
-
-                r = std::clamp(r, 0.0, 255.0);
-                g = std::clamp(g, 0.0, 255.0);
-                b = std::clamp(b, 0.0, 255.0);
-
-                pixels[(yOffset + col) * 3 + 0] = static_cast<uint8_t>(b);
-                pixels[(yOffset + col) * 3 + 1] = static_cast<uint8_t>(g);
-                pixels[(yOffset + col) * 3 + 2] = static_cast<uint8_t>(r);
+                pixels[(yOffset + col) * 3 + 0] = b;
+                pixels[(yOffset + col) * 3 + 1] = g;
+                pixels[(yOffset + col) * 3 + 2] = r;
             }
         }
     }
