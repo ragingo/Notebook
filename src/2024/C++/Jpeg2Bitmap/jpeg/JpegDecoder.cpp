@@ -4,9 +4,9 @@
 #include <memory>
 #include <nameof.hpp>
 #include <print>
-#include <unordered_map>
 #include "debugging.h"
 #include "../math/math.h"
+#include "../image/color_model.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;
@@ -80,20 +80,7 @@ namespace
         }
     }
 
-    constexpr std::tuple<uint8_t, uint8_t, uint8_t> yuvToRGB(int y, int cb, int cr)
-    {
-        cb -= 128;
-        cr -= 128;
-        double r = y + 1.402 * cr;
-        double g = y - 0.344136 * cb - 0.714136 * cr;
-        double b = y + 1.772 * cb;
-        r = std::clamp(r, 0.0, 255.0);
-        g = std::clamp(g, 0.0, 255.0);
-        b = std::clamp(b, 0.0, 255.0);
-        return { static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b) };
-    }
-
-    void convertRGB(
+    void convertColorData(
         std::vector<uint8_t>& pixels,
         int width,
         int height,
@@ -125,7 +112,7 @@ namespace
                 int cb = componentCb.buffer[cbRow + cbCol];
                 int cr = componentCr.buffer[crRow + crCol];
 
-                auto [r, g, b] = yuvToRGB(y, cb, cr);
+                auto [r, g, b] = convertYCbCrToRGB(y, cb, cr);
 
                 pixels[yOffset * 3 + 0] = b;
                 pixels[yOffset * 3 + 1] = g;
@@ -267,7 +254,7 @@ void JpegDecoder::decode(DecodeResult& result)
 
     std::vector<uint8_t> pixels(sof0->width * sof0->height * sof0->numComponents, 0);
 
-    convertRGB(
+    convertColorData(
         pixels,
         sof0->width,
         sof0->height,

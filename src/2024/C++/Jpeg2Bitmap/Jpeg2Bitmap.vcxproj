@@ -141,6 +141,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="image\color_model.h" />
     <ClInclude Include="jpeg\JpegDecoder.h" />
     <ClInclude Include="jpeg\BitStreamReader.h" />
     <ClInclude Include="jpeg\JpegParser.h" />
