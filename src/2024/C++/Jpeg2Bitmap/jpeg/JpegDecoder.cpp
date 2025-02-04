@@ -102,40 +102,34 @@ namespace
         const ComponentInfo& componentCr
     )
     {
-        double hY = static_cast<double>(componentY.horizontalSamplingFactor);
-        double vY = static_cast<double>(componentY.verticalSamplingFactor);
-        double hCb = static_cast<double>(componentCb.horizontalSamplingFactor);
-        double vCb = static_cast<double>(componentCb.verticalSamplingFactor);
-        double hCr = static_cast<double>(componentCr.horizontalSamplingFactor);
-        double vCr = static_cast<double>(componentCr.verticalSamplingFactor);
-
-        double cbSampleFactorH = hCb / hY;
-        double cbSampleFactorV = vCb / vY;
-        double crSampleFactorH = hCr / hY;
-        double crSampleFactorV = vCr / vY;
+        const double cbSampleFactorH = 
+            static_cast<double>(componentCb.horizontalSamplingFactor) / static_cast<double>(componentY.horizontalSamplingFactor);
+        const double cbSampleFactorV =
+            static_cast<double>(componentCb.verticalSamplingFactor) / static_cast<double>(componentY.verticalSamplingFactor);
+        const double crSampleFactorH =
+            static_cast<double>(componentCr.horizontalSamplingFactor) / static_cast<double>(componentY.horizontalSamplingFactor);
+        const double crSampleFactorV =
+            static_cast<double>(componentCr.verticalSamplingFactor) / static_cast<double>(componentY.verticalSamplingFactor);
 
         for (int row = 0; row < height; ++row) {
-            int yOffset = row * width;
-
-            int cbRow = static_cast<int>(row * cbSampleFactorV);
-            int crRow = static_cast<int>(row * crSampleFactorV);
+            int yRow = row * width;
+            int cbRow = static_cast<int>(row * cbSampleFactorV) * componentCb.width;
+            int crRow = static_cast<int>(row * crSampleFactorV) * componentCr.width;
 
             for (int col = 0; col < width; ++col) {
+                int yOffset = yRow + col;
                 int cbCol = static_cast<int>(col * cbSampleFactorH);
                 int crCol = static_cast<int>(col * crSampleFactorH);
 
-                int cbOffset = cbRow * componentCb.width + cbCol;
-                int crOffset = crRow * componentCr.width + crCol;
-
-                int y = componentY.buffer[yOffset + col];
-                int cb = componentCb.buffer[cbOffset];
-                int cr = componentCr.buffer[crOffset];
+                int y = componentY.buffer[yOffset];
+                int cb = componentCb.buffer[cbRow + cbCol];
+                int cr = componentCr.buffer[crRow + crCol];
 
                 auto [r, g, b] = yuvToRGB(y, cb, cr);
 
-                pixels[(yOffset + col) * 3 + 0] = b;
-                pixels[(yOffset + col) * 3 + 1] = g;
-                pixels[(yOffset + col) * 3 + 2] = r;
+                pixels[yOffset * 3 + 0] = b;
+                pixels[yOffset * 3 + 1] = g;
+                pixels[yOffset * 3 + 2] = r;
             }
         }
     }
@@ -216,17 +210,11 @@ void JpegDecoder::decode(DecodeResult& result)
 
     for (const auto& component : sof0->components) {
         auto& info = componentSelector(component.id);
-        // 各コンポーネントのサンプリング係数を取得
         info.horizontalSamplingFactor = component.horizonalSamplingFactor;
         info.verticalSamplingFactor = component.verticalSamplingFactor;
-
-        // コンポーネントの幅と高さを計算
         info.width = (sof0->width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
         info.height = (sof0->height * info.verticalSamplingFactor + vMaxFactor - 1) / vMaxFactor;
-
-        // バッファの初期化
-        int size = info.width * info.height;
-        info.buffer = std::vector<int>(size, 0);
+        info.buffer = std::vector<int>(info.width * info.height, 0);
     }
 
     const int mcuWidth = hMaxFactor * 8;
@@ -405,7 +393,7 @@ std::array<int, 64> JpegDecoder::decodeACCoeffs(HuffmanTable& table, const std::
         } else {
             k += rrrr; // ランレングス分インデックスを進める
             if (k >= 64) {
-                break; // 範囲外アクセス防止
+                break;
             }
             int coeff = decodeZZ(ssss);
             zz[k] = coeff;
