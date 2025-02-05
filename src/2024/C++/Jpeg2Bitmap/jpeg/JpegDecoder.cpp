@@ -25,6 +25,132 @@ namespace
         std::vector<int> buffer;
     };
 
+    class YCbCrComponent
+    {
+    public:
+        YCbCrComponent(const SOF0& sof0)
+        {
+            sampleWidth = sof0.width;
+            sampleHeight = sof0.height;
+
+            auto componentSelector = [&](ComponentID id) -> ComponentInfo& {
+                switch (id) {
+                case ComponentID::Y:
+                    return y;
+                case ComponentID::Cb:
+                    return cb;
+                case ComponentID::Cr:
+                    return cr;
+                default:
+                    assert(false);
+                    return y; // dummy
+                }
+                };
+
+            for (const auto& component : sof0.components) {
+                assert(component.id == ComponentID::Y || component.id == ComponentID::Cb || component.id == ComponentID::Cr);
+                auto& info = componentSelector(component.id);
+                info.horizontalSamplingFactor = component.horizonalSamplingFactor;
+                info.verticalSamplingFactor = component.verticalSamplingFactor;
+            }
+
+            for (const auto& component : sof0.components) {
+                auto& info = componentSelector(component.id);
+                const auto hMaxFactor = getMaxHorizontalSamplingFactor();
+                const auto vMaxFactor = getMaxVerticalSamplingFactor();
+                info.width = (sof0.width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
+                info.height = (sof0.height * info.verticalSamplingFactor + vMaxFactor - 1) / vMaxFactor;
+                info.buffer = std::vector<int>(info.width * info.height, 0);
+            }
+        }
+
+        inline int getMaxHorizontalSamplingFactor() const
+        {
+            return std::max({ y.horizontalSamplingFactor, cb.horizontalSamplingFactor, cr.horizontalSamplingFactor });
+        }
+
+        inline int getMaxVerticalSamplingFactor() const
+        {
+            return std::max({ y.verticalSamplingFactor, cb.verticalSamplingFactor, cr.verticalSamplingFactor });
+        }
+
+        inline int getMCUWidth() const
+        {
+            return getMaxHorizontalSamplingFactor() * 8;
+        }
+
+        inline int getMCUHeight() const
+        {
+            return getMaxVerticalSamplingFactor() * 8;
+        }
+
+        inline int getMCUHorizontalCount() const
+        {
+            return (sampleWidth + getMCUWidth() - 1) / getMCUWidth();
+        }
+
+        inline int getMCUVerticalCount() const
+        {
+            return (sampleHeight + getMCUHeight() - 1) / getMCUHeight();
+        }
+
+        inline double getCbHorizontalSamplingFactor() const
+        {
+            return static_cast<double>(cb.horizontalSamplingFactor) / static_cast<double>(y.horizontalSamplingFactor);
+        }
+
+        inline double getCbVerticalSamplingFactor() const
+        {
+            return static_cast<double>(cb.verticalSamplingFactor) / static_cast<double>(y.verticalSamplingFactor);
+        }
+
+        inline double getCrHorizontalSamplingFactor() const
+        {
+            return static_cast<double>(cr.horizontalSamplingFactor) / static_cast<double>(y.horizontalSamplingFactor);
+        }
+
+        inline double getCrVerticalSamplingFactor() const
+        {
+            return static_cast<double>(cr.verticalSamplingFactor) / static_cast<double>(y.verticalSamplingFactor);
+        }
+
+        inline const ComponentInfo& getComponent(ComponentID id) const
+        {
+            switch (id) {
+            case ComponentID::Y:
+                return y;
+            case ComponentID::Cb:
+                return cb;
+            case ComponentID::Cr:
+                return cr;
+            default:
+                assert(false);
+                return y; // dummy
+            }
+        }
+
+        inline ComponentInfo& getComponent(ComponentID id)
+        {
+            switch (id) {
+            case ComponentID::Y:
+                return y;
+            case ComponentID::Cb:
+                return cb;
+            case ComponentID::Cr:
+                return cr;
+            default:
+                assert(false);
+                return y; // dummy
+            }
+        }
+    private:
+        uint16_t sampleWidth = 0;
+        uint16_t sampleHeight = 0;
+        ComponentInfo y{};
+        ComponentInfo cb{};
+        ComponentInfo cr{};
+    };
+
     // Figure A.6 – Zig-zag sequence of quantized DCT coefficients
     constexpr MCUBlock8x8 ZIGZAG = {
          0,  1,  5,  6, 14, 15, 27, 28,
@@ -84,29 +210,22 @@ namespace
         std::vector<uint8_t>& pixels,
         int width,
         int height,
-        const ComponentInfo& componentY,
-        const ComponentInfo& componentCb,
-        const ComponentInfo& componentCr
+        const YCbCrComponent& ycc
     )
     {
-        const double cbSampleFactorH = 
-            static_cast<double>(componentCb.horizontalSamplingFactor) / static_cast<double>(componentY.horizontalSamplingFactor);
-        const double cbSampleFactorV =
-            static_cast<double>(componentCb.verticalSamplingFactor) / static_cast<double>(componentY.verticalSamplingFactor);
-        const double crSampleFactorH =
-            static_cast<double>(componentCr.horizontalSamplingFactor) / static_cast<double>(componentY.horizontalSamplingFactor);
-        const double crSampleFactorV =
-            static_cast<double>(componentCr.verticalSamplingFactor) / static_cast<double>(componentY.verticalSamplingFactor);
+        const auto componentY = ycc.getComponent(ComponentID::Y);
+        const auto componentCb = ycc.getComponent(ComponentID::Cb);
+        const auto componentCr = ycc.getComponent(ComponentID::Cr);
 
         for (int row = 0; row < height; ++row) {
             int yRow = row * width;
-            int cbRow = static_cast<int>(row * cbSampleFactorV) * componentCb.width;
-            int crRow = static_cast<int>(row * crSampleFactorV) * componentCr.width;
+            int cbRow = static_cast<int>(row * ycc.getCbVerticalSamplingFactor()) * componentCb.width;
+            int crRow = static_cast<int>(row * ycc.getCrVerticalSamplingFactor()) * componentCr.width;
 
             for (int col = 0; col < width; ++col) {
                 int yOffset = yRow + col;
-                int cbCol = static_cast<int>(col * cbSampleFactorH);
-                int crCol = static_cast<int>(col * crSampleFactorH);
+                int cbCol = static_cast<int>(col * ycc.getCbHorizontalSamplingFactor());
+                int crCol = static_cast<int>(col * ycc.getCrHorizontalSamplingFactor());
 
                 int y = componentY.buffer[yOffset];
                 int cb = componentCb.buffer[cbRow + cbCol];
@@ -176,48 +295,14 @@ void JpegDecoder::decode(DecodeResult& result)
         }
     }
 
-    const auto [hMaxFactor, vMaxFactor] = getMaxSamplingFactor(*sof0);
-
-    ComponentInfo componentY{};
-    ComponentInfo componentCb{};
-    ComponentInfo componentCr{};
-    auto componentSelector = [&](ComponentID id) -> ComponentInfo& {
-        switch (id) {
-        case ComponentID::Y:
-            return componentY;
-        case ComponentID::Cb:
-            return componentCb;
-        case ComponentID::Cr:
-            return componentCr;
-        default:
-            assert(false);
-            return componentY; // dummy
-        }
-    };
-
-    for (const auto& component : sof0->components) {
-        auto& info = componentSelector(component.id);
-        info.horizontalSamplingFactor = component.horizonalSamplingFactor;
-        info.verticalSamplingFactor = component.verticalSamplingFactor;
-        info.width = (sof0->width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
-        info.height = (sof0->height * info.verticalSamplingFactor + vMaxFactor - 1) / vMaxFactor;
-        info.buffer = std::vector<int>(info.width * info.height, 0);
-    }
-
-    const int mcuWidth = hMaxFactor * 8;
-    const int mcuHeight = vMaxFactor * 8;
-    const int mcuHorizCount = (sof0->width + mcuWidth - 1) / mcuWidth;
-    const int mcuVertCount = (sof0->height + mcuHeight - 1) / mcuHeight;
-
-    assert(mcuHorizCount * mcuWidth >= sof0->width);
-    assert(mcuVertCount * mcuHeight >= sof0->height);
+    YCbCrComponent ycc(*sof0);
 
     // ファイル全体を通して更新し続ける。
     // ただし、リスタートマーカーがある場合は、この値をリセットする。
     std::array<int, 3> dcPred = { 0, 0, 0 };
 
-    for (int mcuRow = 0; mcuRow < mcuVertCount; ++mcuRow) {
-        for (int mcuCol = 0; mcuCol < mcuHorizCount; ++mcuCol) {
+    for (int mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
+        for (int mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
             for (auto&& component : sof0->components) {
                 auto componentIndex = std::distance(sof0->components.data(), &component);
                 auto [dcTable, dcDHT] = dcTables[std::to_underlying(component.tableID)];
@@ -238,11 +323,11 @@ void JpegDecoder::decode(DecodeResult& result)
                                 int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
                                 int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
 
-                                int width = componentSelector(component.id).width;
-                                int height = componentSelector(component.id).height;
+                                int width = ycc.getComponent(component.id).width;
+                                int height = ycc.getComponent(component.id).height;
                                 if (cx < width && cy < height) {
                                     int index = cy * width + cx;
-                                    componentSelector(component.id).buffer[index] = blockView[y, x];
+                                    ycc.getComponent(component.id).buffer[index] = blockView[y, x];
                                 }
                             }
                         }
@@ -254,14 +339,7 @@ void JpegDecoder::decode(DecodeResult& result)
 
     std::vector<uint8_t> pixels(sof0->width * sof0->height * sof0->numComponents, 0);
 
-    convertColorData(
-        pixels,
-        sof0->width,
-        sof0->height,
-        componentY,
-        componentCb,
-        componentCr
-    );
+    convertColorData(pixels, sof0->width, sof0->height, ycc);
 
     result = {
         .width = sof0->width,
