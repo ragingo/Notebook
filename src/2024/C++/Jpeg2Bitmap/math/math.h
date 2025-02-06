@@ -1,6 +1,5 @@
 #pragma once
 #include <array>
-#include <cmath>
 #include <concepts>
 #include <mdspan>
 #include <numbers>
@@ -13,7 +12,6 @@ namespace math
         int N,
         typename Extents = std::extents<int, M, N>,
         typename InOut = std::array<ElementType, M * N>,
-        typename InputView = std::mdspan<const ElementType, Extents>,
         typename OutputView = std::mdspan<ElementType, Extents>
     >
     inline void idct(const InOut& input, InOut& output)
@@ -24,7 +22,6 @@ namespace math
         const double cv1 = std::sqrt(2.0 / N);
         double pi = std::numbers::pi;
 
-        auto input_view = InputView(input.data(), M, N);
         auto output_view = OutputView(output.data(), M, N);
 
         for (int y = 0; y < N; ++y) {
@@ -36,7 +33,8 @@ namespace math
                         double cosv = std::cos((2 * y + 1) * v * pi / (2 * N));
                         double cu = (u == 0) ? cu0 : cu1;
                         double cv = (v == 0) ? cv0 : cv1;
-                        sum += static_cast<double>(input_view[v, u]) * cosu * cosv * cu * cv;
+                        int offset = v * N + u;
+                        sum += static_cast<double>(input[offset]) * cosu * cosv * cu * cv;
                     }
                 }
                 output_view[y, x] = static_cast<ElementType>(sum);
