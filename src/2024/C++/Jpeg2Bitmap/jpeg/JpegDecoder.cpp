@@ -25,10 +25,10 @@ namespace
         std::vector<int> buffer;
     };
 
-    class YCbCrComponent
+    class YCbCrComponents
     {
     public:
-        YCbCrComponent(const SOF0& sof0)
+        YCbCrComponents(const SOF0& sof0)
         {
             sampleWidth = sof0.width;
             sampleHeight = sof0.height;
@@ -210,7 +210,7 @@ namespace
         std::vector<uint8_t>& pixels,
         int width,
         int height,
-        const YCbCrComponent& ycc
+        const YCbCrComponents& ycc
     )
     {
         const auto componentY = ycc.getComponent(ComponentID::Y);
@@ -295,7 +295,7 @@ void JpegDecoder::decode(DecodeResult& result)
         }
     }
 
-    YCbCrComponent ycc(*sof0);
+    YCbCrComponents ycc(*sof0);
 
     // ファイル全体を通して更新し続ける。
     // ただし、リスタートマーカーがある場合は、この値をリセットする。
