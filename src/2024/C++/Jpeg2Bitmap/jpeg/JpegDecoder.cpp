@@ -1,4 +1,5 @@
 ﻿#include "JpegDecoder.h"
+#include <immintrin.h>
 #include <cassert>
 #include <mdspan>
 #include <memory>
@@ -7,6 +8,7 @@
 #include "debugging.h"
 #include "../math/math.h"
 #include "../image/color_model.h"
+#include "../simd/simd.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;
@@ -199,10 +201,17 @@ namespace
         block.swap(temp);
     }
 
-    constexpr void levelShift(MCUBlock8x8& zz)
+    inline void levelShift(MCUBlock8x8& zz)
     {
-        for (int i = 0; i < zz.size(); ++i) {
-            zz[i] = std::clamp(zz[i] + 128, 0, 255);
+        static __m256i _128 = _mm256_set1_epi32(128);
+        static __m256i _0 = _mm256_setzero_si256();
+        static __m256i _255 = _mm256_set1_epi32(255);
+
+        for (int i = 0; i < zz.size(); i += 8) {
+            __m256i v = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&zz[i]));
+            v = _mm256_add_epi32(v, _128);
+            simd::clamp256_i32(v, _0, _255);
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(&zz[i]), v);
         }
     }
 

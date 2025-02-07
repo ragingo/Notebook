@@ -149,6 +149,7 @@
     <ClInclude Include="jpeg\markers.h" />
     <ClInclude Include="jpeg\segments.h" />
     <ClInclude Include="math\math.h" />
+    <ClInclude Include="simd\simd.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />
