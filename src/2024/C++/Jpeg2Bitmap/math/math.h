@@ -5,6 +5,9 @@
 
 namespace math
 {
+    inline constexpr double pi = std::numbers::pi;
+    inline constexpr double sqrt8 = 2.0 * std::numbers::sqrt2;
+
     template<
         std::integral ElementType = int,
         typename InOut = std::array<ElementType, 8 * 8>
@@ -12,11 +15,8 @@ namespace math
     inline void idct(const InOut& input, InOut& output)
     {
         constexpr int N = 8;
-        constexpr double sqrt2 = std::numbers::sqrt2;
-        constexpr double pi = std::numbers::pi;
-        constexpr double sqrt8 = 2.0 * sqrt2;
         constexpr double c0 = 1.0 / sqrt8;
-        const double c1 = std::sqrt(2.0 / N);
+        constexpr double c1 = 0.5; //std::sqrt(2.0 / N);
 
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
