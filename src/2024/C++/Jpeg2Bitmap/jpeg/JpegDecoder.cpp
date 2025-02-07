@@ -513,7 +513,7 @@ void JpegDecoder::decodeBlock(
     //debugging::dumpBlock(" reorder", block);
 
     MCUBlock8x8 temp = block;
-    math::idct<int, 8, 8>(block, temp);
+    math::idct(block, temp);
     block = temp;
     //debugging::dumpBlock(" idct", block);
 
