@@ -126,7 +126,7 @@ namespace jpeg::segments {
         using Bits8Table = std::array<uint8_t, 64>;
         using Bits16Table = std::array<uint16_t, 64>;
         // Qk: Quantization table element
-        std::variant<Bits8Table, Bits16Table> table;
+        std::variant<Bits8Table, Bits16Table> table{};
     };
 
     // B.2.2 Frame header syntax
@@ -156,7 +156,7 @@ namespace jpeg::segments {
             QuantizationTableID tableID{};
         };
         // Component-specification parameters
-        std::vector<Component> components;
+        std::vector<Component> components{};
     };
 
     // B.2.4.2 Huffman table-specification syntax
@@ -176,10 +176,10 @@ namespace jpeg::segments {
         HuffmanTableID tableID : 4{};
         // Li: Number of Huffman codes of length i
         // BITS の要素が Li
-        std::array<uint8_t, 16> counts;
+        std::array<uint8_t, 16> counts{};
         // Vi,j: Value associated with each Huffman code
         // HUFFVAL の要素が Vi,j
-        std::vector<uint8_t> symbols;
+        std::vector<uint8_t> symbols{};
     };
 
     // B.2.3 Scan header syntax
@@ -200,7 +200,7 @@ namespace jpeg::segments {
             HuffmanTableID acSelector : 4{};
         };
         // Scan component-specification parameters
-        std::vector<Component> components;
+        std::vector<Component> components{};
 
         // Ss: Start of spectral or predictor selection
         uint8_t spectralSelectionStart = 0;
