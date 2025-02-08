@@ -88,21 +88,21 @@ namespace jpeg::segments {
         };
 
         // length
-        uint16_t length;
+        uint16_t length = 0;
         // identifier
         std::array<char, 5> identifier;
         // version
-        Version version;
+        Version version{};
         // units
-        Units units;
+        Units units{};
         // Xdensity
-        uint16_t xDensity;
+        uint16_t xDensity = 0;
         // Ydensity
-        uint16_t yDensity;
+        uint16_t yDensity = 0;
         // Xthumbnail
-        uint8_t thumbnailWidth;
+        uint8_t thumbnailWidth = 0;
         // Ythumbnail
-        uint8_t thumbnailHeight;
+        uint8_t thumbnailHeight = 0;
 
         // TODO: thumbnail (RGB 24bit, Xthumbnail * Ythumbnail * 3 pixels)
     };
@@ -117,11 +117,11 @@ namespace jpeg::segments {
         };
 
         // Lq: Quantization table definition length
-        uint16_t length;
+        uint16_t length = 0;
         // Pq: Quantization table element precision
-        Precision precision : 4;
+        Precision precision : 4{};
         // Tq: Quantization table destination identifier
-        QuantizationTableID tableID : 4;
+        QuantizationTableID tableID : 4{};
 
         using Bits8Table = std::array<uint8_t, 64>;
         using Bits16Table = std::array<uint16_t, 64>;
@@ -134,26 +134,26 @@ namespace jpeg::segments {
     struct SOF0 : public Segment
     {
         // Lf: Frame header length
-        uint16_t length;
+        uint16_t length = 0;
         // P: Sample precision
-        uint8_t precision;
+        uint8_t precision = 0;
         // Y: Number of lines
-        uint16_t height;
+        uint16_t height = 0;
         // X: Number of samples per line
-        uint16_t width;
+        uint16_t width = 0;
         // Nf: Number of image components in frame
-        uint8_t numComponents;
+        uint8_t numComponents = 0;
 
         struct Component
         {
             // Ci: Component identifier
-            ComponentID id;
+            ComponentID id{};
             // Hi: Horizontal sampling factor
-            uint8_t horizonalSamplingFactor : 4;
+            uint8_t horizonalSamplingFactor : 4{};
             // Vi: Vertical sampling factor
-            uint8_t verticalSamplingFactor : 4;
+            uint8_t verticalSamplingFactor : 4{};
             // Tqi: Quantization table destination selector
-            QuantizationTableID tableID;
+            QuantizationTableID tableID{};
         };
         // Component-specification parameters
         std::vector<Component> components;
@@ -169,11 +169,11 @@ namespace jpeg::segments {
         };
 
         // Lh: Huffman table definition length
-        uint16_t length;
+        uint16_t length = 0;
         // Tc: Table class
-        TableClass tableClass : 4;
+        TableClass tableClass : 4{};
         // Th: Huffman table destination identifier
-        HuffmanTableID tableID : 4;
+        HuffmanTableID tableID : 4{};
         // Li: Number of Huffman codes of length i
         // BITS の要素が Li
         std::array<uint8_t, 16> counts;
@@ -193,21 +193,21 @@ namespace jpeg::segments {
         struct Component
         {
             // Csj: Scan component selector
-            ComponentID componentSelector;
+            ComponentID componentSelector{};
             // Tdj: DC entropy coding table destination selector
-            HuffmanTableID dcSelector : 4;
+            HuffmanTableID dcSelector : 4{};
             // Taj: AC entropy coding table destination selector
-            HuffmanTableID acSelector : 4;
+            HuffmanTableID acSelector : 4{};
         };
         // Scan component-specification parameters
         std::vector<Component> components;
 
         // Ss: Start of spectral or predictor selection
-        uint8_t spectralSelectionStart;
+        uint8_t spectralSelectionStart = 0;
         // Se: End of spectral selection
-        uint8_t spectralSelectionEnd;
+        uint8_t spectralSelectionEnd = 0;
         // Ah: Successive approximation bit position high
-        uint8_t successiveApproximation;
+        uint8_t successiveApproximation = 0;
     };
 
     // End of Image
