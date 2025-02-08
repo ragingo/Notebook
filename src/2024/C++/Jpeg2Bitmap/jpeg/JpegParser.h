@@ -29,6 +29,7 @@ private:
     void parseDHT();
     void parseSOS();
     void parseECS();
+    void parseDRI();
 
     void parseAPP1();
     void parseAPP13();

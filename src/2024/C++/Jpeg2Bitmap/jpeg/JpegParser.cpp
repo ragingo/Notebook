@@ -56,6 +56,9 @@ void JpegParser::parse()
         case SOS:
             parseSOS();
             break;
+        case DRI:
+            parseDRI();
+            break;
         case APP1:
             parseAPP1();
             break;
@@ -271,6 +274,19 @@ void JpegParser::parseEOI()
     auto eoi = EOI{};
     eoi.marker = Marker::EOI;
     m_Segments.emplace_back(std::make_shared<EOI>(eoi));
+}
+
+void JpegParser::parseDRI()
+{
+    auto dri = DRI{};
+    dri.marker = Marker::DRI;
+    m_FileReader.ReadUInt16(dri.length);
+    int remain = dri.length - sizeof(dri.length);
+    if (remain >= sizeof(dri.restartInterval)) {
+        m_FileReader.ReadUInt16(dri.restartInterval);
+        remain -= sizeof(dri.restartInterval);
+    }
+    m_Segments.emplace_back(std::make_shared<DRI>(dri));
 }
 
 void JpegParser::parseAPP1()
