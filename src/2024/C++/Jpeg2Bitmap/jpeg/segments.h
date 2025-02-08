@@ -215,6 +215,21 @@ namespace jpeg::segments {
     // MotionJPEG では、連続する JPEG 画像の区切りを示すために使用される。
     struct EOI : public Segment {};
 
+    struct APP1 : public Segment
+    {
+        uint16_t length = 0;
+    };
+
+    struct APP13 : public Segment
+    {
+        uint16_t length = 0;
+    };
+
+    struct APP14 : public Segment
+    {
+        uint16_t length = 0;
+    };
+
     template<typename T>
         requires std::derived_from<T, Segment>
     inline T* segment_cast(Segment* segment) noexcept

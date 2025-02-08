@@ -152,6 +152,33 @@ std::string to_string(const EOI& eoi)
     return result;
 }
 
+std::string to_string(const APP1& app1)
+{
+    std::string result;
+    result += "APP1\n";
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(app1.marker));
+    result += std::format("  length: 0x{:04X}\n", app1.length);
+    return result;
+}
+
+std::string to_string(const APP13& app13)
+{
+    std::string result;
+    result += "APP13\n";
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(app13.marker));
+    result += std::format("  length: 0x{:04X}\n", app13.length);
+    return result;
+}
+
+std::string to_string(const APP14& app14)
+{
+    std::string result;
+    result += "APP14\n";
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(app14.marker));
+    result += std::format("  length: 0x{:04X}\n", app14.length);
+    return result;
+}
+
 void dumpSummary(
     std::vector<Marker> markers,
     std::vector<std::shared_ptr<Segment>> segments
@@ -179,6 +206,15 @@ void dumpSummary(
             break;
         case Marker::EOI:
             std::cout << to_string(*segment_cast<EOI>(segment)) << std::endl;
+            break;
+        case Marker::APP1:
+            std::cout << to_string(*segment_cast<APP1>(segment)) << std::endl;
+            break;
+        case Marker::APP13:
+            std::cout << to_string(*segment_cast<APP13>(segment)) << std::endl;
+            break;
+        case Marker::APP14:
+            std::cout << to_string(*segment_cast<APP14>(segment)) << std::endl;
             break;
         default:
             std::cout << "Unknown marker: 0x" << std::format("{:02X}", std::to_underlying(segment->marker)) << std::endl;

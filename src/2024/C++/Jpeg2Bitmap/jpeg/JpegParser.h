@@ -30,6 +30,10 @@ private:
     void parseSOS();
     void parseECS();
 
+    void parseAPP1();
+    void parseAPP13();
+    void parseAPP14();
+
 private:
     BinaryFileReader m_FileReader;
     std::vector<Marker> m_Markers;

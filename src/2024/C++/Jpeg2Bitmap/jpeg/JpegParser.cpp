@@ -24,7 +24,7 @@ JpegParser::~JpegParser()
 
 void JpegParser::parse()
 {
-    Marker marker;
+    Marker marker{};
     m_FileReader.ReadUInt16(marker);
     m_Markers.push_back(marker);
 
@@ -33,31 +33,55 @@ void JpegParser::parse()
     }
 
     while (true) {
+        using enum Marker;
         switch (marker) {
-        case Marker::SOI:
+        case SOI:
             parseSOI();
             break;
-        case Marker::APP0:
+        case APP0:
             parseAPP0();
             break;
-        case Marker::DQT:
+        case DQT:
             parseDQT();
             break;
-        case Marker::SOF0:
+        case SOF0:
             parseSOF0();
             break;
-        case Marker::EOI:
+        case EOI:
             parseEOI();
             return;
-        case Marker::DHT:
+        case DHT:
             parseDHT();
             break;
-        case Marker::SOS:
+        case SOS:
             parseSOS();
             break;
+        case APP1:
+            parseAPP1();
+            break;
+        case APP13:
+            parseAPP13();
+            break;
+        case APP14:
+            parseAPP14();
+            break;
+        case APP2:
+        case APP3:
+        case APP4:
+        case APP5:
+        case APP6:
+        case APP7:
+        case APP8:
+        case APP9:
+        case APP10:
+        case APP11:
+        case APP12:
+        case APP15:
+            std::println("Unsupported marker: 0x{:02X}", static_cast<uint16_t>(marker));
+            break; // 無視
         default:
             std::println("Unknown marker: 0x{:02X}", static_cast<uint16_t>(marker));
-            return;
+            return; // 中断
         }
         m_FileReader.ReadUInt16(marker);
         m_Markers.push_back(marker);
@@ -111,7 +135,7 @@ void JpegParser::parseDQT()
 
     int remain = dqt.length - sizeof(dqt.length);
     if (remain >= 1) {
-        uint8_t value;
+        uint8_t value = 0;
         m_FileReader.ReadUInt8(value);
         dqt.precision = static_cast<DQT::Precision>(value >> 4);
         dqt.tableID = static_cast<QuantizationTableID>(value & 0x0F);
@@ -177,7 +201,7 @@ void JpegParser::parseDHT()
 
     int remain = dht.length - sizeof(dht.length);
     if (remain >= 1) {
-        uint8_t value;
+        uint8_t value = 0;
         m_FileReader.ReadUInt8(value);
         dht.tableClass = static_cast<DHT::TableClass>(value >> 4);
         dht.tableID = static_cast<HuffmanTableID>(value & 0xFF);
@@ -229,7 +253,7 @@ void JpegParser::parseECS()
     m_FileReader.Seek(-2, BinaryFileReader::SeekOrigin::End);
     auto end_pos = m_FileReader.GetCurrentPosition();
 
-    Marker marker;
+    Marker marker{};
     m_FileReader.ReadUInt16(marker);
 
     if (marker != Marker::EOI) {
@@ -247,4 +271,37 @@ void JpegParser::parseEOI()
     auto eoi = EOI{};
     eoi.marker = Marker::EOI;
     m_Segments.emplace_back(std::make_shared<EOI>(eoi));
+}
+
+void JpegParser::parseAPP1()
+{
+    auto app1 = APP1{};
+    app1.marker = Marker::APP1;
+    m_FileReader.ReadUInt16(app1.length);
+    m_Segments.emplace_back(std::make_shared<APP1>(app1));
+
+    int remain = app1.length - sizeof(app1.length);
+    m_FileReader.Seek(remain, BinaryFileReader::SeekOrigin::Current); // 捨てる
+}
+
+void JpegParser::parseAPP13()
+{
+    auto app13 = APP13{};
+    app13.marker = Marker::APP13;
+    m_FileReader.ReadUInt16(app13.length);
+    m_Segments.emplace_back(std::make_shared<APP13>(app13));
+
+    int remain = app13.length - sizeof(app13.length);
+    m_FileReader.Seek(remain, BinaryFileReader::SeekOrigin::Current); // 捨てる
+}
+
+void JpegParser::parseAPP14()
+{
+    auto app14 = APP14{};
+    app14.marker = Marker::APP14;
+    m_FileReader.ReadUInt16(app14.length);
+    m_Segments.emplace_back(std::make_shared<APP14>(app14));
+
+    int remain = app14.length - sizeof(app14.length);
+    m_FileReader.Seek(remain, BinaryFileReader::SeekOrigin::Current); // 捨てる
 }
