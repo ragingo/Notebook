@@ -147,24 +147,37 @@ void JpegParser::parseDQT()
 
     switch (dqt.precision) {
     case DQT::Precision::BITS_8:
-        if (int size = sizeof(std::get<DQT::Bits8Table>(dqt.table)); remain >= size)
-        {
+        if (int size = sizeof(std::get<DQT::Bits8Table>(dqt.table)); remain >= size) {
             m_FileReader.ReadBytes(std::get<DQT::Bits8Table>(dqt.table));
             remain -= size;
         }
+        m_Segments.emplace_back(std::make_shared<DQT>(dqt));
 
+        // Luminance と Chrominance の情報が 1つの DQT にまとめられている場合を考慮
+        if (remain >= 1) {
+            uint8_t value = 0;
+            m_FileReader.ReadUInt8(value);
+            dqt.precision = static_cast<DQT::Precision>(value >> 4);
+            dqt.tableID = static_cast<QuantizationTableID>(value & 0x0F);
+            remain--;
+        }
+
+        if (int size = sizeof(std::get<DQT::Bits8Table>(dqt.table)); remain >= size) {
+            m_FileReader.ReadBytes(std::get<DQT::Bits8Table>(dqt.table));
+            remain -= size;
+        }
+        m_Segments.emplace_back(std::make_shared<DQT>(dqt));
         break;
     case DQT::Precision::BITS_16:
         if (int size = sizeof(std::get<DQT::Bits16Table>(dqt.table)); remain >= size) {
             m_FileReader.ReadBytes(std::get<DQT::Bits16Table>(dqt.table));
             remain -= size;
         }
+        m_Segments.emplace_back(std::make_shared<DQT>(dqt));
         break;
     default:
         break;
     }
-
-    m_Segments.emplace_back(std::make_shared<DQT>(dqt));
 }
 
 void JpegParser::parseSOF0()
