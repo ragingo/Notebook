@@ -1,8 +1,14 @@
 ﻿#include "JpegParser.h"
 
 #include <cstdint>
+#include <memory>
 #include <print>
+#include <stdexcept>
+#include <variant>
 #include <vector>
+#include "../BinaryFileReader.h"
+#include "markers.h"
+#include "segments.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;

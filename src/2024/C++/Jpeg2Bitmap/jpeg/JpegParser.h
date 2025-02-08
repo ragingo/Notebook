@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include "markers.h"
 #include "segments.h"
 #include "../BinaryFileReader.h"
 
