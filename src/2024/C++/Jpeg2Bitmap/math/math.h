@@ -65,6 +65,35 @@ namespace math
     }
     static_assert(__idct_cos_tbl().size() == 8 * 8);
 
+    template<int N = 8>
+    inline constexpr std::array<double, N * N> __idct_internal()
+    {
+        std::array<double, N * N> tbl{};
+
+        double c0 = 1.0 / sqrt8;
+        double c1 = 0.5; //std::sqrt(2.0 / N);
+        auto cos_tbl = __idct_cos_tbl<N>();
+
+        for (int y = 0; y < N; ++y) {
+            for (int x = 0; x < N; ++x) {
+                for (int v = 0; v < N; ++v) {
+                    double cosv = cos_tbl[y * N + v];
+                    double cv = ((v == 0) ? c0 : c1) * cosv;
+                    tbl[y * N + v] = cv;
+
+                    for (int u = 0; u < N; ++u) {
+                        double cosu = cos_tbl[x * N + u];
+                        double cu = ((u == 0) ? c0 : c1) * cosu;
+                        tbl[x * N + u] = cu;
+                    }
+                }
+            }
+        }
+
+        return tbl;
+    }
+    static_assert(__idct_internal().size() == 8 * 8);
+
     template<
         int N = 8,
         std::integral ElementType = int,
@@ -72,27 +101,20 @@ namespace math
     >
     inline void idct(const InOut& input, InOut& output)
     {
-        constexpr double c0 = 1.0 / sqrt8;
-        constexpr double c1 = 0.5; //std::sqrt(2.0 / N);
-        constexpr auto tbl = __idct_cos_tbl<N>();
+        constexpr auto tbl = __idct_internal<N>();
 
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
                 double sum = 0.0;
                 for (int v = 0; v < N; ++v) {
-                    double cosv = tbl[y * N + v];
-                    double cv = ((v == 0) ? c0 : c1) * cosv;
-
+                    double cv = tbl[y * N + v];
                     for (int u = 0; u < N; ++u) {
-                        double cosu = tbl[x * N + u];
-                        double cu = ((u == 0) ? c0 : c1) * cosu;
-
-                        int offset = v * N + u;
-                        sum += static_cast<double>(input[offset]) * cu * cv;
+                        double src = static_cast<double>(input[v * N + u]);
+                        double cu = tbl[x * N + u];
+                        sum += src * cv * cu;
                     }
                 }
-                int offset = y * N + x;
-                output[offset] = static_cast<ElementType>(sum);
+                output[y * N + x] = static_cast<ElementType>(sum);
             }
         }
     }
