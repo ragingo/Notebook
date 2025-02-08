@@ -25,8 +25,7 @@ namespace math
     static_assert(abs(deg2rad(45) - (pi / 4)) <= std::numeric_limits<double>::epsilon());
     static_assert(abs(deg2rad(180) - pi) <= std::numeric_limits<double>::epsilon());
 
-    template<double x, int max = 10>
-    inline constexpr double sin()
+    inline constexpr double sin(double x, int max = 10)
     {
         double y = std::clamp(x, -2.0 * pi, 2.0 * pi);
         double sum = y;
@@ -37,36 +36,55 @@ namespace math
         }
         return sum;
     }
-    constexpr double __sin45 = sin<deg2rad(45)>();
+    constexpr double __sin45 = sin(deg2rad(45));
     static_assert(abs(__sin45 - (1.0 / sqrt2)) <= std::numeric_limits<double>::epsilon());
 
-    template<double x, int max = 10>
-    inline constexpr double cos()
+    inline constexpr double cos(double x, int max = 10)
     {
-        return sin<pi / 2.0 - x, max>();
+        return sin(pi / 2.0 - x, max);
     }
-    constexpr double __cos45 = cos<deg2rad(45)>();
+    constexpr double __cos45 = cos(deg2rad(45));
     static_assert(abs(__cos45 - (1.0 / sqrt2)) <= std::numeric_limits<double>::epsilon());
 
+    template<int N = 8>
+    inline constexpr double __idct_cos(int a, int b)
+    {
+        return cos((2 * a + 1) * b * pi / (2 * N));
+    }
+
+    template<int N = 8>
+    inline constexpr std::array<double, N * N> __idct_cos_tbl()
+    {
+        std::array<double, N * N> tbl{};
+        for (int y = 0; y < N; ++y) {
+            for (int x = 0; x < N; ++x) {
+                tbl[y * N + x] = __idct_cos<N>(y, x);
+            }
+        }
+        return tbl;
+    }
+    static_assert(__idct_cos_tbl().size() == 8 * 8);
+
     template<
+        int N = 8,
         std::integral ElementType = int,
-        typename InOut = std::array<ElementType, 8 * 8>
+        typename InOut = std::array<ElementType, N * N>
     >
     inline void idct(const InOut& input, InOut& output)
     {
-        constexpr int N = 8;
         constexpr double c0 = 1.0 / sqrt8;
         constexpr double c1 = 0.5; //std::sqrt(2.0 / N);
+        constexpr auto tbl = __idct_cos_tbl<N>();
 
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
                 double sum = 0.0;
                 for (int v = 0; v < N; ++v) {
-                    double cosv = std::cos((2 * y + 1) * v * pi / (2 * N));
+                    double cosv = tbl[y * N + v];
                     double cv = ((v == 0) ? c0 : c1) * cosv;
 
                     for (int u = 0; u < N; ++u) {
-                        double cosu = std::cos((2 * x + 1) * u * pi / (2 * N));
+                        double cosu = tbl[x * N + u];
                         double cu = ((u == 0) ? c0 : c1) * cosu;
 
                         int offset = v * N + u;
