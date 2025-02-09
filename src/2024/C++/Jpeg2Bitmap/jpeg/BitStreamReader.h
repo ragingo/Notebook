@@ -16,6 +16,7 @@ namespace jpeg {
 
         int receive(int ssss);
         uint8_t getNextBit();
+        uint8_t nextByte();
 
     private:
         std::vector<uint8_t> m_Stream;
