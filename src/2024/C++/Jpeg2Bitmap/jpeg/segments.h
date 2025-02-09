@@ -219,6 +219,15 @@ namespace jpeg::segments {
         uint16_t restartInterval = 0;
     };
 
+    // B.2.5 Define number of lines
+    struct DNL : public Segment
+    {
+        // Ld: Define number of lines segment length
+        uint16_t length = 0;
+        // NL: Number of lines
+        uint16_t lines = 0;
+    };
+
     // End of Image
     // EOI マーカーは、JPEG ファイルの終了を示す。
     // MotionJPEG では、連続する JPEG 画像の区切りを示すために使用される。
