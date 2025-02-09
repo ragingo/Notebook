@@ -314,6 +314,13 @@ void JpegDecoder::decode(DecodeResult& result)
 
     for (int mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
         for (int mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
+            // 雑に最後をスキップしてみる
+            // これにより "Restart marker not found" のエラーは回避できるが、
+            // 右下角の画素が緑色になっている。
+            if (mcuRow == ycc.getMCUVerticalCount() - 1 && mcuCol == ycc.getMCUHorizontalCount() - 1) {
+                break;
+            }
+
             int mcuCount = (mcuRow * ycc.getMCUHorizontalCount() + mcuCol) + 1;
 
             // DRI で指定された間隔でリスタートマーカーがある場合、 dcPred をリセット
@@ -336,25 +343,45 @@ void JpegDecoder::decode(DecodeResult& result)
                 auto [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
                 auto dqt = dqts[std::to_underlying(component.tableID)];
 
+                // 4:4:4 の場合、1 MCU Y 8x8 Cb 8x8 Cr 8x8 で処理
+                if (getYUVFormat(*sof0) == YUVFormat::YUV444) {
+                    MCUBlock8x8 block{};
+                    decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
+                    std::mdspan<int, std::extents<int, 8, 8>> blockView(block.data(), 8, 8);
+                    for (int y = 0; y < 8; ++y) {
+                        for (int x = 0; x < 8; ++x) {
+                            int cx = (mcuCol * 8) + x;
+                            int cy = (mcuRow * 8) + y;
+                            int width = ycc.getComponent(component.id).width;
+                            int height = ycc.getComponent(component.id).height;
+                            if (cx < width && cy < height) {
+                                int index = cy * width + cx;
+                                ycc.getComponent(component.id).buffer[index] = blockView[y, x];
+                            }
+                        }
+                    }
+                }
+
                 // 4:2:0 の場合、1 MCU Y 16x16 Cb 8x8 Cr 8x8 を、 8x8 のブロックに分割して処理
-                for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
-                    for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
-                        //std::println("MCU: ({}, {})", mcuCol, mcuRow);
-                        MCUBlock8x8 block{};
-                        decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
-                        std::mdspan<int, std::extents<int, 8, 8>> blockView(block.data(), 8, 8);
+                if (getYUVFormat(*sof0) == YUVFormat::YUV420) {
+                    for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
+                        for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
+                            MCUBlock8x8 block{};
+                            decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
+                            std::mdspan<int, std::extents<int, 8, 8>> blockView(block.data(), 8, 8);
 
-                        // MCU内のブロック処理ループ内
-                        for (int y = 0; y < 8; ++y) {
-                            for (int x = 0; x < 8; ++x) {
-                                int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
-                                int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
+                            // MCU内のブロック処理ループ内
+                            for (int y = 0; y < 8; ++y) {
+                                for (int x = 0; x < 8; ++x) {
+                                    int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
+                                    int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
 
-                                int width = ycc.getComponent(component.id).width;
-                                int height = ycc.getComponent(component.id).height;
-                                if (cx < width && cy < height) {
-                                    int index = cy * width + cx;
-                                    ycc.getComponent(component.id).buffer[index] = blockView[y, x];
+                                    int width = ycc.getComponent(component.id).width;
+                                    int height = ycc.getComponent(component.id).height;
+                                    if (cx < width && cy < height) {
+                                        int index = cy * width + cx;
+                                        ycc.getComponent(component.id).buffer[index] = blockView[y, x];
+                                    }
                                 }
                             }
                         }
