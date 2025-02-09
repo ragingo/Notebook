@@ -273,21 +273,23 @@ void JpegDecoder::decode(DecodeResult& result)
     assert(sof0);
     auto dqts = findSegments<DQT>(m_Parser.getSegments());
     assert(!dqts.empty());
+    auto dri = findFirstSegment<DRI>(m_Parser.getSegments());
+    assert(dri);
 
     if (auto colorSpace = getColorSpace(*sof0); colorSpace != ColorSpace::YCbCr) {
         std::println("Unsupported color space: {}", NAMEOF_ENUM(colorSpace));
         return;
     }
 
-    if (!isInterleaved(*sof0)) {
-        std::println("Unsupported non-interleaved MCU");
-        return;
-    }
+    //if (!isInterleaved(*sof0)) {
+    //    std::println("Unsupported non-interleaved MCU");
+    //    return;
+    //}
 
-    if (auto format = getYUVFormat(*sof0); format != YUVFormat::YUV420) {
-        std::println("Unsupported YUV format: {}", NAMEOF_ENUM(format));
-        return;
-    }
+    //if (auto format = getYUVFormat(*sof0); format != YUVFormat::YUV420) {
+    //    std::println("Unsupported YUV format: {}", NAMEOF_ENUM(format));
+    //    return;
+    //}
 
     m_BitStreamReader = std::make_unique<BitStreamReader>(m_Parser.getECS());
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> dcTables(4);
@@ -305,13 +307,29 @@ void JpegDecoder::decode(DecodeResult& result)
     }
 
     YCbCrComponents ycc(*sof0);
+    std::println("MCU: {}x{}", ycc.getMCUHorizontalCount(), ycc.getMCUVerticalCount());
 
-    // ファイル全体を通して更新し続ける。
-    // ただし、リスタートマーカーがある場合は、この値をリセットする。
+    // ファイル全体を通して更新し続ける
     std::array<int, 3> dcPred = { 0, 0, 0 };
 
     for (int mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
         for (int mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
+            int mcuCount = (mcuRow * ycc.getMCUHorizontalCount() + mcuCol) + 1;
+
+            // DRI で指定された間隔でリスタートマーカーがある場合、 dcPred をリセット
+            if (mcuCount % dri->restartInterval == 0) {
+                if (m_BitStreamReader->nextByte() != 0xFF) {
+                    std::println("Restart marker not found");
+                    return;
+                }
+                uint8_t marker = m_BitStreamReader->nextByte();
+                if (marker < 0xD0 || marker > 0xD7) {
+                    std::println("Invalid restart marker: 0xFF{:02X}", marker);
+                    return;
+                }
+                dcPred = { 0, 0, 0 };
+            }
+
             for (auto&& component : sof0->components) {
                 auto componentIndex = std::distance(sof0->components.data(), &component);
                 auto [dcTable, dcDHT] = dcTables[std::to_underlying(component.tableID)];
