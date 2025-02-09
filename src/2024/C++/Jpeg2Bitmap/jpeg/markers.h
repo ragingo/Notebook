@@ -52,9 +52,18 @@ namespace jpeg {
         SOF14 = 0xFFCE,
         // Differential lossless, arithmetic
         SOF15 = 0xFFCF,
+        DNL = 0xFFDC,
         DRI = 0xFFDD,
         SOS = 0xFFDA,
         EOI = 0xFFD9,
+        RST0 = 0xFFD0,
+        RST1 = 0xFFD1,
+        RST2 = 0xFFD2,
+        RST3 = 0xFFD3,
+        RST4 = 0xFFD4,
+        RST5 = 0xFFD5,
+        RST6 = 0xFFD6,
+        RST7 = 0xFFD7,
     };
 
 } // namespace jpeg
