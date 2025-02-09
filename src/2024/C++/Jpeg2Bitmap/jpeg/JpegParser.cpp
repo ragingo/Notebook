@@ -216,24 +216,29 @@ void JpegParser::parseDHT()
     m_FileReader.ReadUInt16(dht.length);
 
     int remain = dht.length - sizeof(dht.length);
-    if (remain >= 1) {
-        uint8_t value = 0;
-        m_FileReader.ReadUInt8(value);
-        dht.tableClass = static_cast<DHT::TableClass>(value >> 4);
-        dht.tableID = static_cast<HuffmanTableID>(value & 0xFF);
-        remain--;
+    while (remain > 0) {
+        if (remain >= 1) {
+            uint8_t value = 0;
+            m_FileReader.ReadUInt8(value);
+            dht.tableClass = static_cast<DHT::TableClass>(value >> 4);
+            dht.tableID = static_cast<HuffmanTableID>(value & 0xFF);
+            remain--;
+        }
+        if (remain >= sizeof(dht.counts)) {
+            m_FileReader.ReadBytes(dht.counts);
+            remain -= sizeof(dht.counts);
+        }
+        int total = 0;
+        for (auto count : dht.counts) {
+            total += count;
+        }
+        if (remain >= total) {
+            dht.symbols.resize(total);
+            m_FileReader.ReadBytes(dht.symbols);
+            remain -= total;
+        }
+        m_Segments.emplace_back(std::make_shared<DHT>(dht));
     }
-    if (remain >= sizeof(dht.counts)) {
-        m_FileReader.ReadBytes(dht.counts);
-        remain -= sizeof(dht.counts);
-    }
-    if (remain > 0) {
-        dht.symbols.resize(remain);
-        m_FileReader.ReadBytes(dht.symbols);
-        remain = 0;
-    }
-
-    m_Segments.emplace_back(std::make_shared<DHT>(dht));
 }
 
 void JpegParser::parseSOS()

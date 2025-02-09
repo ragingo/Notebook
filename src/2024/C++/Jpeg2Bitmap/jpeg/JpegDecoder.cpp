@@ -318,7 +318,7 @@ void JpegDecoder::decode(DecodeResult& result)
                 auto [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
                 auto dqt = dqts[std::to_underlying(component.tableID)];
 
-                // 1 MCU Y 16x16 Cb 8x8 Cr 8x8 を、 8x8 のブロックに分割して処理
+                // 4:2:0 の場合、1 MCU Y 16x16 Cb 8x8 Cr 8x8 を、 8x8 のブロックに分割して処理
                 for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
                     for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
                         //std::println("MCU: ({}, {})", mcuCol, mcuRow);
