@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <array>
 #include <concepts>
 #include <limits>
@@ -103,16 +103,29 @@ namespace math
     {
         constexpr auto tbl = __idct_internal<N>();
 
+        std::array<double, N * N> temp{};
+
+        // 行方向の IDCT
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
                 double sum = 0.0;
                 for (int v = 0; v < N; ++v) {
                     double cv = tbl[y * N + v];
-                    for (int u = 0; u < N; ++u) {
-                        double src = static_cast<double>(input[v * N + u]);
-                        double cu = tbl[x * N + u];
-                        sum += src * cv * cu;
-                    }
+                    double src = static_cast<double>(input[v * N + x]);
+                    sum += src * cv;
+                }
+                temp[y * N + x] = sum;
+            }
+        }
+
+        // 列方向の IDCT
+        for (int y = 0; y < N; ++y) {
+            for (int x = 0; x < N; ++x) {
+                double sum = 0.0;
+                for (int u = 0; u < N; ++u) {
+                    double cu = tbl[x * N + u];
+                    double src = temp[y * N + u];
+                    sum += src * cu;
                 }
                 output[y * N + x] = static_cast<ElementType>(sum);
             }
