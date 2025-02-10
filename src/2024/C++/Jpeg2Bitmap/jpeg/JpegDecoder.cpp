@@ -274,7 +274,6 @@ void JpegDecoder::decode(DecodeResult& result)
     auto dqts = findSegments<DQT>(m_Parser.getSegments());
     assert(!dqts.empty());
     auto dri = findFirstSegment<DRI>(m_Parser.getSegments());
-    assert(dri);
 
     if (auto colorSpace = getColorSpace(*sof0); colorSpace != ColorSpace::YCbCr) {
         std::println("Unsupported color space: {}", NAMEOF_ENUM(colorSpace));
@@ -324,7 +323,7 @@ void JpegDecoder::decode(DecodeResult& result)
             int mcuCount = (mcuRow * ycc.getMCUHorizontalCount() + mcuCol) + 1;
 
             // DRI で指定された間隔でリスタートマーカーがある場合、 dcPred をリセット
-            if (mcuCount % dri->restartInterval == 0) {
+            if (dri && mcuCount % dri->restartInterval == 0) {
                 if (m_BitStreamReader->nextByte() != 0xFF) {
                     std::println("Restart marker not found");
                     return;
