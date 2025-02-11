@@ -18,6 +18,9 @@ namespace jpeg {
     uint8_t BitStreamReader::nextBit()
     {
         if (m_ReadBitCount == 0) {
+            if (m_DataIndex + 1 >= m_Stream.size()) {
+                return 0;
+            }
             m_CurrentByte = m_Stream[++m_DataIndex];
             if (m_CurrentByte == 0xFF) {
                 uint8_t byte = m_Stream[++m_DataIndex];
