@@ -279,15 +279,10 @@ void JpegDecoder::decode(DecodeResult& result)
         return;
     }
 
-    //if (!isInterleaved(*sof0)) {
-    //    std::println("Unsupported non-interleaved MCU");
-    //    return;
-    //}
-
-    //if (auto format = getYUVFormat(*sof0); format != YUVFormat::YUV420) {
-    //    std::println("Unsupported YUV format: {}", NAMEOF_ENUM(format));
-    //    return;
-    //}
+    if (auto format = getYUVFormat(*sof0); format != YUVFormat::YUV420 && format != YUVFormat::YUV444) {
+        std::println("Unsupported YUV format: {}", NAMEOF_ENUM(format));
+        return;
+    }
 
     m_BitStreamReader = std::make_unique<BitStreamReader>(m_Parser.getECS());
     std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> dcTables(4);
