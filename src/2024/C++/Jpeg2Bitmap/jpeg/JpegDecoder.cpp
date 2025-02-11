@@ -309,21 +309,22 @@ void JpegDecoder::decode(DecodeResult& result)
 
     // ファイル全体を通して更新し続ける
     std::array<int, 3> dcPred = { 0, 0, 0 };
+
+    const int totalMCUCount = ycc.getMCUHorizontalCount() * ycc.getMCUVerticalCount();
     int mcuCount = 0;
 
     for (int mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
         for (int mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
             ++mcuCount;
 
-            // 雑に最後をスキップしてみる
-            // これにより "Restart marker not found" のエラーは回避できるが、
-            // 右下角の画素が緑色になっている。
-            if (mcuRow == ycc.getMCUVerticalCount() - 1 && mcuCol == ycc.getMCUHorizontalCount() - 1) {
+            // 最後の MCU を処理すると、ECS を読み切ったのに読み込みが何度も発生してしまう。
+            // とりあえず、最後の MCU はスキップする。
+            if (dri && mcuCount == totalMCUCount) {
                 break;
             }
 
             // DRI で指定された間隔でリスタートマーカーがある場合、 dcPred をリセット
-            if (dri && mcuCount % dri->restartInterval == 0) {
+            if (dri && mcuCount % dri->restartInterval == 0 && mcuCount != totalMCUCount) {
                 if (m_BitStreamReader->nextByte() != 0xFF) {
                     std::println("Restart marker not found");
                     return;
