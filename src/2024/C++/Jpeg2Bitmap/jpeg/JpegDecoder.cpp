@@ -1,7 +1,6 @@
 ﻿#include "JpegDecoder.h"
 #include <immintrin.h>
 #include <cassert>
-#include <mdspan>
 #include <memory>
 #include <nameof.hpp>
 #include <print>
@@ -346,7 +345,6 @@ void JpegDecoder::decode(DecodeResult& result)
                 if (getYUVFormat(*sof0) == YUVFormat::YUV444) {
                     MCUBlock8x8 block{};
                     decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
-                    std::mdspan<int, std::extents<int, 8, 8>> blockView(block.data(), 8, 8);
                     for (int y = 0; y < 8; ++y) {
                         for (int x = 0; x < 8; ++x) {
                             int cx = (mcuCol * 8) + x;
@@ -355,7 +353,7 @@ void JpegDecoder::decode(DecodeResult& result)
                             int height = ycc.getComponent(component.id).height;
                             if (cx < width && cy < height) {
                                 int index = cy * width + cx;
-                                ycc.getComponent(component.id).buffer[index] = blockView[y, x];
+                                ycc.getComponent(component.id).buffer[index] = block[y * 8 + x];
                             }
                         }
                     }
@@ -367,7 +365,6 @@ void JpegDecoder::decode(DecodeResult& result)
                         for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
                             MCUBlock8x8 block{};
                             decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
-                            std::mdspan<int, std::extents<int, 8, 8>> blockView(block.data(), 8, 8);
 
                             // MCU内のブロック処理ループ内
                             for (int y = 0; y < 8; ++y) {
@@ -379,7 +376,7 @@ void JpegDecoder::decode(DecodeResult& result)
                                     int height = ycc.getComponent(component.id).height;
                                     if (cx < width && cy < height) {
                                         int index = cy * width + cx;
-                                        ycc.getComponent(component.id).buffer[index] = blockView[y, x];
+                                        ycc.getComponent(component.id).buffer[index] = block[y * 8 + x];
                                     }
                                 }
                             }
@@ -470,7 +467,7 @@ int JpegDecoder::decodeHuffmanSymbol(HuffmanTable& table, const std::vector<uint
     int i = 0;
 
     for (; i < 16; ++i) {
-        code = (code << 1) + m_BitStreamReader->getNextBit();
+        code = (code << 1) | m_BitStreamReader->nextBit();
         if (code <= table.maxCode[i]) {
             break;
         }
@@ -482,7 +479,7 @@ int JpegDecoder::decodeHuffmanSymbol(HuffmanTable& table, const std::vector<uint
     return value;
 }
 
-int JpegDecoder::decodeZZ(int ssss)
+inline int JpegDecoder::decodeZZ(int ssss)
 {
     int value = m_BitStreamReader->receive(ssss);
     return extend(value, ssss);
@@ -513,9 +510,7 @@ std::array<int, 64> JpegDecoder::decodeACCoeffs(HuffmanTable& table, const std::
             if (k >= 64) {
                 break;
             }
-            int coeff = decodeZZ(ssss);
-            zz[k] = coeff;
-            k++;
+            zz[k++] = decodeZZ(ssss);
         }
     }
 

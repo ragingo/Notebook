@@ -9,13 +9,13 @@ namespace jpeg {
     {
         int v = 0;
         for (int i = 0; i < ssss; ++i) {
-            v = (v << 1) + getNextBit();
+            v = (v << 1) + nextBit();
         }
         return v;
     }
 
     // Figure F.18 – Procedure for fetching the next bit of compressed data
-    uint8_t BitStreamReader::getNextBit()
+    uint8_t BitStreamReader::nextBit()
     {
         if (m_ReadBitCount == 0) {
             m_CurrentByte = m_Stream[++m_DataIndex];

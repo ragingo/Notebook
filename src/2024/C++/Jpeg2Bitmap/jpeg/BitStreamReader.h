@@ -15,7 +15,7 @@ namespace jpeg {
         ~BitStreamReader() = default;
 
         int receive(int ssss);
-        uint8_t getNextBit();
+        uint8_t nextBit();
         uint8_t nextByte();
 
     private:

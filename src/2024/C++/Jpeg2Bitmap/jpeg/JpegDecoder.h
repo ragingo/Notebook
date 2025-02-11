@@ -50,7 +50,7 @@ private:
     int decodeHuffmanSymbol(HuffmanTable& table, const std::vector<uint8_t>& symbols);
 
     // Figure F.14 – Decoding a non-zero AC coefficient
-    int decodeZZ(int ssss);
+    inline int decodeZZ(int ssss);
 
     // Figure F.13 – Huffman decoding procedure for AC coefficients
     std::array<int, 64> decodeACCoeffs(HuffmanTable& table, const std::vector<uint8_t>& symbols);
