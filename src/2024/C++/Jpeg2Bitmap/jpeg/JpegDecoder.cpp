@@ -309,17 +309,18 @@ void JpegDecoder::decode(DecodeResult& result)
 
     // ファイル全体を通して更新し続ける
     std::array<int, 3> dcPred = { 0, 0, 0 };
+    int mcuCount = 0;
 
     for (int mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
         for (int mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
+            ++mcuCount;
+
             // 雑に最後をスキップしてみる
             // これにより "Restart marker not found" のエラーは回避できるが、
             // 右下角の画素が緑色になっている。
             if (mcuRow == ycc.getMCUVerticalCount() - 1 && mcuCol == ycc.getMCUHorizontalCount() - 1) {
                 break;
             }
-
-            int mcuCount = (mcuRow * ycc.getMCUHorizontalCount() + mcuCol) + 1;
 
             // DRI で指定された間隔でリスタートマーカーがある場合、 dcPred をリセット
             if (dri && mcuCount % dri->restartInterval == 0) {
@@ -351,10 +352,8 @@ void JpegDecoder::decode(DecodeResult& result)
                             int cy = (mcuRow * 8) + y;
                             int width = ycc.getComponent(component.id).width;
                             int height = ycc.getComponent(component.id).height;
-                            if (cx < width && cy < height) {
-                                int index = cy * width + cx;
-                                ycc.getComponent(component.id).buffer[index] = block[y * 8 + x];
-                            }
+                            int index = cy * width + cx;
+                            ycc.getComponent(component.id).buffer[index] = block[y * 8 + x];
                         }
                     }
                 }
