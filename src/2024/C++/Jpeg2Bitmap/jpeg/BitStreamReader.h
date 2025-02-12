@@ -8,7 +8,7 @@ namespace jpeg {
     {
     public:
         BitStreamReader(const std::vector<uint8_t>& stream)
-            : m_Stream(stream)
+            : m_Stream(stream), m_StreamSize(stream.size())
         {
         }
 
@@ -23,6 +23,7 @@ namespace jpeg {
         uint8_t m_CurrentByte = 0;
         int m_DataIndex = 0;
         int m_ReadBitCount = 0;
+        const size_t m_StreamSize;
     };
 
 } // namespace jpeg
