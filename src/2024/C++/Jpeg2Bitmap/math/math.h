@@ -112,7 +112,12 @@ namespace math
                 for (int v = 0; v < N; ++v) {
                     double cv = tbl[y * N + v];
                     double src = static_cast<double>(block[v * N + x]);
+#ifdef _DEBUG
+                    sum += src * cv;
+#else
                     sum = std::fma(src, cv, sum);
+#endif // _DEBUG
+
                 }
                 temp[y * N + x] = sum;
             }
@@ -125,7 +130,11 @@ namespace math
                 for (int u = 0; u < N; ++u) {
                     double cu = tbl[x * N + u];
                     double src = temp[y * N + u];
+#ifdef _DEBUG
+                    sum += src * cu;
+#else
                     sum = std::fma(src, cu, sum);
+#endif // _DEBUG
                 }
                 block[y * N + x] = static_cast<ElementType>(sum);
             }
