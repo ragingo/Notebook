@@ -5,5 +5,5 @@ x64
 vcpkg_installed
 
 # Intel VTune Profiler
-*.vtuneproj
+Intel® VTune™ Profiler Results
 debug.log
