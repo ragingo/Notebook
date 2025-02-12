@@ -101,11 +101,12 @@ namespace math
     >
     inline void idct(Block& block)
     {
-        constexpr auto tbl = __idct_internal<N>();
+        constexpr const auto tbl = __idct_internal<N>();
 
         std::array<double, N * N> temp{};
 
         // 行方向の IDCT
+        int i = 0;
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
                 double sum = 0.0;
@@ -119,11 +120,12 @@ namespace math
 #endif // _DEBUG
 
                 }
-                temp[y * N + x] = sum;
+                temp[i++] = sum;
             }
         }
 
         // 列方向の IDCT
+        i = 0;
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
                 double sum = 0.0;
@@ -136,7 +138,7 @@ namespace math
                     sum = std::fma(src, cu, sum);
 #endif // _DEBUG
                 }
-                block[y * N + x] = static_cast<ElementType>(sum);
+                block[i++] = static_cast<ElementType>(sum);
             }
         }
     }
