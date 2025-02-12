@@ -97,9 +97,9 @@ namespace math
     template<
         int N = 8,
         std::integral ElementType = int,
-        typename InOut = std::array<ElementType, N * N>
+        typename Block = std::array<ElementType, N * N>
     >
-    inline void idct(const InOut& input, InOut& output)
+    inline void idct(Block& block)
     {
         constexpr auto tbl = __idct_internal<N>();
 
@@ -111,7 +111,7 @@ namespace math
                 double sum = 0.0;
                 for (int v = 0; v < N; ++v) {
                     double cv = tbl[y * N + v];
-                    double src = static_cast<double>(input[v * N + x]);
+                    double src = static_cast<double>(block[v * N + x]);
                     sum += src * cv;
                 }
                 temp[y * N + x] = sum;
@@ -127,7 +127,7 @@ namespace math
                     double src = temp[y * N + u];
                     sum += src * cu;
                 }
-                output[y * N + x] = static_cast<ElementType>(sum);
+                block[y * N + x] = static_cast<ElementType>(sum);
             }
         }
     }

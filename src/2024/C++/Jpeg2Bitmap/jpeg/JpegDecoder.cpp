@@ -546,9 +546,7 @@ void JpegDecoder::decodeBlock(
     reorder(block);
     //debugging::dumpBlock(" reorder", block);
 
-    MCUBlock8x8 temp = block;
-    math::idct(block, temp);
-    block = temp;
+    math::idct(block);
     //debugging::dumpBlock(" idct", block);
 
     levelShift(block);
