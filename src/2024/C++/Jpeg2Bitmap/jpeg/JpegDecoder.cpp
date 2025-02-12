@@ -347,7 +347,6 @@ void JpegDecoder::decode(DecodeResult& result)
                             int cx = (mcuCol * 8) + x;
                             int cy = (mcuRow * 8) + y;
                             int width = ycc.getComponent(component.id).width;
-                            int height = ycc.getComponent(component.id).height;
                             int index = cy * width + cx;
                             ycc.getComponent(component.id).buffer[index] = block[y * 8 + x];
                         }
