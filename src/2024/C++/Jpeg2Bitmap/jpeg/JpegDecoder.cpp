@@ -532,20 +532,9 @@ void JpegDecoder::decodeBlock(
 )
 {
     block[0] = decodeDCCoeff(dcTable, dcDHT->symbols, dcPred);
-    //debugging::dumpBlock(" dc coeff", block);
-
     decodeACCoeffs(acTable, acDHT->symbols, block);
-    //debugging::dumpBlock(" ac coeff", block);
-
     dequantize(block, *dqt);
-    //debugging::dumpBlock(" dequantize", block);
-
     reorder(block);
-    //debugging::dumpBlock(" reorder", block);
-
     math::idct(block);
-    //debugging::dumpBlock(" idct", block);
-
     levelShift(block);
-    //debugging::dumpBlock(" level shift", block);
 }
