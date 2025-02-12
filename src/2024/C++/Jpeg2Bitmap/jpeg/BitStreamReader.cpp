@@ -48,7 +48,7 @@ namespace jpeg {
             m_ReadBitCount = 8;
         }
 
-        uint8_t bit = m_CurrentByte >> 7;
+        uint8_t bit = (m_CurrentByte & 0x80) ? 1 : 0;
         m_ReadBitCount--;
         m_CurrentByte <<= 1;
 
