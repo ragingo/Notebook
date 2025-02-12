@@ -179,8 +179,18 @@ namespace
     {
         if (dqt.precision == DQT::Precision::BITS_8) {
             auto table = std::get<DQT::Bits8Table>(dqt.table);
-            for (int i = 0; i < block.size(); ++i) {
-                block[i] *= table[i];
+
+            // uint8_t[] to int[]
+            std::array<int, 64> temp{};
+            for (int i = 0; i < 64; ++i) {
+                temp[i] = table[i];
+            }
+
+            for (int i = 0; i < block.size(); i += 8) {
+                __m256i b = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&block[i]));
+                __m256i t = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&temp[i]));
+                b = _mm256_mullo_epi32(b, t);
+                _mm256_storeu_si256(reinterpret_cast<__m256i*>(&block[i]), b);
             }
         }
         else if (dqt.precision == DQT::Precision::BITS_16) {
