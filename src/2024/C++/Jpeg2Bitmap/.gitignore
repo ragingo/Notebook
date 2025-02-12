@@ -3,3 +3,7 @@ x64
 *.vcxproj.filters
 *.vcxproj.user
 vcpkg_installed
+
+# Intel VTune Profiler
+*.vtuneproj
+debug.log
