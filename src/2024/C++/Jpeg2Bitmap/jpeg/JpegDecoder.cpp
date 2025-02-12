@@ -479,9 +479,12 @@ inline int JpegDecoder::decodeZZ(int ssss)
     return extend(value, ssss);
 }
 
-std::array<int, 64> JpegDecoder::decodeACCoeffs(HuffmanTable& table, const std::vector<uint8_t>& symbols)
+void JpegDecoder::decodeACCoeffs(
+    HuffmanTable& table,
+    const std::vector<uint8_t>& symbols,
+    std::array<int, 64>& block
+)
 {
-    std::array<int, 64> zz{};
     int k = 1; // DC係数は既にデコード済みなので、kを1から開始
 
     while (k < 64) {
@@ -504,11 +507,9 @@ std::array<int, 64> JpegDecoder::decodeACCoeffs(HuffmanTable& table, const std::
             if (k >= 64) {
                 break;
             }
-            zz[k++] = decodeZZ(ssss);
+            block[k++] = decodeZZ(ssss);
         }
     }
-
-    return zz;
 }
 
 int JpegDecoder::decodeDCCoeff(HuffmanTable& table, const std::vector<uint8_t>& symbols, int& pred)
@@ -533,10 +534,7 @@ void JpegDecoder::decodeBlock(
     block[0] = decodeDCCoeff(dcTable, dcDHT->symbols, dcPred);
     //debugging::dumpBlock(" dc coeff", block);
 
-    auto zz = decodeACCoeffs(acTable, acDHT->symbols);
-    for (int j = 1; j < 64; ++j) {
-        block[j] = zz[j];
-    }
+    decodeACCoeffs(acTable, acDHT->symbols, block);
     //debugging::dumpBlock(" ac coeff", block);
 
     dequantize(block, *dqt);
