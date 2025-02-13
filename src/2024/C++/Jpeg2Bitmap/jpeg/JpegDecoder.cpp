@@ -187,10 +187,10 @@ namespace
             }
 
             for (int i = 0; i < block.size(); i += 8) {
-                __m256i b = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&block[i]));
-                __m256i t = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&temp[i]));
+                __m256i b = _mm256_load_si256(reinterpret_cast<const __m256i*>(&block[i]));
+                __m256i t = _mm256_load_si256(reinterpret_cast<const __m256i*>(&temp[i]));
                 b = _mm256_mullo_epi32(b, t);
-                _mm256_storeu_si256(reinterpret_cast<__m256i*>(&block[i]), b);
+                _mm256_store_si256(reinterpret_cast<__m256i*>(&block[i]), b);
             }
         }
         else if (dqt.precision == DQT::Precision::BITS_16) {
@@ -217,10 +217,10 @@ namespace
         static __m256i _255 = _mm256_set1_epi32(255);
 
         for (int i = 0; i < block.size(); i += 8) {
-            __m256i v = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&block[i]));
+            __m256i v = _mm256_load_si256(reinterpret_cast<const __m256i*>(&block[i]));
             v = _mm256_add_epi32(v, _128);
             simd::clamp256_i32(v, _0, _255);
-            _mm256_storeu_si256(reinterpret_cast<__m256i*>(&block[i]), v);
+            _mm256_store_si256(reinterpret_cast<__m256i*>(&block[i]), v);
         }
     }
 
