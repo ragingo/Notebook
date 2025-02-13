@@ -27,7 +27,7 @@ namespace jpeg {
                 // DNL マーカーの暫定対応
                 // あまり使用されないらしい。とりあえず2バイトスキップしておく。
                 if (byte == 0xDC) {
-                    std::println("* DNL");
+                    //std::println("* DNL");
                     nextByte();
                     nextByte();
                 }
@@ -35,14 +35,14 @@ namespace jpeg {
                 // デコーダー側で処理するから、ここでは何もしない。
                 // デコーダー側で処理されなかったら、ここでログが記録される。
                 else if (byte >= 0xD0 && byte <= 0xD7) {
-                    std::println("* RST{}", byte - 0xD0);
+                    //std::println("* RST{}", byte - 0xD0);
                 }
                 // マーカーの後に 0x00 が続く場合はスキップ
                 else if (byte == 0x00) {
                     // 何もしない
                 }
                 else {
-                    std::println("Unknown marker: 0xFF{:02X}", byte);
+                    //std::println("Unknown marker: 0xFF{:02X}", byte);
                 }
             }
             m_ReadBitCount = 8;
