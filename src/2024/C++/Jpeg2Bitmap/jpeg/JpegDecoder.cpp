@@ -258,6 +258,38 @@ namespace
             }
         }
     }
+
+    void convertYCbCr444ToBGRA32(
+        std::vector<uint8_t>& pixels,
+        int width,
+        int height,
+        const YCbCrComponents& ycc
+    )
+    {
+        auto yBuf = ycc.getComponent(ComponentID::Y).buffer;
+        auto cbBuf = ycc.getComponent(ComponentID::Cb).buffer;
+        auto crBuf = ycc.getComponent(ComponentID::Cr).buffer;
+
+        for (int row = 0; row < height; ++row) {
+            int stride = row * width;
+
+            for (int col = 0; col < width; ++col) {
+                int srcOffset = stride + col;
+                int dstOffset = srcOffset * 4;
+
+                int y = yBuf[srcOffset];
+                int cb = cbBuf[srcOffset];
+                int cr = crBuf[srcOffset];
+
+                auto [r, g, b] = convertYCbCrToRGB(y, cb, cr);
+
+                pixels[dstOffset + 0] = b;
+                pixels[dstOffset + 1] = g;
+                pixels[dstOffset + 2] = r;
+                pixels[dstOffset + 3] = 0xFF;
+            }
+        }
+    }
 }
 
 JpegDecoder::JpegDecoder(const char* fileName)
@@ -394,7 +426,7 @@ void JpegDecoder::decode(DecodeResult& result)
 
     std::vector<uint8_t> pixels(sof0->width * sof0->height * 4, 0);
 
-    convertColorData(pixels, sof0->width, sof0->height, ycc);
+    convertYCbCr444ToBGRA32(pixels, sof0->width, sof0->height, ycc);
 
     result = {
         .width = sof0->width,
