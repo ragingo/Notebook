@@ -17,7 +17,7 @@ void writeBitmap(const std::string_view filename, int width, int height, const s
     infoHeader.biWidth = width;
     infoHeader.biHeight = -height;
     infoHeader.biPlanes = 1;
-    infoHeader.biBitCount = 24;
+    infoHeader.biBitCount = 32;
     infoHeader.biSizeImage = static_cast<uint32_t>(pixels.size());
 
     std::ofstream file(filename.data(), std::ios::binary);

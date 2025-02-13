@@ -26,7 +26,7 @@ namespace
         std::vector<int> buffer;
     };
 
-    class YCbCrComponents
+    class YCbCrComponents final
     {
     public:
         YCbCrComponents(const SOF0& sof0)
@@ -251,9 +251,10 @@ namespace
 
                 auto [r, g, b] = convertYCbCrToRGB(y, cb, cr);
 
-                pixels[yOffset * 3 + 0] = b;
-                pixels[yOffset * 3 + 1] = g;
-                pixels[yOffset * 3 + 2] = r;
+                pixels[yOffset * 4 + 0] = b;
+                pixels[yOffset * 4 + 1] = g;
+                pixels[yOffset * 4 + 2] = r;
+                pixels[yOffset * 4 + 3] = 0xFF;
             }
         }
     }
@@ -391,7 +392,7 @@ void JpegDecoder::decode(DecodeResult& result)
         }
     }
 
-    std::vector<uint8_t> pixels(sof0->width * sof0->height * sof0->numComponents, 0);
+    std::vector<uint8_t> pixels(sof0->width * sof0->height * 4, 0);
 
     convertColorData(pixels, sof0->width, sof0->height, ycc);
 
