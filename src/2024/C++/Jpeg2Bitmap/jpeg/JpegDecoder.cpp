@@ -266,9 +266,9 @@ namespace
         const YCbCrComponents& ycc
     )
     {
-        auto yBuf = ycc.getComponent(ComponentID::Y).buffer;
-        auto cbBuf = ycc.getComponent(ComponentID::Cb).buffer;
-        auto crBuf = ycc.getComponent(ComponentID::Cr).buffer;
+        auto& yBuf = ycc.getComponent(ComponentID::Y).buffer;
+        auto& cbBuf = ycc.getComponent(ComponentID::Cb).buffer;
+        auto& crBuf = ycc.getComponent(ComponentID::Cr).buffer;
 
         for (int row = 0; row < height; ++row) {
             int stride = row * width;
