@@ -61,7 +61,7 @@ namespace
                 const auto vMaxFactor = getMaxVerticalSamplingFactor();
                 info.width = (sof0.width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
                 info.height = (sof0.height * info.verticalSamplingFactor + vMaxFactor - 1) / vMaxFactor;
-                info.buffer = std::vector<int>(info.width * info.height, 0);
+                info.buffer.resize(info.width * info.height, 0);
             }
         }
 
