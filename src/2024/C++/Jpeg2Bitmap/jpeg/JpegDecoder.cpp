@@ -270,6 +270,7 @@ namespace
         auto& cbBuf = ycc.getComponent(ComponentID::Cb).buffer;
         auto& crBuf = ycc.getComponent(ComponentID::Cr).buffer;
 
+#pragma omp parallel for
         for (int row = 0; row < height; ++row) {
             int stride = row * width;
 
