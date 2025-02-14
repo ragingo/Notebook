@@ -2,8 +2,8 @@
 #include <array>
 #include <memory>
 #include <vector>
-#include "BitStreamReader.h"
-#include "JpegParser.h"
+#include "jpeg/BitStreamReader.h"
+#include "jpeg/parser/JpegParser.h"
 
 namespace jpeg {
 

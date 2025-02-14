@@ -4,10 +4,10 @@
 #include <memory>
 #include <nameof.hpp>
 #include <print>
-#include "debugging.h"
-#include "../math/math.h"
-#include "../image/color_model.h"
-#include "../simd/simd.h"
+#include "jpeg/debugging/debugging.h"
+#include "math/math.h"
+#include "image/color_model.h"
+#include "simd/simd.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;

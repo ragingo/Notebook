@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "JpegDecoder.h"
+#include "jpeg/decoder/JpegDecoder.h"
 
 // 参考資料
 // https://www.w3.org/Graphics/JPEG/jfif3.pdf

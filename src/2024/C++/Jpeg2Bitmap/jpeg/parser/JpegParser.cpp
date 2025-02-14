@@ -6,9 +6,9 @@
 #include <stdexcept>
 #include <variant>
 #include <vector>
-#include "../BinaryFileReader.h"
-#include "markers.h"
-#include "segments.h"
+#include "BinaryFileReader.h"
+#include "jpeg/syntax/markers.h"
+#include "jpeg/syntax/segments.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;
