@@ -390,11 +390,12 @@ void JpegDecoder::decode(DecodeResult& result)
                     MCUBlock8x8 block{};
                     decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
                     for (int y = 0; y < 8; ++y) {
+                        int blockStride = y * 8;
                         for (int x = 0; x < 8; ++x) {
                             int cx = mcuCol * 8 + x;
                             int cy = mcuRow * 8 + y;
                             int index = cy * width + cx;
-                            buf[index] = block[y * 8 + x];
+                            buf[index] = block[blockStride + x];
                         }
                     }
                 }
