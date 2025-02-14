@@ -427,7 +427,12 @@ void JpegDecoder::decode(DecodeResult& result)
 
     std::vector<uint8_t> pixels(sof0->width * sof0->height * 4, 0);
 
-    convertYCbCr444ToBGRA32(pixels, sof0->width, sof0->height, ycc);
+    if (getYUVFormat(*sof0) == YUVFormat::YUV420) {
+        convertColorData(pixels, sof0->width, sof0->height, ycc);
+    }
+    else if (getYUVFormat(*sof0) == YUVFormat::YUV444) {
+        convertYCbCr444ToBGRA32(pixels, sof0->width, sof0->height, ycc);
+    }
 
     result = {
         .width = sof0->width,
