@@ -329,8 +329,9 @@ void JpegDecoder::decode(DecodeResult& result)
     }
 
     m_BitStreamReader = std::make_unique<BitStreamReader>(m_Parser.getECS());
-    std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> dcTables(4);
-    std::vector<std::tuple<HuffmanTable, std::shared_ptr<DHT>>> acTables(4);
+    using TableInfo = std::tuple<HuffmanTable, std::shared_ptr<DHT>>;
+    std::array<TableInfo, 4> dcTables{};
+    std::array<TableInfo, 4> acTables{};
 
     for (const auto& dht : dhts) {
         auto huffmanTable = createHuffmanTable(dht->counts);
@@ -378,9 +379,11 @@ void JpegDecoder::decode(DecodeResult& result)
 
             for (auto&& component : sof0->components) {
                 auto componentIndex = std::distance(sof0->components.data(), &component);
-                auto [dcTable, dcDHT] = dcTables[std::to_underlying(component.tableID)];
-                auto [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
+                auto& [dcTable, dcDHT] = dcTables[std::to_underlying(component.tableID)];
+                auto& [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
                 auto dqt = dqts[std::to_underlying(component.tableID)];
+                auto& buf = ycc.getComponent(component.id).buffer;
+                int width = ycc.getComponent(component.id).width;
 
                 // 4:4:4 の場合、1 MCU Y 8x8 Cb 8x8 Cr 8x8 で処理
                 if (getYUVFormat(*sof0) == YUVFormat::YUV444) {
@@ -388,11 +391,10 @@ void JpegDecoder::decode(DecodeResult& result)
                     decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
                     for (int y = 0; y < 8; ++y) {
                         for (int x = 0; x < 8; ++x) {
-                            int cx = (mcuCol * 8) + x;
-                            int cy = (mcuRow * 8) + y;
-                            int width = ycc.getComponent(component.id).width;
+                            int cx = mcuCol * 8 + x;
+                            int cy = mcuRow * 8 + y;
                             int index = cy * width + cx;
-                            ycc.getComponent(component.id).buffer[index] = block[y * 8 + x];
+                            buf[index] = block[y * 8 + x];
                         }
                     }
                 }
@@ -410,7 +412,6 @@ void JpegDecoder::decode(DecodeResult& result)
                                     int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
                                     int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
 
-                                    int width = ycc.getComponent(component.id).width;
                                     int height = ycc.getComponent(component.id).height;
                                     if (cx < width && cy < height) {
                                         int index = cy * width + cx;
