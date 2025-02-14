@@ -182,11 +182,11 @@ namespace
 
             // uint8_t[] to int[]
             std::array<int, 64> temp{};
-            for (int i = 0; i < 64; ++i) {
+            for (size_t i = 0; i < 64; ++i) {
                 temp[i] = table[i];
             }
 
-            for (int i = 0; i < block.size(); i += 8) {
+            for (size_t i = 0; i < block.size(); i += 8) {
                 __m256i b = _mm256_load_si256(reinterpret_cast<const __m256i*>(&block[i]));
                 __m256i t = _mm256_load_si256(reinterpret_cast<const __m256i*>(&temp[i]));
                 b = _mm256_mullo_epi32(b, t);
@@ -195,16 +195,16 @@ namespace
         }
         else if (dqt.precision == DQT::Precision::BITS_16) {
             auto table = std::get<DQT::Bits16Table>(dqt.table);
-            for (int i = 0; i < block.size(); ++i) {
+            for (size_t i = 0; i < block.size(); ++i) {
                 block[i] *= table[i];
             }
         }
     }
 
-    constexpr void reorder(MCUBlock8x8& block)
+    inline void reorder(MCUBlock8x8& block)
     {
         MCUBlock8x8 temp{};
-        for (int i = 0; i < block.size(); ++i) {
+        for (size_t i = 0; i < block.size(); ++i) {
             temp[i] = block[ZIGZAG[i]];
         }
         block.swap(temp);

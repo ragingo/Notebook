@@ -96,11 +96,11 @@ namespace math
 
     template<
         int N = 8,
-        std::integral ElementType = int,
-        typename Block = std::array<ElementType, N * N>
+        typename Block = std::array<int, N * N>
     >
     inline void idct(Block& block)
     {
+        static_assert(N % 8 == 0);
         constexpr const auto tbl = __idct_internal<N>();
 
         std::array<double, N * N> temp{};
@@ -110,8 +110,9 @@ namespace math
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
                 double sum = 0.0;
+                size_t tbl_stride = y * N;
                 for (int v = 0; v < N; ++v) {
-                    double cv = tbl[y * N + v];
+                    double cv = tbl[tbl_stride + v];
                     double src = static_cast<double>(block[v * N + x]);
 #ifdef _DEBUG
                     sum += src * cv;
@@ -129,16 +130,18 @@ namespace math
         for (int y = 0; y < N; ++y) {
             for (int x = 0; x < N; ++x) {
                 double sum = 0.0;
+                size_t tbl_stride = x * N;
+                size_t tmp_stride = y * N;
                 for (int u = 0; u < N; ++u) {
-                    double cu = tbl[x * N + u];
-                    double src = temp[y * N + u];
+                    double cu = tbl[tbl_stride + u];
+                    double src = temp[tmp_stride + u];
 #ifdef _DEBUG
                     sum += src * cu;
 #else
                     sum = std::fma(src, cu, sum);
 #endif // _DEBUG
                 }
-                block[i++] = static_cast<ElementType>(sum);
+                block[i++] = static_cast<int>(sum);
             }
         }
     }
