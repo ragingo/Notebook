@@ -160,14 +160,17 @@
     <ClCompile Include="jpeg\decoder\JpegDecoder.cpp" />
     <ClCompile Include="jpeg\BitStreamReader.cpp" />
     <ClCompile Include="jpeg\debugging\debugging.cpp" />
+    <ClCompile Include="jpeg\decoder\YCbCrComponents.cpp" />
     <ClCompile Include="jpeg\parser\JpegParser.cpp" />
     <ClCompile Include="jpeg\debugging\debugging.h" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="image\color_model.h" />
+    <ClInclude Include="jpeg\decoder\ComponentInfo.h" />
     <ClInclude Include="jpeg\decoder\JpegDecoder.h" />
     <ClInclude Include="jpeg\BitStreamReader.h" />
+    <ClInclude Include="jpeg\decoder\YCbCrComponents.h" />
     <ClInclude Include="jpeg\parser\JpegParser.h" />
     <ClInclude Include="jpeg\jpeg.h" />
     <ClInclude Include="jpeg\syntax\markers.h" />
