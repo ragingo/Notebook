@@ -211,12 +211,16 @@ void JpegDecoder::decode(DecodeResult& result)
 
             // 最後の MCU を処理すると、ECS を読み切ったのに読み込みが何度も発生してしまう。
             // とりあえず、最後の MCU はスキップする。
-            if (dri && mcuCount == totalMCUCount) {
+            //if (dri && mcuCount == totalMCUCount) {
+            //    break;
+            //}
+
+            if (!m_BitStreamReader->hasMore()) {
                 break;
             }
 
             // DRI で指定された間隔でリスタートマーカーがある場合、 dcPred をリセット
-            if (dri && mcuCount % dri->restartInterval == 0 && mcuCount != totalMCUCount) {
+            if (dri && mcuCount % dri->restartInterval == 0) {
                 if (m_BitStreamReader->nextByte() != 0xFF) {
                     std::println("Restart marker not found");
                     return;

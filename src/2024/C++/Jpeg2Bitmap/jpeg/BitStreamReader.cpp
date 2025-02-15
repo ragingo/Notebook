@@ -18,7 +18,7 @@ namespace jpeg {
     uint8_t BitStreamReader::nextBit()
     {
         if (m_ReadBitCount == 0) {
-            if (m_DataIndex >= m_StreamSize - 1) {
+            if (m_DataIndex >= m_StreamLastIndex) {
                 return 0;
             }
             m_CurrentByte = m_Stream[++m_DataIndex];
@@ -59,7 +59,7 @@ namespace jpeg {
     {
         m_ReadBitCount = 0;
 
-        if (m_DataIndex + 1 < m_StreamSize) {
+        if (m_DataIndex < m_StreamLastIndex) {
             m_CurrentByte = m_Stream[++m_DataIndex];
         }
         else {
