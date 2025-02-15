@@ -53,14 +53,14 @@ private:
     inline int decodeZZ(int ssss);
 
     // Figure F.13 – Huffman decoding procedure for AC coefficients
-    void decodeACCoeffs(
+    void decodeACCoefs(
         HuffmanTable& table,
         const std::vector<uint8_t>& symbols,
         std::array<int, 64>& block
     );
 
     // F.2.2.1 Huffman decoding of DC coefficients
-    int decodeDCCoeff(HuffmanTable& table, const std::vector<uint8_t>& symbols, int& pred);
+    int decodeDCCoef(HuffmanTable& table, const std::vector<uint8_t>& symbols, int& pred);
 
     void decodeBlock(
         HuffmanTable& dcTable,

@@ -169,10 +169,11 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="image\color_model.h" />
+    <ClInclude Include="image\Color.h" />
     <ClInclude Include="jpeg\decoder\ComponentInfo.h" />
     <ClInclude Include="jpeg\decoder\JpegDecoder.h" />
     <ClInclude Include="jpeg\BitStreamReader.h" />
+    <ClInclude Include="jpeg\decoder\Utility.h" />
     <ClInclude Include="jpeg\decoder\YCbCrComponents.h" />
     <ClInclude Include="jpeg\parser\JpegParser.h" />
     <ClInclude Include="jpeg\jpeg.h" />

@@ -5,6 +5,7 @@
 #include <variant>
 #include <ranges>
 #include <nameof.hpp>
+#include "jpeg/decoder/Utility.h"
 
 using namespace jpeg::segments;
 

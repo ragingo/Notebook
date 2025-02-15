@@ -4,7 +4,7 @@
 #include <mdspan>
 #include <string>
 #include <vector>
-#include "../syntax/Segment.h"
+#include "jpeg/syntax/Segment.h"
 
 namespace jpeg::debugging {
 

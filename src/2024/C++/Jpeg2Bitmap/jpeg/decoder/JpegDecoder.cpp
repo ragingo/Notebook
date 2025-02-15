@@ -6,9 +6,10 @@
 #include <print>
 #include "jpeg/debugging/debugging.h"
 #include "math/math.h"
-#include "image/color_model.h"
+#include "image/Color.h"
 #include "simd/simd.h"
 #include "Common.h"
+#include "Utility.h"
 #include "YCbCrComponents.h"
 
 using namespace jpeg;
@@ -101,7 +102,7 @@ namespace
                 int cb = componentCb.buffer[cbRow + cbCol];
                 int cr = componentCr.buffer[crRow + crCol];
 
-                auto [r, g, b] = convertYCbCrToRGB(y, cb, cr);
+                auto [r, g, b] = image::ycbcrToRGB(y, cb, cr);
 
                 pixels[yOffset * 4 + 0] = b;
                 pixels[yOffset * 4 + 1] = g;
@@ -134,7 +135,7 @@ namespace
                 int cb = cbBuf[srcOffset];
                 int cr = crBuf[srcOffset];
 
-                auto [r, g, b] = convertYCbCrToRGB(y, cb, cr);
+                auto [r, g, b] = image::ycbcrToRGB(y, cb, cr);
 
                 pixels[dstOffset + 0] = b;
                 pixels[dstOffset + 1] = g;
@@ -202,7 +203,7 @@ void JpegDecoder::decode(DecodeResult& result)
     // ファイル全体を通して更新し続ける
     std::array<int, 3> dcPred = { 0, 0, 0 };
 
-    const int totalMCUCount = ycc.getMCUHorizontalCount() * ycc.getMCUVerticalCount();
+    //const int totalMCUCount = ycc.getMCUHorizontalCount() * ycc.getMCUVerticalCount();
     int mcuCount = 0;
 
     for (int mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
@@ -386,7 +387,7 @@ inline int JpegDecoder::decodeZZ(int ssss)
     return extend(value, ssss);
 }
 
-void JpegDecoder::decodeACCoeffs(
+void JpegDecoder::decodeACCoefs(
     HuffmanTable& table,
     const std::vector<uint8_t>& symbols,
     std::array<int, 64>& block
@@ -419,13 +420,13 @@ void JpegDecoder::decodeACCoeffs(
     }
 }
 
-int JpegDecoder::decodeDCCoeff(HuffmanTable& table, const std::vector<uint8_t>& symbols, int& pred)
+int JpegDecoder::decodeDCCoef(HuffmanTable& table, const std::vector<uint8_t>& symbols, int& pred)
 {
     int symbol = decodeHuffmanSymbol(table, symbols);
     int diff = (symbol == 0) ? 0 : extend(m_BitStreamReader->receive(symbol), symbol);
-    int dcCoeff = pred + diff;
-    pred = dcCoeff;
-    return dcCoeff;
+    int dcCoef = pred + diff;
+    pred = dcCoef;
+    return dcCoef;
 }
 
 void JpegDecoder::decodeBlock(
@@ -438,8 +439,8 @@ void JpegDecoder::decodeBlock(
     int& dcPred
 )
 {
-    block[0] = decodeDCCoeff(dcTable, dcDHT->symbols, dcPred);
-    decodeACCoeffs(acTable, acDHT->symbols, block);
+    block[0] = decodeDCCoef(dcTable, dcDHT->symbols, dcPred);
+    decodeACCoefs(acTable, acDHT->symbols, block);
     dequantize(block, *dqt);
     reorder(block);
     math::idct(block);
