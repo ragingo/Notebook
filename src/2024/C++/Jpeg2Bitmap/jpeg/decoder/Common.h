@@ -7,7 +7,7 @@ namespace jpeg
     inline constexpr int BLOCK_HEIGHT = 8;
     inline constexpr int BLOCK_SIZE = BLOCK_WIDTH * BLOCK_HEIGHT;
 
-    using MCUBlock8x8 = std::array<int, BLOCK_SIZE>;
+    using MCUBlock8x8 = std::array<int16_t, BLOCK_SIZE>;
 
     // Figure A.6 – Zig-zag sequence of quantized DCT coefficients
     inline constexpr MCUBlock8x8 ZIGZAG = {

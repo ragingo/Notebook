@@ -4,6 +4,7 @@
 #include <vector>
 #include "jpeg/BitStreamReader.h"
 #include "jpeg/parser/JpegParser.h"
+#include "jpeg/decoder/Common.h"
 
 namespace jpeg {
 
@@ -56,7 +57,7 @@ private:
     void decodeACCoefs(
         HuffmanTable& table,
         const std::vector<uint8_t>& symbols,
-        std::array<int, 64>& block
+        MCUBlock8x8& block
     );
 
     // F.2.2.1 Huffman decoding of DC coefficients
@@ -68,7 +69,7 @@ private:
         HuffmanTable& acTable,
         std::shared_ptr<segments::DHT> acDHT,
         std::shared_ptr<segments::DQT> dqt,
-        std::array<int, 64>& block,
+        MCUBlock8x8& block,
         int& dcPred
     );
 private:

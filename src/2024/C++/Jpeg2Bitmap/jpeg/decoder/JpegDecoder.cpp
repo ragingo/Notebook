@@ -33,16 +33,16 @@ namespace
         if (dqt.precision == DQT::Precision::BITS_8) {
             auto table = std::get<DQT::Bits8Table>(dqt.table);
 
-            // uint8_t[] to int[]
-            std::array<int, 64> temp{};
+            // uint8_t[] to int16_t[]
+            std::array<int16_t, 64> temp{};
             for (size_t i = 0; i < 64; ++i) {
                 temp[i] = table[i];
             }
 
-            for (size_t i = 0; i < block.size(); i += 8) {
+            for (size_t i = 0; i < block.size(); i += 16) {
                 __m256i b = _mm256_load_si256(reinterpret_cast<const __m256i*>(&block[i]));
                 __m256i t = _mm256_load_si256(reinterpret_cast<const __m256i*>(&temp[i]));
-                b = _mm256_mullo_epi32(b, t);
+                b = _mm256_mullo_epi16(b, t);
                 _mm256_store_si256(reinterpret_cast<__m256i*>(&block[i]), b);
             }
         }
@@ -65,14 +65,9 @@ namespace
 
     inline void levelShift(MCUBlock8x8& block)
     {
-        static __m256i _128 = _mm256_set1_epi32(128);
-        static __m256i _0 = _mm256_setzero_si256();
-        static __m256i _255 = _mm256_set1_epi32(255);
-
-        for (int i = 0; i < block.size(); i += 8) {
+        for (int i = 0; i < block.size(); i += 16) {
             __m256i v = _mm256_load_si256(reinterpret_cast<const __m256i*>(&block[i]));
-            v = _mm256_add_epi32(v, _128);
-            simd::clamp256_i32(v, _0, _255);
+            v = _mm256_add_epi16(v, _mm256_set1_epi16(128));
             _mm256_store_si256(reinterpret_cast<__m256i*>(&block[i]), v);
         }
     }
@@ -362,7 +357,7 @@ inline int JpegDecoder::decodeZZ(int ssss)
 void JpegDecoder::decodeACCoefs(
     HuffmanTable& table,
     const std::vector<uint8_t>& symbols,
-    std::array<int, 64>& block
+    MCUBlock8x8& block
 )
 {
     int k = 1; // DC係数は既にデコード済みなので、kを1から開始
@@ -387,7 +382,8 @@ void JpegDecoder::decodeACCoefs(
             if (k >= 64) {
                 break;
             }
-            block[k++] = decodeZZ(ssss);
+            // decodeZZ や receive 時点で int16_t にしてもいいかもしれない
+            block[k++] = static_cast<int16_t>(decodeZZ(ssss));
         }
     }
 }
@@ -407,11 +403,12 @@ void JpegDecoder::decodeBlock(
     HuffmanTable& acTable,
     std::shared_ptr<DHT> acDHT,
     std::shared_ptr<DQT> dqt,
-    std::array<int, 64>& block,
+    MCUBlock8x8& block,
     int& dcPred
 )
 {
-    block[0] = decodeDCCoef(dcTable, dcDHT->symbols, dcPred);
+    // TODO: すごく雑に int -> int16_t にしているので、全体的にどうするか考える
+    block[0] = static_cast<int16_t>(decodeDCCoef(dcTable, dcDHT->symbols, dcPred));
     decodeACCoefs(acTable, acDHT->symbols, block);
     dequantize(block, *dqt);
     reorder(block);

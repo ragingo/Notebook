@@ -96,7 +96,7 @@ namespace math
 
     template<
         int N = 8,
-        typename Block = std::array<int, N * N>
+        typename Block = std::array<int16_t, N * N>
     >
     inline void idct(Block& block)
     {
@@ -141,7 +141,7 @@ namespace math
                     sum = std::fma(src, cu, sum);
 #endif // _DEBUG
                 }
-                block[i++] = static_cast<int>(sum);
+                block[i++] = static_cast<int16_t>(sum);
             }
         }
     }
