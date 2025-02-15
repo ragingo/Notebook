@@ -2,8 +2,8 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include "jpeg/syntax/markers.h"
-#include "jpeg/syntax/segments.h"
+#include "jpeg/syntax/Marker.h"
+#include "jpeg/syntax/Segment.h"
 #include "BinaryFileReader.h"
 
 namespace jpeg {

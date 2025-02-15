@@ -1,6 +1,6 @@
 ﻿#include "BitStreamReader.h"
 #include <print>
-#include "syntax/segments.h"
+#include "syntax/Segment.h"
 
 namespace jpeg {
 

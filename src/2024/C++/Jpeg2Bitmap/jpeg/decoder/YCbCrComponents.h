@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <cassert>
 #include <cstdint>
-#include "jpeg/syntax/segments.h"
+#include "jpeg/syntax/Segment.h"
 #include "ComponentInfo.h"
 
 namespace jpeg

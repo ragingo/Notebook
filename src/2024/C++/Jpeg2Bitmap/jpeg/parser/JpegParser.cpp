@@ -7,8 +7,8 @@
 #include <variant>
 #include <vector>
 #include "BinaryFileReader.h"
-#include "jpeg/syntax/markers.h"
-#include "jpeg/syntax/segments.h"
+#include "jpeg/syntax/Marker.h"
+#include "jpeg/syntax/Segment.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;

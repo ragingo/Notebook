@@ -8,6 +8,7 @@
 #include "math/math.h"
 #include "image/color_model.h"
 #include "simd/simd.h"
+#include "Common.h"
 #include "YCbCrComponents.h"
 
 using namespace jpeg;
@@ -15,20 +16,6 @@ using namespace jpeg::segments;
 
 namespace
 {
-    using MCUBlock8x8 = std::array<int, 64>;
-
-    // Figure A.6 – Zig-zag sequence of quantized DCT coefficients
-    constexpr MCUBlock8x8 ZIGZAG = {
-         0,  1,  5,  6, 14, 15, 27, 28,
-         2,  4,  7, 13, 16, 26, 29, 42,
-         3,  8, 12, 17, 25, 30, 41, 43,
-         9, 11, 18, 24, 31, 40, 44, 53,
-        10, 19, 23, 32, 39, 45, 52, 54,
-        20, 22, 33, 38, 46, 51, 55, 60,
-        21, 34, 37, 47, 50, 56, 59, 61,
-        35, 36, 48, 49, 57, 58, 62, 63
-    };
-
     // Figure F.12 – Extending the sign bit of a decoded value in V
     constexpr int extend(int v, int t)
     {
