@@ -169,39 +169,26 @@ void JpegDecoder::decode(DecodeResult& result)
                 auto& buf = ycc.getComponent(component.id).buffer;
                 int width = ycc.getComponent(component.id).width;
 
-                // 4:4:4 の場合、1 MCU Y 8x8 Cb 8x8 Cr 8x8 で処理
-                if (getYUVFormat(*sof0) == YUVFormat::YUV444) {
-                    MCUBlock8x8 block{};
-                    decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
-                    for (int y = 0; y < 8; ++y) {
-                        int blockStride = y * 8;
-                        for (int x = 0; x < 8; ++x) {
-                            int cx = mcuCol * 8 + x;
-                            int cy = mcuRow * 8 + y;
-                            int index = cy * width + cx;
-                            buf[index] = block[blockStride + x];
-                        }
-                    }
-                }
+                // 4:4:4 の場合、1 MCU Y  8 x  8, Cb 8 x 8, Cr 8 x 8 で処理
+                // 4:2:0 の場合、1 MCU Y 16 x 16, Cb 8 x 8, Cr 8 x 8 となるため、Y は 2 ブロック分の処理が必要
 
-                // 4:2:0 の場合、1 MCU Y 16x16 Cb 8x8 Cr 8x8 を、 8x8 のブロックに分割して処理
-                if (getYUVFormat(*sof0) == YUVFormat::YUV420) {
-                    for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
-                        for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
-                            MCUBlock8x8 block{};
-                            decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
+                for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
+                    for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
+                        MCUBlock8x8 block{};
+                        decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
 
-                            // MCU内のブロック処理ループ内
-                            for (int y = 0; y < 8; ++y) {
-                                for (int x = 0; x < 8; ++x) {
-                                    int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
-                                    int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
+                        // MCU内のブロック
+                        for (int y = 0; y < 8; ++y) {
+                            size_t blockStride = y * 8;
 
-                                    int height = ycc.getComponent(component.id).height;
-                                    if (cx < width && cy < height) {
-                                        int index = cy * width + cx;
-                                        ycc.getComponent(component.id).buffer[index] = block[y * 8 + x];
-                                    }
+                            for (int x = 0; x < 8; ++x) {
+                                int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
+                                int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
+
+                                int height = ycc.getComponent(component.id).height;
+                                if (cx < width && cy < height) {
+                                    int index = cy * width + cx;
+                                    buf[index] = block[blockStride + x];
                                 }
                             }
                         }
