@@ -66,11 +66,27 @@ namespace
 
     inline void reorder(MCUBlock8x8& block)
     {
-        MCUBlock8x8 temp{};
-        for (size_t i = 0; i < block.size(); ++i) {
-            temp[i] = block[ZIGZAG[i]];
+        alignas(32) std::array<int32_t, 64> tmp{};
+        alignas(32) std::array<int32_t, 64> reordered{};
+
+        // int16_t[] to int32_t[]
+#pragma omp simd
+        for (size_t i = 0; i < block.size(); i++) {
+            tmp[i] = block[i];
         }
-        block.swap(temp);
+
+        // reorder
+        for (size_t i = 0; i < tmp.size(); i += 8) {
+            __m256i idx = _mm256_load_si256(reinterpret_cast<const __m256i*>(&ZIGZAG[i]));
+            __m256i gathered = _mm256_i32gather_epi32(tmp.data(), idx, sizeof(int32_t));
+            _mm256_store_si256(reinterpret_cast<__m256i*>(&reordered[i]), gathered);
+        }
+
+        // int32_t[] to int16_t[]
+#pragma omp simd
+        for (size_t i = 0; i < reordered.size(); i++) {
+            block[i] = static_cast<int16_t>(reordered[i]);
+        }
     }
 
     inline void levelShift(MCUBlock8x8& block)
@@ -180,7 +196,7 @@ void JpegDecoder::decode(DecodeResult& result)
 
                 for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
                     for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
-                        MCUBlock8x8 block{};
+                        alignas(32) MCUBlock8x8 block{};
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
 
                         // MCU内のブロック
@@ -366,8 +382,8 @@ void JpegDecoder::decodeBlock(
     // TODO: すごく雑に int -> int16_t にしているので、全体的にどうするか考える
     block[0] = static_cast<int16_t>(decodeDCCoef(dcTable, dcDHT->symbols, dcPred));
     decodeACCoefs(acTable, acDHT->symbols, block);
-    dequantize(block, *dqt);
     reorder(block);
+    dequantize(block, *dqt);
     math::idct(block);
     levelShift(block);
 }

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <array>
+#include <cstdint>
 
 namespace jpeg
 {
@@ -10,7 +11,7 @@ namespace jpeg
     using MCUBlock8x8 = std::array<int16_t, BLOCK_SIZE>;
 
     // Figure A.6 – Zig-zag sequence of quantized DCT coefficients
-    inline constexpr MCUBlock8x8 ZIGZAG = {
+    alignas(32) inline constexpr std::array<int32_t, BLOCK_SIZE> ZIGZAG = {
          0,  1,  5,  6, 14, 15, 27, 28,
          2,  4,  7, 13, 16, 26, 29, 42,
          3,  8, 12, 17, 25, 30, 41, 43,
