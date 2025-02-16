@@ -1,16 +1,23 @@
 ﻿#include "JpegDecoder.h"
 #include <immintrin.h>
+#include <array>
 #include <cassert>
+#include <cstdint>
 #include <memory>
-#include <nameof.hpp>
 #include <print>
-#include "jpeg/debugging/debugging.h"
-#include "math/math.h"
-#include "image/Color.h"
-#include "simd/simd.h"
+#include <tuple>
+#include <utility>
+#include <variant>
+#include <vector>
+#include <nameof.hpp>
 #include "Common.h"
 #include "Utility.h"
 #include "YCbCrComponents.h"
+#include "image/Color.h"
+#include "jpeg/BitStreamReader.h"
+#include "jpeg/debugging/debugging.h"
+#include "jpeg/syntax/Segment.h"
+#include "math/math.h"
 
 using namespace jpeg;
 using namespace jpeg::segments;
@@ -31,7 +38,7 @@ namespace
     inline void dequantize(MCUBlock8x8& block, const DQT& dqt)
     {
         if (dqt.precision == DQT::Precision::BITS_8) {
-            auto table = std::get<DQT::Bits8Table>(dqt.table);
+            auto& table = std::get<DQT::Bits8Table>(dqt.table);
 
             // uint8_t[] to int16_t[]
             std::array<int16_t, 64> temp{};
@@ -47,7 +54,7 @@ namespace
             }
         }
         else if (dqt.precision == DQT::Precision::BITS_16) {
-            auto table = std::get<DQT::Bits16Table>(dqt.table);
+            auto& table = std::get<DQT::Bits16Table>(dqt.table);
             for (size_t i = 0; i < block.size(); ++i) {
                 block[i] *= table[i];
             }
@@ -133,8 +140,8 @@ void JpegDecoder::decode(DecodeResult& result)
     //const int totalMCUCount = ycc.getMCUHorizontalCount() * ycc.getMCUVerticalCount();
     int mcuCount = 0;
 
-    for (int mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
-        for (int mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
+    for (size_t mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
+        for (size_t mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
             ++mcuCount;
 
             // 最後の MCU を処理すると、ECS を読み切ったのに読み込みが何度も発生してしまう。
@@ -165,7 +172,7 @@ void JpegDecoder::decode(DecodeResult& result)
                 auto componentIndex = std::distance(sof0->components.data(), &component);
                 auto& [dcTable, dcDHT] = dcTables[std::to_underlying(component.tableID)];
                 auto& [acTable, acDHT] = acTables[std::to_underlying(component.tableID)];
-                auto dqt = dqts[std::to_underlying(component.tableID)];
+                auto& dqt = dqts[std::to_underlying(component.tableID)];
                 auto& buf = ycc.getComponent(component.id).buffer;
                 int width = ycc.getComponent(component.id).width;
 
@@ -178,16 +185,16 @@ void JpegDecoder::decode(DecodeResult& result)
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
 
                         // MCU内のブロック
-                        for (int y = 0; y < 8; ++y) {
+                        for (size_t y = 0; y < 8; ++y) {
                             size_t blockStride = y * 8;
 
-                            for (int x = 0; x < 8; ++x) {
-                                int cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
-                                int cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
+                            for (size_t x = 0; x < 8; ++x) {
+                                size_t cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
+                                size_t cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
 
                                 int height = ycc.getComponent(component.id).height;
                                 if (cx < width && cy < height) {
-                                    int index = cy * width + cx;
+                                    size_t index = cy * width + cx;
                                     buf[index] = block[blockStride + x];
                                 }
                             }
