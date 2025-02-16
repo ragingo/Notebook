@@ -1,5 +1,9 @@
 ﻿#pragma once
 #include "YCbCrComponents.h"
+#include <cassert>
+#include <vector>
+#include "ComponentInfo.h"
+#include "jpeg/syntax/Segment.h"
 
 using namespace jpeg::segments;
 
@@ -37,7 +41,7 @@ namespace jpeg
             const auto vMaxFactor = getMaxVerticalSamplingFactor();
             info.width = (sof0.width * info.horizontalSamplingFactor + hMaxFactor - 1) / hMaxFactor;
             info.height = (sof0.height * info.verticalSamplingFactor + vMaxFactor - 1) / vMaxFactor;
-            info.buffer.resize(info.width * info.height, 0);
+            info.buffer.resize(static_cast<size_t>(info.width * info.height), 0);
         }
     }
 } // namespace jpeg

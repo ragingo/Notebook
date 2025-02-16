@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <algorithm>
 #include <cassert>
+#include <concepts>
 #include <cstdint>
 #include <tuple>
 #include <vector>
@@ -18,7 +18,8 @@ namespace image
         B8G8R8A8_UINT,
     };
 
-    constexpr std::tuple<uint8_t, uint8_t, uint8_t> ycbcrToRGB(int y, int cb, int cr) noexcept
+    template<std::integral T = int>
+    constexpr std::tuple<uint8_t, uint8_t, uint8_t> ycbcrToRGB(T y, T cb, T cr) noexcept
     {
         constexpr int coef_r = static_cast<int>(1.402 * 65536);
         constexpr int coef_g_1 = static_cast<int>(0.344136 * 65536);
@@ -71,9 +72,9 @@ namespace image
         std::vector<uint8_t>& dst,
         int width,
         int height,
-        const std::vector<int>& srcY,
-        const std::vector<int>& srcCb,
-        const std::vector<int>& srcCr
+        const std::vector<int16_t>& srcY,
+        const std::vector<int16_t>& srcCb,
+        const std::vector<int16_t>& srcCr
     ) noexcept
     {
         assert(dst.size() == width * height * 4);
@@ -103,11 +104,11 @@ namespace image
                 size_t dstOffset = yOffset * 4;
                 assert(dstOffset + 3 < dst.size());
 
-                int y = srcY[yOffset];
-                int cb = srcCb[cbOffset];
-                int cr = srcCr[crOffset];
+                int16_t y = srcY[yOffset];
+                int16_t cb = srcCb[cbOffset];
+                int16_t cr = srcCr[crOffset];
 
-                auto [r, g, b] = image::ycbcrToRGB(y, cb, cr);
+                auto [r, g, b] = image::ycbcrToRGB<int16_t>(y, cb, cr);
 
                 dst[dstOffset + 0] = b;
                 dst[dstOffset + 1] = g;

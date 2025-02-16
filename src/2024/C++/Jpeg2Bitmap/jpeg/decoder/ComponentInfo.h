@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cstdint>
 #include <vector>
 #include "jpeg/syntax/Segment.h"
 
@@ -11,6 +12,6 @@ namespace jpeg
         int verticalSamplingFactor;
         int width;
         int height;
-        std::vector<int> buffer;
+        std::vector<int16_t> buffer;
     };
 }
