@@ -40,15 +40,18 @@ namespace
         if (dqt.precision == DQT::Precision::BITS_8) {
             auto& table = std::get<DQT::Bits8Table>(dqt.table);
 
+            std::array<int16_t, 64> tmp{};
+
             // uint8_t[] to int16_t[]
-            std::array<int16_t, 64> temp{};
-            for (size_t i = 0; i < 64; ++i) {
-                temp[i] = table[i];
+            for (size_t i = 0; i < 64; i += 16) {
+                __m128i tbl = _mm_load_si128(reinterpret_cast<const __m128i*>(&table[i]));
+                __m256i tbl2 = _mm256_cvtepu8_epi16(tbl);
+                _mm256_store_si256(reinterpret_cast<__m256i*>(&tmp[i]), tbl2);
             }
 
             for (size_t i = 0; i < block.size(); i += 16) {
                 __m256i b = _mm256_load_si256(reinterpret_cast<const __m256i*>(&block[i]));
-                __m256i t = _mm256_load_si256(reinterpret_cast<const __m256i*>(&temp[i]));
+                __m256i t = _mm256_load_si256(reinterpret_cast<const __m256i*>(&tmp[i]));
                 b = _mm256_mullo_epi16(b, t);
                 _mm256_store_si256(reinterpret_cast<__m256i*>(&block[i]), b);
             }
