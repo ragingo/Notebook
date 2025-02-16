@@ -71,41 +71,6 @@ namespace
             _mm256_store_si256(reinterpret_cast<__m256i*>(&block[i]), v);
         }
     }
-
-    void convertColorData(
-        std::vector<uint8_t>& pixels,
-        int width,
-        int height,
-        const YCbCrComponents& ycc
-    )
-    {
-        const auto componentY = ycc.getComponent(ComponentID::Y);
-        const auto componentCb = ycc.getComponent(ComponentID::Cb);
-        const auto componentCr = ycc.getComponent(ComponentID::Cr);
-
-        for (int row = 0; row < height; ++row) {
-            int yRow = row * width;
-            int cbRow = static_cast<int>(row * ycc.getCbVerticalSamplingFactor()) * componentCb.width;
-            int crRow = static_cast<int>(row * ycc.getCrVerticalSamplingFactor()) * componentCr.width;
-
-            for (int col = 0; col < width; ++col) {
-                int yOffset = yRow + col;
-                int cbCol = static_cast<int>(col * ycc.getCbHorizontalSamplingFactor());
-                int crCol = static_cast<int>(col * ycc.getCrHorizontalSamplingFactor());
-
-                int y = componentY.buffer[yOffset];
-                int cb = componentCb.buffer[cbRow + cbCol];
-                int cr = componentCr.buffer[crRow + crCol];
-
-                auto [r, g, b] = image::ycbcrToRGB(y, cb, cr);
-
-                pixels[yOffset * 4 + 0] = b;
-                pixels[yOffset * 4 + 1] = g;
-                pixels[yOffset * 4 + 2] = r;
-                pixels[yOffset * 4 + 3] = 0xFF;
-            }
-        }
-    }
 }
 
 JpegDecoder::JpegDecoder(const char* fileName)
@@ -249,10 +214,15 @@ void JpegDecoder::decode(DecodeResult& result)
     std::vector<uint8_t> pixels(sof0->width * sof0->height * 4, 0);
 
     if (getYUVFormat(*sof0) == YUVFormat::YUV420) {
-        convertColorData(pixels, sof0->width, sof0->height, ycc);
+        image::convertYCbCrToBGRA32<image::PixelFormat::YCBCR420_UINT>(
+            pixels, sof0->width, sof0->height,
+            ycc.getComponent(ComponentID::Y).buffer,
+            ycc.getComponent(ComponentID::Cb).buffer,
+            ycc.getComponent(ComponentID::Cr).buffer
+        );
     }
     else if (getYUVFormat(*sof0) == YUVFormat::YUV444) {
-        image::convertYCbCr444ToBGRA32(
+        image::convertYCbCrToBGRA32<image::PixelFormat::YCBCR444_UINT>(
             pixels, sof0->width, sof0->height,
             ycc.getComponent(ComponentID::Y).buffer,
             ycc.getComponent(ComponentID::Cb).buffer,

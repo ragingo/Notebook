@@ -8,6 +8,16 @@
 
 namespace image
 {
+    enum class PixelFormat
+    {
+        // YCbCr 4:4:4
+        YCBCR444_UINT,
+        // YCbCr 4:2:0
+        YCBCR420_UINT,
+        // BGRA 32bit
+        B8G8R8A8_UINT,
+    };
+
     constexpr std::tuple<uint8_t, uint8_t, uint8_t> ycbcrToRGB(int y, int cb, int cr) noexcept
     {
         constexpr int coef_r = static_cast<int>(1.402 * 65536);
@@ -30,10 +40,37 @@ namespace image
     static_assert(ycbcrToRGB(255, 128, 128) == std::make_tuple(255, 255, 255));
     static_assert(ycbcrToRGB(1, 2, 3) == std::make_tuple(0, 134, 0));
 
-    inline void convertYCbCr444ToBGRA32(
+    constexpr std::tuple<double, double> getHorizontalSamplingFactor(PixelFormat format) noexcept
+    {
+        switch (format) {
+        case image::PixelFormat::YCBCR444_UINT:
+            return { 1.0, 1.0 };
+        case image::PixelFormat::YCBCR420_UINT:
+            return { 0.5, 0.5 };
+        default:
+            assert(false);
+            return { 1.0, 1.0 };
+        }
+    }
+
+    constexpr std::tuple<double, double> getVerticalSamplingFactor(PixelFormat format) noexcept
+    {
+        switch (format) {
+        case image::PixelFormat::YCBCR444_UINT:
+            return { 1.0, 1.0 };
+        case image::PixelFormat::YCBCR420_UINT:
+            return { 0.5, 0.5 };
+        default:
+            assert(false);
+            return { 1.0, 1.0 };
+        }
+    }
+
+    template <PixelFormat SrcFormat>
+    inline void convertYCbCrToBGRA32(
         std::vector<uint8_t>& dst,
-        uint32_t width,
-        uint32_t height,
+        int width,
+        int height,
         const std::vector<int>& srcY,
         const std::vector<int>& srcCb,
         const std::vector<int>& srcCr
@@ -41,23 +78,34 @@ namespace image
     {
         assert(dst.size() == width * height * 4);
         assert(srcY.size() == width * height);
-        assert(srcCb.size() == width * height);
-        assert(srcCr.size() == width * height);
 
-#pragma omp simd
-        for (size_t row = 0; row < height; ++row) {
-            size_t stride = row * width;
+        constexpr auto hFactor = getHorizontalSamplingFactor(SrcFormat);
+        constexpr auto vFactor = getVerticalSamplingFactor(SrcFormat);
 
-            for (size_t col = 0; col < width; ++col) {
-                size_t srcOffset = stride + col;
-                assert(srcOffset < srcY.size());
+        const auto [cbHFactor, cbVFactor] = hFactor;
+        const auto [crHFactor, crVFactor] = vFactor;
 
-                size_t dstOffset = srcOffset * 4;
+        const int cbWidth = static_cast<int>(width * cbHFactor);
+        const int crWidth = static_cast<int>(width * crHFactor);
+        assert(srcCb.size() == cbWidth * height * cbVFactor);
+        assert(srcCr.size() == crWidth * height * crVFactor);
+
+        for (int row = 0; row < height; ++row) {
+            size_t yRow = row * width;
+            size_t cbRow = static_cast<size_t>(row * cbHFactor) * cbWidth;
+            size_t crRow = static_cast<size_t>(row * crHFactor) * crWidth;
+
+            for (int col = 0; col < width; ++col) {
+                size_t yOffset = yRow + col;
+                size_t cbOffset = cbRow + static_cast<size_t>(std::round(col * cbVFactor));
+                size_t crOffset = crRow + static_cast<size_t>(std::round(col * crVFactor));
+
+                size_t dstOffset = yOffset * 4;
                 assert(dstOffset + 3 < dst.size());
 
-                int y = srcY[srcOffset];
-                int cb = srcCb[srcOffset];
-                int cr = srcCr[srcOffset];
+                int y = srcY[yOffset];
+                int cb = srcCb[cbOffset];
+                int cr = srcCr[crOffset];
 
                 auto [r, g, b] = image::ycbcrToRGB(y, cb, cr);
 
