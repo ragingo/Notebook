@@ -274,21 +274,18 @@ JpegDecoder::HuffmanTable JpegDecoder::createHuffmanTable(const std::array<uint8
     auto huffCode = createHuffCode(huffSize);
 
     HuffmanTable table{};
-    table.minCode.resize(16, 0);
-    table.maxCode.resize(16, -1);
-    table.valPtr.resize(16, 0);
 
     int j = 0;
-    for (int i = 0; i < 16; ++i) {
+    for (size_t i = 0; i < 16; ++i) {
         auto bit = counts[i];
         if (bit == 0) {
             continue;
         }
         table.valPtr[i] = j;
         table.minCode[i] = huffCode[j];
-        j = j + bit - 1;
+        j += bit - 1;
         table.maxCode[i] = huffCode[j];
-        j++;
+        ++j;
     }
 
     return table;

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <array>
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include "jpeg/BitStreamReader.h"
@@ -26,9 +27,14 @@ public:
 private:
     struct HuffmanTable
     {
-        std::vector<int> minCode;
-        std::vector<int> maxCode;
-        std::vector<int> valPtr;
+        std::array<int, 16> minCode{};
+        std::array<int, 16> maxCode{};
+        std::array<int, 16> valPtr{};
+
+        HuffmanTable()
+        {
+            maxCode.fill(-1);
+        }
     };
 
     // Figure C.1 – Generation of table of Huffman code sizes
