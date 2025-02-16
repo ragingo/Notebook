@@ -83,23 +83,23 @@ namespace image
         constexpr auto hFactor = getHorizontalSamplingFactor(SrcFormat);
         constexpr auto vFactor = getVerticalSamplingFactor(SrcFormat);
 
-        const auto [cbHFactor, cbVFactor] = hFactor;
-        const auto [crHFactor, crVFactor] = vFactor;
+        const auto& [cbHFactor, cbVFactor] = hFactor;
+        const auto& [crHFactor, crVFactor] = vFactor;
 
         const int cbWidth = static_cast<int>(width * cbHFactor);
         const int crWidth = static_cast<int>(width * crHFactor);
         assert(srcCb.size() == cbWidth * height * cbVFactor);
         assert(srcCr.size() == crWidth * height * crVFactor);
 
-        for (int row = 0; row < height; ++row) {
+        for (size_t row = 0; row < height; ++row) {
             size_t yRow = row * width;
             size_t cbRow = static_cast<size_t>(row * cbHFactor) * cbWidth;
             size_t crRow = static_cast<size_t>(row * crHFactor) * crWidth;
 
             for (int col = 0; col < width; ++col) {
                 size_t yOffset = yRow + col;
-                size_t cbOffset = cbRow + static_cast<size_t>(std::round(col * cbVFactor));
-                size_t crOffset = crRow + static_cast<size_t>(std::round(col * crVFactor));
+                size_t cbOffset = cbRow + static_cast<size_t>(col * cbVFactor);
+                size_t crOffset = crRow + static_cast<size_t>(col * crVFactor);
 
                 size_t dstOffset = yOffset * 4;
                 assert(dstOffset + 3 < dst.size());

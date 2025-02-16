@@ -95,6 +95,7 @@ void JpegDecoder::decode(DecodeResult& result)
 
     debugging::dumpSummary(m_Parser.getMarkers(), m_Parser.getSegments());
 
+    // 必須セグメント
     auto sos = findFirstSegment<SOS>(m_Parser.getSegments());
     assert(sos);
     auto dhts = findSegments<DHT>(m_Parser.getSegments());
@@ -103,6 +104,8 @@ void JpegDecoder::decode(DecodeResult& result)
     assert(sof0);
     auto dqts = findSegments<DQT>(m_Parser.getSegments());
     assert(!dqts.empty());
+
+    // 省略可能なセグメント
     auto dri = findFirstSegment<DRI>(m_Parser.getSegments());
 
     if (auto colorSpace = getColorSpace(*sof0); colorSpace != ColorSpace::YCbCr) {
@@ -137,18 +140,11 @@ void JpegDecoder::decode(DecodeResult& result)
     // ファイル全体を通して更新し続ける
     std::array<int, 3> dcPred = { 0, 0, 0 };
 
-    //const int totalMCUCount = ycc.getMCUHorizontalCount() * ycc.getMCUVerticalCount();
     int mcuCount = 0;
 
     for (size_t mcuRow = 0; mcuRow < ycc.getMCUVerticalCount(); ++mcuRow) {
         for (size_t mcuCol = 0; mcuCol < ycc.getMCUHorizontalCount(); ++mcuCol) {
             ++mcuCount;
-
-            // 最後の MCU を処理すると、ECS を読み切ったのに読み込みが何度も発生してしまう。
-            // とりあえず、最後の MCU はスキップする。
-            //if (dri && mcuCount == totalMCUCount) {
-            //    break;
-            //}
 
             if (!m_BitStreamReader->hasMore()) {
                 break;
@@ -191,12 +187,8 @@ void JpegDecoder::decode(DecodeResult& result)
                             for (size_t x = 0; x < 8; ++x) {
                                 size_t cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
                                 size_t cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
-
-                                int height = ycc.getComponent(component.id).height;
-                                if (cx < width && cy < height) {
-                                    size_t index = cy * width + cx;
-                                    buf[index] = block[blockStride + x];
-                                }
+                                size_t index = cy * width + cx;
+                                buf[index] = block[blockStride + x];
                             }
                         }
                     }
