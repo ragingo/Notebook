@@ -197,18 +197,21 @@ void JpegDecoder::decode(DecodeResult& result)
 
                 for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
                     for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
+                        size_t dstBlockX = (mcuCol * component.horizonalSamplingFactor + blockCol) * 8;
+                        size_t dstBlockY = (mcuRow * component.verticalSamplingFactor + blockRow) * 8;
+
                         alignas(32) MCUBlock8x8 block{};
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
 
-                        // MCU内のブロック
                         for (size_t y = 0; y < 8; ++y) {
-                            size_t blockStride = y * 8;
+                            size_t srcBlockStride = y * 8;
+                            size_t dstPixelY = dstBlockY + y;
 
                             for (size_t x = 0; x < 8; ++x) {
-                                size_t cx = ((mcuCol * component.horizonalSamplingFactor + blockCol) * 8) + x;
-                                size_t cy = ((mcuRow * component.verticalSamplingFactor + blockRow) * 8) + y;
-                                size_t index = cy * width + cx;
-                                buf[index] = block[blockStride + x];
+                                size_t dstPixelX = dstBlockX + x;
+                                size_t dstIndex = dstPixelY * width + dstPixelX;
+                                size_t srcIndex = srcBlockStride + x;
+                                buf[dstIndex] = block[srcIndex];
                             }
                         }
                     }
