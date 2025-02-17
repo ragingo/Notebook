@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <print>
+#include <span>
 #include <tuple>
 #include <utility>
 #include <variant>
@@ -220,18 +221,18 @@ void JpegDecoder::decode(DecodeResult& result)
 
     if (getYUVFormat(*sof0) == YUVFormat::YUV420) {
         image::convertYCbCrToBGRA32<image::PixelFormat::YCBCR420_UINT>(
-            pixels, sof0->width, sof0->height,
-            ycc.getComponent(ComponentID::Y).buffer,
-            ycc.getComponent(ComponentID::Cb).buffer,
-            ycc.getComponent(ComponentID::Cr).buffer
+            sof0->width, sof0->height, pixels,
+            std::span{ ycc.getComponent(ComponentID::Y).buffer },
+            std::span{ ycc.getComponent(ComponentID::Cb).buffer },
+            std::span{ ycc.getComponent(ComponentID::Cr).buffer }
         );
     }
     else if (getYUVFormat(*sof0) == YUVFormat::YUV444) {
         image::convertYCbCrToBGRA32<image::PixelFormat::YCBCR444_UINT>(
-            pixels, sof0->width, sof0->height,
-            ycc.getComponent(ComponentID::Y).buffer,
-            ycc.getComponent(ComponentID::Cb).buffer,
-            ycc.getComponent(ComponentID::Cr).buffer
+            sof0->width, sof0->height, pixels,
+            std::span{ ycc.getComponent(ComponentID::Y).buffer },
+            std::span{ ycc.getComponent(ComponentID::Cb).buffer },
+            std::span{ ycc.getComponent(ComponentID::Cr).buffer }
         );
     }
 

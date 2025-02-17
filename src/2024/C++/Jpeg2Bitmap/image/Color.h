@@ -3,6 +3,7 @@
 #include <cassert>
 #include <concepts>
 #include <cstdint>
+#include <span>
 #include <tuple>
 #include <vector>
 
@@ -69,12 +70,12 @@ namespace image
 
     template <PixelFormat SrcFormat>
     inline void convertYCbCrToBGRA32(
-        std::vector<uint8_t>& dst,
         int width,
         int height,
-        const std::vector<int16_t>& srcY,
-        const std::vector<int16_t>& srcCb,
-        const std::vector<int16_t>& srcCr
+        std::span<uint8_t> dst,
+        std::span<int16_t> srcY,
+        std::span<int16_t> srcCb,
+        std::span<int16_t> srcCr
     ) noexcept
     {
         assert(dst.size() == width * height * 4);
@@ -96,6 +97,7 @@ namespace image
             size_t cbRow = static_cast<size_t>(row * cbHFactor) * cbWidth;
             size_t crRow = static_cast<size_t>(row * crHFactor) * crWidth;
 
+//#pragma omp simd // 効果なし
             for (int col = 0; col < width; ++col) {
                 size_t yOffset = yRow + col;
                 size_t cbOffset = cbRow + static_cast<size_t>(col * cbVFactor);
