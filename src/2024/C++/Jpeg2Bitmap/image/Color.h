@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#include <immintrin.h>
 #include <cassert>
 #include <concepts>
 #include <cstdint>
@@ -19,8 +19,8 @@ namespace image
         B8G8R8A8_UINT,
     };
 
-    template<std::integral T = int>
-    constexpr std::tuple<uint8_t, uint8_t, uint8_t> ycbcrToRGB(T y, T cb, T cr) noexcept
+    template<std::integral T = int, std::integral R = uint8_t>
+    constexpr std::tuple<R, R, R> ycbcrToRGB(T y, T cb, T cr) noexcept
     {
         constexpr int coef_r = static_cast<int>(1.402 * 65536);
         constexpr int coef_g_1 = static_cast<int>(0.344136 * 65536);
@@ -34,9 +34,9 @@ namespace image
         int b = y + ((coef_b * cb) >> 16);
 
         return {
-            static_cast<uint8_t>(std::clamp(r, 0, 255)),
-            static_cast<uint8_t>(std::clamp(g, 0, 255)),
-            static_cast<uint8_t>(std::clamp(b, 0, 255))
+            static_cast<R>(std::clamp(r, 0, 255)),
+            static_cast<R>(std::clamp(g, 0, 255)),
+            static_cast<R>(std::clamp(b, 0, 255))
         };
     }
     static_assert(ycbcrToRGB(255, 128, 128) == std::make_tuple(255, 255, 255));
@@ -92,31 +92,39 @@ namespace image
         assert(srcCb.size() == cbWidth * height * cbVFactor);
         assert(srcCr.size() == crWidth * height * crVFactor);
 
+        struct Pixel
+        {
+            uint8_t b = 0;
+            uint8_t r = 0;
+            uint8_t g = 0;
+            uint8_t a = 0;
+        };
+
+        std::vector<Pixel> pixels(width * height);
+        size_t index = 0;
+
         for (size_t row = 0; row < height; ++row) {
             size_t yRow = row * width;
             size_t cbRow = static_cast<size_t>(row * cbHFactor) * cbWidth;
             size_t crRow = static_cast<size_t>(row * crHFactor) * crWidth;
 
-//#pragma omp simd // 効果なし
-            for (int col = 0; col < width; ++col) {
+            for (size_t col = 0; col < width; ++col) {
                 size_t yOffset = yRow + col;
                 size_t cbOffset = cbRow + static_cast<size_t>(col * cbVFactor);
                 size_t crOffset = crRow + static_cast<size_t>(col * crVFactor);
-
-                size_t dstOffset = yOffset * 4;
-                assert(dstOffset + 3 < dst.size());
 
                 int16_t y = srcY[yOffset];
                 int16_t cb = srcCb[cbOffset];
                 int16_t cr = srcCr[crOffset];
 
-                auto [r, g, b] = image::ycbcrToRGB<int16_t>(y, cb, cr);
-
-                dst[dstOffset + 0] = b;
-                dst[dstOffset + 1] = g;
-                dst[dstOffset + 2] = r;
-                dst[dstOffset + 3] = 0xFF;
+                const auto& [r, g, b] = image::ycbcrToRGB(y, cb, cr);
+                pixels[index++] = { b, g, r, 0xFF }; // 結局ここが遅い
             }
+        }
+
+        for (size_t i = 0; i < pixels.size(); i += 8) {
+            __m256i v = _mm256_load_si256(reinterpret_cast<const __m256i*>(&pixels[i]));
+            _mm256_store_si256(reinterpret_cast<__m256i*>(&dst[i * 4]), v);
         }
     }
 

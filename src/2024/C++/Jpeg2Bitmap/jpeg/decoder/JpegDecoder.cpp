@@ -195,8 +195,8 @@ void JpegDecoder::decode(DecodeResult& result)
                 // 4:4:4 の場合、1 MCU Y  8 x  8, Cb 8 x 8, Cr 8 x 8 で処理
                 // 4:2:0 の場合、1 MCU Y 16 x 16, Cb 8 x 8, Cr 8 x 8 となるため、Y は 2 ブロック分の処理が必要
 
-                for (int blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
-                    for (int blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
+                for (size_t blockRow = 0; blockRow < component.verticalSamplingFactor; ++blockRow) {
+                    for (size_t blockCol = 0; blockCol < component.horizonalSamplingFactor; ++blockCol) {
                         size_t dstBlockX = (mcuCol * component.horizonalSamplingFactor + blockCol) * 8;
                         size_t dstBlockY = (mcuRow * component.verticalSamplingFactor + blockRow) * 8;
 
@@ -204,10 +204,8 @@ void JpegDecoder::decode(DecodeResult& result)
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
 
                         for (size_t y = 0; y < 8; ++y) {
-                            // ブロックから1行(8要素)をロード
-                            __m128i data = _mm_load_si128(reinterpret_cast<const __m128i*>(&block[y * 8]));
-                            // 書き込み先の行の先頭を計算
                             size_t offset = (dstBlockY + y) * width + dstBlockX;
+                            __m128i data = _mm_load_si128(reinterpret_cast<const __m128i*>(&block[y * 8]));
                             _mm_storeu_si128(reinterpret_cast<__m128i*>(&buf[offset]), data);
                         }
                     }
