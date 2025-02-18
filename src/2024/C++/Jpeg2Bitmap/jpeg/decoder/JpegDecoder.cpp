@@ -204,15 +204,11 @@ void JpegDecoder::decode(DecodeResult& result)
                         decodeBlock(dcTable, dcDHT, acTable, acDHT, dqt, block, dcPred[componentIndex]);
 
                         for (size_t y = 0; y < 8; ++y) {
-                            size_t srcBlockStride = y * 8;
-                            size_t dstPixelY = dstBlockY + y;
-
-                            for (size_t x = 0; x < 8; ++x) {
-                                size_t dstPixelX = dstBlockX + x;
-                                size_t dstIndex = dstPixelY * width + dstPixelX;
-                                size_t srcIndex = srcBlockStride + x;
-                                buf[dstIndex] = block[srcIndex];
-                            }
+                            // ブロックから1行(8要素)をロード
+                            __m128i data = _mm_load_si128(reinterpret_cast<const __m128i*>(&block[y * 8]));
+                            // 書き込み先の行の先頭を計算
+                            size_t offset = (dstBlockY + y) * width + dstBlockX;
+                            _mm_storeu_si128(reinterpret_cast<__m128i*>(&buf[offset]), data);
                         }
                     }
                 }
