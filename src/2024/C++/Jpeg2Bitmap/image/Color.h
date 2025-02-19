@@ -128,4 +128,41 @@ namespace image
         }
     }
 
+    template <>
+    inline void convertYCbCrToBGRA32<PixelFormat::YCBCR444_UINT>(
+        int width,
+        int height,
+        std::span<uint8_t> dst,
+        std::span<int16_t> srcY,
+        std::span<int16_t> srcCb,
+        std::span<int16_t> srcCr
+    ) noexcept
+    {
+        assert(dst.size() == width * height * 4);
+        assert(srcY.size() == width * height);
+        assert(srcCb.size() == width * height);
+        assert(srcCr.size() == width * height);
+
+        struct Pixel
+        {
+            uint8_t b = 0;
+            uint8_t r = 0;
+            uint8_t g = 0;
+            uint8_t a = 0;
+        };
+
+        std::vector<Pixel> pixels(width * height);
+        size_t index = 0;
+
+        for (size_t i = 0; i < srcY.size(); ++i) {
+            const auto& [r, g, b] = image::ycbcrToRGB(srcY[i], srcCb[i], srcCr[i]);
+            pixels[index++] = { b, g, r, 0xFF };
+        }
+
+        for (size_t i = 0; i < pixels.size(); i += 8) {
+            __m256i v = _mm256_load_si256(reinterpret_cast<const __m256i*>(&pixels[i]));
+            _mm256_store_si256(reinterpret_cast<__m256i*>(&dst[i * 4]), v);
+        }
+    }
+
 } // namespace image
