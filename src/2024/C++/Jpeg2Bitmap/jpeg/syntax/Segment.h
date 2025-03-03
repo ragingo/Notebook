@@ -235,6 +235,11 @@ namespace jpeg::segments {
         uint16_t length = 0;
     };
 
+    struct APP2 : public Segment
+    {
+        uint16_t length = 0;
+    };
+
     struct APP13 : public Segment
     {
         uint16_t length = 0;

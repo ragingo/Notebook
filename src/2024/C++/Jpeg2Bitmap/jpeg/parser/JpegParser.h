@@ -31,6 +31,7 @@ private:
     void parseECS();
     void parseDRI();
     void parseAPP1();
+    void parseAPP2();
     void parseAPP13();
     void parseAPP14();
     void parseCOM();

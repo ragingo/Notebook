@@ -62,13 +62,15 @@ void JpegParser::parse()
         case APP1:
             parseAPP1();
             break;
+        case APP2:
+            parseAPP2();
+            break;
         case APP13:
             parseAPP13();
             break;
         case APP14:
             parseAPP14();
             break;
-        case APP2:
         case APP3:
         case APP4:
         case APP5:
@@ -318,6 +320,17 @@ void JpegParser::parseAPP1()
     m_Segments.emplace_back(std::make_shared<APP1>(app1));
 
     int remain = app1.length - sizeof(app1.length);
+    m_FileReader.Seek(remain, BinaryFileReader::SeekOrigin::Current); // 捨てる
+}
+
+void JpegParser::parseAPP2()
+{
+    auto app2 = APP2{};
+    app2.marker = Marker::APP2;
+    m_FileReader.ReadUInt16(app2.length);
+    m_Segments.emplace_back(std::make_shared<APP2>(app2));
+ 
+    int remain = app2.length - sizeof(app2.length);
     m_FileReader.Seek(remain, BinaryFileReader::SeekOrigin::Current); // 捨てる
 }
 
