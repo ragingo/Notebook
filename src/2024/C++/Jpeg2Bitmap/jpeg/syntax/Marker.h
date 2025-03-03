@@ -64,6 +64,7 @@ namespace jpeg {
         RST5 = 0xFFD5,
         RST6 = 0xFFD6,
         RST7 = 0xFFD7,
+        COM = 0xFFFE,
     };
 
 } // namespace jpeg

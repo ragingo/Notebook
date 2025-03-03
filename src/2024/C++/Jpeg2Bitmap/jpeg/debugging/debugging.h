@@ -19,6 +19,7 @@ namespace jpeg::debugging {
     std::string to_string(const segments::APP1& app1);
     std::string to_string(const segments::APP13& app13);
     std::string to_string(const segments::APP14& app14);
+    std::string to_string(const segments::COM& com);
     void dumpSummary(std::vector<Marker> markers, std::vector<std::shared_ptr<segments::Segment>> segments);
     void dumpMCU(std::vector<int> mcu);
     void dumpBlock(std::string_view label, std::array<int, 64> block);

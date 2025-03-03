@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <array>
+#include <cstddef>
 #include <cstdint>
+#include <string_view>
 #include <variant>
 #include <vector>
 #include "Marker.h"
@@ -241,6 +243,20 @@ namespace jpeg::segments {
     struct APP14 : public Segment
     {
         uint16_t length = 0;
+    };
+
+    // B.2.4.5 Comment syntax
+    struct COM : public Segment
+    {
+        // Lc: Comment segment length
+        uint16_t length = 0;
+        // Cmi: Comment byte
+        std::vector<std::byte> comment{};
+
+        std::string_view getComment() const
+        {
+            return { reinterpret_cast<const char*>(comment.data()), comment.size() };
+        }
     };
 
 } // namespace jpg::segments

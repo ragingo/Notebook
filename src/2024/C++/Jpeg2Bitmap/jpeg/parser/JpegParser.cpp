@@ -82,6 +82,9 @@ void JpegParser::parse()
         case APP15:
             std::println("Unsupported marker: 0x{:02X}", static_cast<uint16_t>(marker));
             break; // 無視
+        case COM:
+            parseCOM();
+            break;
         default:
             std::println("Unknown marker: 0x{:02X}", static_cast<uint16_t>(marker));
             return; // 中断
@@ -338,4 +341,15 @@ void JpegParser::parseAPP14()
 
     int remain = app14.length - sizeof(app14.length);
     m_FileReader.Seek(remain, BinaryFileReader::SeekOrigin::Current); // 捨てる
+}
+
+void JpegParser::parseCOM()
+{
+    auto com = COM{};
+    com.marker = Marker::COM;
+    m_FileReader.ReadUInt16(com.length);
+    int remain = com.length - sizeof(com.length);
+    com.comment.resize(remain);
+    m_FileReader.ReadBytes(com.comment);
+    m_Segments.emplace_back(std::make_shared<COM>(com));
 }

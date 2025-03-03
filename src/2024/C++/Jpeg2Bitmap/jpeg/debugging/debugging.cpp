@@ -180,6 +180,17 @@ std::string to_string(const APP14& app14)
     return result;
 }
 
+std::string to_string(const COM& com)
+{
+    std::string result;
+    result += "COM\n";
+    result += std::format("  marker: 0x{:04X}\n", std::to_underlying(com.marker));
+    result += std::format("  length: 0x{:04X}\n", com.length);
+    result += std::format("  comment: {}\n", com.getComment());
+    result += "\n";
+    return result;
+}
+
 void dumpSummary(
     std::vector<Marker> markers,
     std::vector<std::shared_ptr<Segment>> segments
@@ -216,6 +227,9 @@ void dumpSummary(
             break;
         case Marker::APP14:
             std::cout << to_string(*segment_cast<APP14>(segment)) << std::endl;
+            break;
+        case Marker::COM:
+            std::cout << to_string(*segment_cast<COM>(segment)) << std::endl;
             break;
         default:
             std::cout << "Unknown marker: 0x" << std::format("{:02X}", std::to_underlying(segment->marker)) << std::endl;
