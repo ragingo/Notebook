@@ -42,7 +42,10 @@ Build config: +assertions
 ## コンパイル方法
 
 `swift build` ではまともにコンパイルできないため、`swiftc` を直接使ってコンパイルする。  
-原因は調べてない。
+
+>[!NOTE]
+`swift build` では必ず `-emit-module` が使われるみたい。  
+`swiftc` に `-emit-module` を指定するとコンパイルエラーになる。
 
 ```swift
 @const func add(_ lhs: Int, _ rhs: Int) -> Int {
@@ -72,3 +75,20 @@ enum Math {
 }
 @const x = Math.pi
 ```
+
+## `@const` 関数B内で `@const` 関数Aを呼んだら、関数Bの値を取り出せない
+
+```swift
+// コンパイルエラーになる
+@const func a() -> Int { 1 }
+@const func b() -> Int { a() + 2 }
+@const let c = b() // ここでコンパイルエラー
+
+// コンパイルエラーにならない
+@const func a() -> Int { 1 }
+@const func b() -> Int { 2 } // a() を呼ばない
+@const let c = b()
+```
+
+再帰呼び出しもできない、`@const var` もできない、ループもできない。  
+現時点では `sum` 関数すら作ることはできなそう。
