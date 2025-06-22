@@ -17,6 +17,26 @@ Target: x86_64-unknown-windows-msvc
 Build config: +assertions
 ```
 
+## Linux
+
+https://www.swift.org/install/linux を参考に Swiftly をインストール。
+
+```shell
+# Swift 6.2 をインストール
+$ swiftly install 6.2-snapshot
+
+# `6.2-snapshot-YYYY-MM-DD` があるのを確認
+$ swiftly list
+
+# `6.2-snapshot-YYYY-MM-DD` を default に変更
+$ swiftly use 6.2-snapshot-YYYY-MM-DD
+
+$ swift --version
+Swift version 6.2-dev (LLVM 5fbc818cf26c90b, Swift 2e1897356956e43)
+Target: x86_64-unknown-linux-gnu
+Build config: +assertions
+```
+
 # 注意点
 
 ## コンパイル方法
