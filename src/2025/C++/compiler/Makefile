@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++23 -O2 -Wall -Wextra
+CXXFLAGS := -std=c++23 -O2 -Wall -Wextra -I./include
 
 INPUT ?=
 

@@ -5,9 +5,10 @@
 #include "def.hpp"
 #include "AssemblyWriter.hpp"
 
+using enum LinkerDirective;
 using enum OpCode;
 using enum Register;
-using enum LinkerDirective;
+using enum Section;
 using enum SystemCall;
 
 int main(int argc, char* argv[]) {
@@ -41,20 +42,24 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    AssemblyWriter writer;
+    AssemblyWriter writer{};
+    writer.clear();
 
-    writer.section_text();
+    writer.section(TEXT);
     writer.section_text_symbol(GLOBAL, ENTRY_POINT_NAME);
 
-    writer.func(ENTRY_POINT_NAME);
-
-    // ここにコンパイル結果のアセンブリコードを書く
-    writer.op(MOV, RAX, lhs);
-    writer.op(ADD, RAX, rhs);
+    writer.func(ENTRY_POINT_NAME, [&]() -> std::vector<std::string> {
+        return {
+            op::mov(RAX, lhs),
+            op::add(RAX, rhs)
+        };
+    });
 
     writer.op(MOV, RAX, EXIT);
     writer.op(MOV, RDI, 0);
     writer.op(SYSCALL);
+
+    writer.compile();
 
     for (const auto &line : writer.get_code()) {
         ofs << line;
