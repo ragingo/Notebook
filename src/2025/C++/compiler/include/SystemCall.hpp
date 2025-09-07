@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+namespace yoctocc {
+
 enum class SystemCall: uint16_t {
     READ      = 0,
     WRITE     = 1,
@@ -11,3 +13,5 @@ enum class SystemCall: uint16_t {
     EXIT      = 60,
     CREAT     = 85
 };
+
+} // namespace yoctocc

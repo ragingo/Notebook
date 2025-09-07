@@ -1,10 +1,14 @@
-#include <string>
 #include <fstream>
-#include <vector>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 #include "def.hpp"
 #include "AssemblyWriter.hpp"
+#include "Token.hpp"
 
+using namespace yoctocc;
 using enum LinkerDirective;
 using enum OpCode;
 using enum Register;
@@ -25,20 +29,33 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string lhs;
-    std::string rhs;
-    std::string op;
+    auto headToken = std::make_shared<Token>();
+    auto currentToken = headToken;
+
     char ch;
     while (ifs.get(ch)) {
         if (ch >= '0' && ch <= '9') {
-            if (op.empty()) {
-                lhs += ch;
-            } else {
-                rhs += ch;
-            }
+            auto nextToken = std::make_shared<Token>();
+            nextToken->type = TokenType::DIGIT;
+            nextToken->numberValue = ch - '0';
+            currentToken->next = nextToken;
+            currentToken = nextToken;
         }
         else if (ch == '+') {
-            op = '+';
+            auto nextToken = std::make_shared<Token>();
+            nextToken->type = TokenType::PUNCTUATOR;
+            nextToken->originalValue = ch;
+            currentToken->next = nextToken;
+            currentToken = nextToken;
+        } else if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
+            // skip
+            continue;
+        } else {
+            auto nextToken = std::make_shared<Token>();
+            nextToken->type = TokenType::UNKNOWN;
+            nextToken->originalValue = ch;
+            currentToken->next = nextToken;
+            currentToken = nextToken;
         }
     }
 
@@ -48,16 +65,36 @@ int main(int argc, char* argv[]) {
     writer.section(TEXT);
     writer.section_text_symbol(GLOBAL, ENTRY_POINT_NAME);
 
-    writer.func(ENTRY_POINT_NAME, [&]() -> std::vector<std::string> {
-        return {
-            op::mov(RAX, lhs),
-            op::add(RAX, rhs)
-        };
-    });
+    std::vector<std::string> entryPointBody{};
+    auto token = headToken;
+    while (token::has_next(token)) {
+        token = token->next;
 
-    writer.op(MOV, RAX, EXIT);
-    writer.op(MOV, RDI, 0);
-    writer.op(SYSCALL);
+        if (token->type == TokenType::PUNCTUATOR) {
+            if (token->originalValue == '+') {
+                if (!token::has_next(token)) {
+                    return 1;
+                }
+                if (!token::is_digit(token->next)) {
+                    return 1;
+                }
+                token = token->next;
+                if (token->numberValue == 1) {
+                    entryPointBody.emplace_back(inc(RAX));
+                }
+                entryPointBody.emplace_back(add(RAX, token->numberValue));
+            }
+        }
+        else if (token->type == TokenType::DIGIT) {
+            entryPointBody.emplace_back(mov(RAX, token->numberValue));
+        }
+    }
+
+    entryPointBody.emplace_back(mov(RAX, std::to_underlying(EXIT)));
+    entryPointBody.emplace_back(mov(RDI, 0));
+    entryPointBody.emplace_back(syscall());
+
+    writer.func(ENTRY_POINT_NAME, entryPointBody);
 
     writer.compile();
 

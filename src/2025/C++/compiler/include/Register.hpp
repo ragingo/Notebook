@@ -2,6 +2,8 @@
 #include <format>
 #include <string_view>
 
+namespace yoctocc {
+
 enum class Register {
     RAX,
     RBX,
@@ -21,14 +23,16 @@ enum class Register {
     R15
 };
 
+} // namespace yoctocc
+
 template <>
-struct std::formatter<Register> {
+struct std::formatter<yoctocc::Register> {
     constexpr auto parse(std::format_parse_context& ctx) -> std::format_parse_context::iterator {
         return ctx.begin();
     }
 
-    auto format(const Register& reg, std::format_context& ctx) const -> std::format_context::iterator {
-        using enum Register;
+    auto format(const yoctocc::Register& reg, std::format_context& ctx) const -> std::format_context::iterator {
+        using enum yoctocc::Register;
         std::string_view name;
         switch (reg) {
             case RAX: name = "rax"; break;

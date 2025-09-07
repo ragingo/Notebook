@@ -2,6 +2,8 @@
 #include <format>
 #include <string_view>
 
+namespace yoctocc {
+
 enum class OpCode {
     MOV,
     ADD,
@@ -24,14 +26,16 @@ enum class OpCode {
     SYSCALL
 };
 
+} // namespace yoctocc
+
 template <>
-struct std::formatter<OpCode> {
+struct std::formatter<yoctocc::OpCode> {
     constexpr auto parse(std::format_parse_context& ctx) -> std::format_parse_context::iterator {
         return ctx.begin();
     }
 
-    auto format(const OpCode& op, std::format_context& ctx) const -> std::format_context::iterator {
-        using enum OpCode;
+    auto format(const yoctocc::OpCode& op, std::format_context& ctx) const -> std::format_context::iterator {
+        using enum yoctocc::OpCode;
         std::string_view name;
         switch (op) {
             case MOV: name = "mov"; break;

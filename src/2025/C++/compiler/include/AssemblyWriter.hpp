@@ -10,22 +10,7 @@
 #include <vector>
 #include "def.hpp"
 
-template <typename T>
-concept OperandType = std::is_enum_v<T> && std::is_integral_v<std::underlying_type_t<T>> || std::is_integral_v<T> || std::is_same_v<T, std::string>;
-
-namespace op {
-
-    template <OperandType T>
-    inline constexpr std::string mov(Register dest, const T& src) {
-        return std::format("    {} {}, {}", OpCode::MOV, dest, src);
-    }
-
-    template <OperandType T>
-    inline constexpr std::string add(Register dest, const T& src) {
-        return std::format("    {} {}, {}", OpCode::ADD, dest, src);
-    }
-
-}
+namespace yoctocc {
 
 class AssemblyWriter {
 public:
@@ -45,39 +30,18 @@ public:
         }
     }
 
-    inline void func(const std::string& label) noexcept {
+    inline void func(const std::string& label, std::vector<std::string> body = {}) noexcept {
         _code.emplace_back(std::format("{}:\n", label));
+        for (const auto& line : body) {
+            _code.emplace_back("    " + line + "\n");
+        }
     }
 
     inline void func(const std::string& label, std::function<std::vector<std::string>()> body) noexcept {
         _code.emplace_back(std::format("{}:\n", label));
         for (const auto& line : body()) {
-            _code.emplace_back(line + "\n");
+            _code.emplace_back("    " + line + "\n");
         }
-    }
-
-    inline void op(OpCode op) noexcept {
-        _code.emplace_back(std::format("    {}\n", op));
-    }
-
-    inline void op(OpCode op, Register dest) noexcept {
-        _code.emplace_back(std::format("    {} {}\n", op, dest));
-    }
-
-    template <typename T>
-    inline void op(OpCode op, const std::string& dest, const T& src) noexcept {
-        _code.emplace_back(std::format("    {} {}, {}\n", op, dest, src));
-    }
-
-    template <typename T>
-        requires std::is_enum_v<T> && std::is_integral_v<std::underlying_type_t<T>>
-    inline void op(OpCode op, Register dest, const T& src) noexcept {
-        _code.emplace_back(std::format("    {} {}, {}\n", op, dest, std::to_underlying(src)));
-    }
-
-    template <typename T>
-    inline void op(OpCode op, Register dest, const T& src) noexcept {
-        _code.emplace_back(std::format("    {} {}, {}\n", op, dest, src));
     }
 
     inline void compile() noexcept {
@@ -110,3 +74,5 @@ private:
     std::vector<std::string> _code{};
     std::multimap<Section, std::vector<std::string>> _sections{};
 };
+
+} // namespace yoctocc
