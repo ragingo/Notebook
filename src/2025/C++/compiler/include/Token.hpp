@@ -53,6 +53,10 @@ namespace token {
         return token && token->type == TokenType::DIGIT;
     }
 
+    inline bool is_arithmetic_operator(const std::shared_ptr<Token>& token) {
+        return is_punctuator(token) && (token->originalValue == '+' || token->originalValue == '-' || token->originalValue == '*' || token->originalValue == '/');
+    }
+
     inline std::string to_string(const std::shared_ptr<Token>& token) {
         if (is_digit(token)) {
             return std::format("type: {}, value: {}, next: {}", token->type, token->numberValue, token->next ? "yes" : "no");

@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
             currentToken->next = nextToken;
             currentToken = nextToken;
         }
-        else if (ch == '+') {
+        else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
             auto nextToken = std::make_shared<Token>();
             nextToken->type = TokenType::PUNCTUATOR;
             nextToken->originalValue = ch;
@@ -71,18 +71,38 @@ int main(int argc, char* argv[]) {
         token = token->next;
 
         if (token->type == TokenType::PUNCTUATOR) {
-            if (token->originalValue == '+') {
+            if (token::is_arithmetic_operator(token)) {
                 if (!token::has_next(token)) {
                     return 1;
                 }
                 if (!token::is_digit(token->next)) {
                     return 1;
                 }
+                char ch = token->originalValue;
                 token = token->next;
                 if (token->numberValue == 1) {
-                    entryPointBody.emplace_back(inc(RAX));
+                    if (ch == '+') {
+                        entryPointBody.emplace_back(inc(RAX));
+                    }
+                    else if (token->originalValue == '-') {
+                        entryPointBody.emplace_back(dec(RAX));
+                    }
                 }
-                entryPointBody.emplace_back(add(RAX, token->numberValue));
+                else {
+                    if (ch == '+') {
+                        entryPointBody.emplace_back(add(RAX, token->numberValue));
+                    }
+                    else if (ch == '-') {
+                        entryPointBody.emplace_back(sub(RAX, token->numberValue));
+                    }
+                    else if (ch == '*') {
+                        entryPointBody.emplace_back(imul(RAX, token->numberValue));
+                    }
+                    else if (ch == '/') {
+                        entryPointBody.emplace_back(mov(RBX, token->numberValue));
+                        entryPointBody.emplace_back(idiv(RBX));
+                    }
+                }
             }
         }
         else if (token->type == TokenType::DIGIT) {

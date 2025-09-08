@@ -9,7 +9,8 @@ enum class OpCode {
     ADD,
     SUB,
     MUL,
-    DIV,
+    IMUL,
+    IDIV,
     INC,
     DEC,
     PUSH,
@@ -42,7 +43,8 @@ struct std::formatter<yoctocc::OpCode> {
             case ADD: name = "add"; break;
             case SUB: name = "sub"; break;
             case MUL: name = "mul"; break;
-            case DIV: name = "div"; break;
+            case IMUL: name = "imul"; break;
+            case IDIV: name = "idiv"; break;
             case INC: name = "inc"; break;
             case DEC: name = "dec"; break;
             case PUSH: name = "push"; break;

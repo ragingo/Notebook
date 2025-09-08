@@ -12,12 +12,8 @@
 
 namespace yoctocc {
 
-class AssemblyWriter {
+class AssemblyWriter final {
 public:
-    inline void add_line(const std::string& line) noexcept {
-        _code.emplace_back(line + "\n");
-    }
-
     inline void section(Section section) noexcept {
         _sections.emplace(section, std::vector<std::string>{});
     }
@@ -38,10 +34,7 @@ public:
     }
 
     inline void func(const std::string& label, std::function<std::vector<std::string>()> body) noexcept {
-        _code.emplace_back(std::format("{}:\n", label));
-        for (const auto& line : body()) {
-            _code.emplace_back("    " + line + "\n");
-        }
+        func(label, body());
     }
 
     inline void compile() noexcept {
