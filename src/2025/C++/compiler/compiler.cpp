@@ -96,7 +96,8 @@ int main(int argc, char* argv[]) {
                         entryPointBody.emplace_back(sub(RAX, token->numberValue));
                     }
                     else if (ch == '*') {
-                        entryPointBody.emplace_back(imul(RAX, token->numberValue));
+                        entryPointBody.emplace_back(mov(RBX, token->numberValue));
+                        entryPointBody.emplace_back(mul(RBX));
                     }
                     else if (ch == '/') {
                         entryPointBody.emplace_back(mov(RBX, token->numberValue));
@@ -110,8 +111,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    entryPointBody.emplace_back(mov(RDI, RAX));
     entryPointBody.emplace_back(mov(RAX, std::to_underlying(EXIT)));
-    entryPointBody.emplace_back(mov(RDI, 0));
     entryPointBody.emplace_back(syscall());
 
     writer.func(ENTRY_POINT_NAME, entryPointBody);

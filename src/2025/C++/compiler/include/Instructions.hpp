@@ -1,10 +1,19 @@
 #pragma once
 #include <format>
 #include <string>
+#include <vector>
 #include "OpCode.hpp"
 #include "Register.hpp"
 
 namespace yoctocc {
+
+    inline constexpr std::string block(const std::vector<std::string>& lines, int depth = 0) {
+        std::string result;
+        for (const auto& line : lines) {
+            result += std::string(depth * 4, ' ') + line + "\n";
+        }
+        return result;
+    }
 
     template <SourceOperandType T>
     inline constexpr std::string mov(Register dest, const T& src) {
