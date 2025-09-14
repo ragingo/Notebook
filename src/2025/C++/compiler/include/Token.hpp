@@ -9,6 +9,7 @@ enum class TokenType {
     UNKNOWN,
     PUNCTUATOR,
     DIGIT,
+    TERMINATOR,
 };
 
 } // namespace yoctocc
@@ -26,6 +27,8 @@ struct std::formatter<yoctocc::TokenType> {
             case UNKNOWN:    name = "UNKNOWN";    break;
             case PUNCTUATOR: name = "PUNCTUATOR"; break;
             case DIGIT:      name = "DIGIT";      break;
+            case TERMINATOR: name = "TERMINATOR"; break;
+            default:         name = "???";        break;
         }
         return std::format_to(ctx.out(), "{}", name);
     }

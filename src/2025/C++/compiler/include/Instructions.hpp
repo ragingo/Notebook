@@ -51,8 +51,20 @@ namespace yoctocc {
         return std::format("{} {}", OpCode::IDIV, src);
     }
 
+    inline constexpr std::string cqo() {
+        return std::format("{}", OpCode::CQO);
+    }
+
     inline constexpr std::string syscall() {
         return std::format("{}", OpCode::SYSCALL);
+    }
+
+    inline constexpr std::string push(Register src) {
+        return std::format("{} {}", OpCode::PUSH, src);
+    }
+
+    inline constexpr std::string pop(Register dest) {
+        return std::format("{} {}", OpCode::POP, dest);
     }
 
 } // namespace yoctocc

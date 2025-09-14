@@ -4,8 +4,8 @@ CXXFLAGS := -std=c++23 -O2 -Wall -Wextra -I./include
 INPUT ?=
 
 BUILD_DIR := build
-COMPILER := $(BUILD_DIR)/compiler
-SRC := compiler.cpp
+COMPILER := $(BUILD_DIR)/yoctocc
+SRC := main.cpp
 ASM := $(BUILD_DIR)/program.asm
 OBJ := $(BUILD_DIR)/program.o
 BIN := $(BUILD_DIR)/program
