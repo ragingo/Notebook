@@ -16,9 +16,10 @@ concept SourceOperandType =
 
 } // namespace yoctocc
 
+#include "Instructions.hpp"
 #include "LinkerDirective.hpp"
+#include "Node.hpp"
 #include "OpCode.hpp"
 #include "Register.hpp"
 #include "Section.hpp"
 #include "SystemCall.hpp"
-#include "Instructions.hpp"
