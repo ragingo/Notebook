@@ -55,6 +55,10 @@ namespace yoctocc {
         return std::format("{}", OpCode::CQO);
     }
 
+    inline constexpr std::string neg(Register dest) {
+        return std::format("{} {}", OpCode::NEG, dest);
+    }
+
     inline constexpr std::string syscall() {
         return std::format("{}", OpCode::SYSCALL);
     }

@@ -9,6 +9,7 @@ namespace yoctocc {
         SUB,
         MUL,
         DIV,
+        NEGATE,
         NUMBER,
     };
 
@@ -23,6 +24,13 @@ namespace yoctocc {
         auto node = std::make_shared<Node>();
         node->type = NodeType::NUMBER;
         node->value = value;
+        return node;
+    }
+
+    std::shared_ptr<Node> create_unary_node(NodeType type, const std::shared_ptr<Node>& operand) {
+        auto node = std::make_shared<Node>();
+        node->type = type;
+        node->left = operand;
         return node;
     }
 

@@ -24,9 +24,16 @@ namespace yoctocc {
                 return;
             }
 
-            if (node->type == NodeType::NUMBER) {
-                lines.emplace_back(mov(RAX, node->value));
-                return;
+            switch (node->type) {
+                case NodeType::NUMBER:
+                    lines.emplace_back(mov(RAX, node->value));
+                    return;
+                case NodeType::NEGATE:
+                    generate(node->left);
+                    lines.emplace_back(neg(RAX));
+                    return;
+                default:
+                    break;
             }
 
             generate(node->right);
@@ -36,9 +43,6 @@ namespace yoctocc {
             lines.emplace_back(pop(RDI));
 
             switch (node->type) {
-                case NodeType::NUMBER:
-                    // skip
-                    break;
                 case NodeType::ADD:
                     lines.emplace_back(add(RAX, RDI));
                     break;

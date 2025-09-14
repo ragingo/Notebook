@@ -14,6 +14,7 @@ enum class OpCode {
     INC,
     DEC,
     CQO,
+    NEG,
     PUSH,
     POP,
     CALL,
@@ -49,6 +50,7 @@ struct std::formatter<yoctocc::OpCode> {
             case INC: name = "inc"; break;
             case DEC: name = "dec"; break;
             case CQO: name = "cqo"; break;
+            case NEG: name = "neg"; break;
             case PUSH: name = "push"; break;
             case POP: name = "pop"; break;
             case CALL: name = "call"; break;
