@@ -1,6 +1,7 @@
 #pragma once
 #include <fstream>
-#include <Token.hpp>
+#include <string>
+#include "Token.hpp"
 
 namespace yoctocc {
 
@@ -8,16 +9,34 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
     auto head = std::make_shared<Token>();
     auto current = head;
 
-    char ch;
-    while (ifs.get(ch)) {
-        if (ch >= '0' && ch <= '9') {
+    std::string number;
+
+    std::string content{std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()};
+    auto it = content.begin();
+
+    while (it != content.end()) {
+        char ch = *it;
+
+        if (std::isdigit(ch)) {
+            number += ch;
+
+            if (std::next(it) != content.end()) {
+                ++it;
+                continue;
+            }
+        }
+
+        if (!number.empty()) {
             auto next = std::make_shared<Token>();
             next->type = TokenType::DIGIT;
-            next->numberValue = ch - '0';
+            next->originalValue = number;
+            next->numberValue = std::stoi(number);
             current->next = next;
             current = next;
+            number.clear();
         }
-        else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
+
+        if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
             auto next = std::make_shared<Token>();
             next->type = TokenType::PUNCTUATOR;
             next->originalValue = ch;
@@ -25,6 +44,7 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             current = next;
         } else if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
             // skip
+            ++it;
             continue;
         } else {
             auto next = std::make_shared<Token>();
@@ -33,6 +53,8 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             current->next = next;
             current = next;
         }
+
+        ++it;
     }
 
     auto terminator = std::make_shared<Token>();

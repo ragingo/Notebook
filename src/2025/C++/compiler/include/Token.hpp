@@ -38,7 +38,7 @@ namespace yoctocc {
 
 struct Token {
     TokenType type;
-    char originalValue;
+    std::string originalValue;
     int numberValue;
     std::shared_ptr<Token> next;
 };
@@ -57,7 +57,7 @@ namespace token {
     }
 
     inline bool is_arithmetic_operator(const std::shared_ptr<Token>& token) {
-        return is_punctuator(token) && (token->originalValue == '+' || token->originalValue == '-' || token->originalValue == '*' || token->originalValue == '/');
+        return is_punctuator(token) && (token->originalValue == "+" || token->originalValue == "-" || token->originalValue == "*" || token->originalValue == "/");
     }
 
     inline std::string to_string(const std::shared_ptr<Token>& token) {
