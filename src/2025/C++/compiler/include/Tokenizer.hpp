@@ -42,6 +42,16 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             next->originalValue = ch;
             current->next = next;
             current = next;
+        } else if (ch == '=' || ch == '!' || ch == '<' || ch == '>') {
+            auto next = std::make_shared<Token>();
+            next->type = TokenType::PUNCTUATOR;
+            next->originalValue = ch;
+            if (std::next(it) != content.end() && *std::next(it) == '=') {
+                next->originalValue += '=';
+                ++it;
+            }
+            current->next = next;
+            current = next;
         } else if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
             // skip
             ++it;

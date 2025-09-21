@@ -5,11 +5,17 @@ namespace yoctocc {
 
     enum class NodeType {
         UNKNOWN,
-        ADD,
-        SUB,
-        MUL,
-        DIV,
-        NEGATE,
+        ADD,           // +
+        SUB,           // -
+        MUL,           // *
+        DIV,           // /
+        NEGATE,        // unary -
+        EQUAL,         // ==
+        NOT_EQUAL,     // !=
+        LESS,          // <
+        LESS_EQUAL,    // <=
+        GREATER,       // >
+        GREATER_EQUAL, // >=
         NUMBER,
     };
 

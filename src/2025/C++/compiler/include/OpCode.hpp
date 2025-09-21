@@ -6,6 +6,7 @@ namespace yoctocc {
 
 enum class OpCode {
     MOV,
+    MOVZX,
     ADD,
     SUB,
     MUL,
@@ -15,6 +16,13 @@ enum class OpCode {
     DEC,
     CQO,
     NEG,
+    CMP,
+    SETE,
+    SETNE,
+    SETL,
+    SETLE,
+    SETG,
+    SETGE,
     PUSH,
     POP,
     CALL,
@@ -42,6 +50,7 @@ struct std::formatter<yoctocc::OpCode> {
         std::string_view name;
         switch (op) {
             case MOV: name = "mov"; break;
+            case MOVZX: name = "movzx"; break;
             case ADD: name = "add"; break;
             case SUB: name = "sub"; break;
             case MUL: name = "mul"; break;
@@ -51,6 +60,13 @@ struct std::formatter<yoctocc::OpCode> {
             case DEC: name = "dec"; break;
             case CQO: name = "cqo"; break;
             case NEG: name = "neg"; break;
+            case CMP: name = "cmp"; break;
+            case SETE: name = "sete"; break;
+            case SETNE: name = "setne"; break;
+            case SETL: name = "setl"; break;
+            case SETLE: name = "setle"; break;
+            case SETG: name = "setg"; break;
+            case SETGE: name = "setge"; break;
             case PUSH: name = "push"; break;
             case POP: name = "pop"; break;
             case CALL: name = "call"; break;

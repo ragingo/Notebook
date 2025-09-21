@@ -56,6 +56,36 @@ namespace yoctocc {
                     lines.emplace_back(cqo());
                     lines.emplace_back(idiv(RDI));
                     break;
+                case NodeType::EQUAL:
+                    lines.emplace_back(cmp(RAX, RDI));
+                    lines.emplace_back(sete(AL));
+                    lines.emplace_back(movzx(RAX, AL));
+                    break;
+                case NodeType::NOT_EQUAL:
+                    lines.emplace_back(cmp(RAX, RDI));
+                    lines.emplace_back(setne(AL));
+                    lines.emplace_back(movzx(RAX, AL));
+                    break;
+                case NodeType::LESS:
+                    lines.emplace_back(cmp(RAX, RDI));
+                    lines.emplace_back(setl(AL));
+                    lines.emplace_back(movzx(RAX, AL));
+                    break;
+                case NodeType::LESS_EQUAL:
+                    lines.emplace_back(cmp(RAX, RDI));
+                    lines.emplace_back(setle(AL));
+                    lines.emplace_back(movzx(RAX, AL));
+                    break;
+                case NodeType::GREATER:
+                    lines.emplace_back(cmp(RAX, RDI));
+                    lines.emplace_back(setg(AL));
+                    lines.emplace_back(movzx(RAX, AL));
+                    break;
+                case NodeType::GREATER_EQUAL:
+                    lines.emplace_back(cmp(RAX, RDI));
+                    lines.emplace_back(setge(AL));
+                    lines.emplace_back(movzx(RAX, AL));
+                    break;
                 default:
                     break;
             }

@@ -20,6 +20,10 @@ namespace yoctocc {
         return std::format("{} {}, {}", OpCode::MOV, dest, src);
     }
 
+    inline constexpr std::string movzx(Register dest, Register src) {
+        return std::format("{} {}, {}", OpCode::MOVZX, dest, src);
+    }
+
     template <SourceOperandType T>
     inline constexpr std::string add(Register dest, const T& src) {
         return std::format("{} {}, {}", OpCode::ADD, dest, src);
@@ -57,6 +61,34 @@ namespace yoctocc {
 
     inline constexpr std::string neg(Register dest) {
         return std::format("{} {}", OpCode::NEG, dest);
+    }
+
+    inline constexpr std::string cmp(Register lhs, Register rhs) {
+        return std::format("{} {}, {}", OpCode::CMP, lhs, rhs);
+    }
+
+    inline constexpr std::string sete(Register dest) {
+        return std::format("{} {}", OpCode::SETE, dest);
+    }
+
+    inline constexpr std::string setne(Register dest) {
+        return std::format("{} {}", OpCode::SETNE, dest);
+    }
+
+    inline constexpr std::string setl(Register dest) {
+        return std::format("{} {}", OpCode::SETL, dest);
+    }
+
+    inline constexpr std::string setle(Register dest) {
+        return std::format("{} {}", OpCode::SETLE, dest);
+    }
+
+    inline constexpr std::string setg(Register dest) {
+        return std::format("{} {}", OpCode::SETG, dest);
+    }
+
+    inline constexpr std::string setge(Register dest) {
+        return std::format("{} {}", OpCode::SETGE, dest);
     }
 
     inline constexpr std::string syscall() {
