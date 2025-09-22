@@ -27,6 +27,18 @@ namespace yoctocc {
         }
 
     private:
+        void generateAddress(const std::shared_ptr<Node>& node) {
+            assert(node);
+            if (!node) {
+                return;
+            }
+            if (node->type == NodeType::VARIABLE) {
+                int offset = (node->value - 'a' + 1) * 8;
+                lines.emplace_back(lea(Register::RAX, Address<Register>{Register::RBP, -offset}));
+                return;
+            }
+        }
+
         void generateStatement(const std::shared_ptr<Node>& node) {
             assert(node);
             if (!node) {
@@ -53,6 +65,17 @@ namespace yoctocc {
                 case NodeType::NEGATE:
                     generateExpression(node->left);
                     lines.emplace_back(neg(RAX));
+                    return;
+                case NodeType::VARIABLE:
+                    generateAddress(node);
+                    lines.emplace_back(mov(RAX, Address<Register>{RAX}));
+                    return;
+                case NodeType::ASSIGN:
+                    generateAddress(node->left);
+                    lines.emplace_back(push(RAX));
+                    generateExpression(node->right);
+                    lines.emplace_back(pop(RDI));
+                    lines.emplace_back(mov(Address<Register>{RDI}, RAX));
                     return;
                 default:
                     break;

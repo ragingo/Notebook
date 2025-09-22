@@ -36,6 +36,16 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             number.clear();
         }
 
+        if (std::isalpha(ch)) {
+            auto next = std::make_shared<Token>();
+            next->type = TokenType::IDENTIFIER;
+            next->originalValue = ch;
+            current->next = next;
+            current = next;
+            ++it;
+            continue;
+        }
+
         if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
             auto next = std::make_shared<Token>();
             next->type = TokenType::PUNCTUATOR;

@@ -7,36 +7,53 @@
 namespace yoctocc {
 
     template <typename T>
+    concept DestinationOperandType =
+        std::is_same_v<T, std::string> ||
+        std::is_same_v<T, std::string_view> ||
+        std::is_same_v<T, Register> ||
+        std::is_same_v<T, Address<Register>>;
+
+    template <typename T>
     concept SourceOperandType =
         std::is_enum_v<T> && std::is_integral_v<std::underlying_type_t<T>> ||
         std::is_integral_v<T> ||
         std::is_same_v<T, std::string> ||
-        std::is_same_v<T, std::string_view>;
+        std::is_same_v<T, std::string_view> ||
+        std::is_same_v<T, Register> ||
+        std::is_same_v<T, Address<Register>>;
 
-    template <SourceOperandType T>
-    inline constexpr std::string mov(Register dest, const T& src) {
+    template <DestinationOperandType D, SourceOperandType S>
+    inline constexpr std::string mov(const D& dest, const S& src) {
         return std::format("{} {}, {}", OpCode::MOV, dest, src);
     }
 
-    inline constexpr std::string movzx(Register dest, Register src) {
+    template <DestinationOperandType D, SourceOperandType S>
+    inline constexpr std::string movzx(const D& dest, const S& src) {
         return std::format("{} {}, {}", OpCode::MOVZX, dest, src);
     }
 
-    template <SourceOperandType T>
-    inline constexpr std::string add(Register dest, const T& src) {
+    template <DestinationOperandType D, SourceOperandType S>
+    inline constexpr std::string lea(const D& dest, const S& src) {
+        return std::format("{} {}, {}", OpCode::LEA, dest, src);
+    }
+
+    template <DestinationOperandType D, SourceOperandType S>
+    inline constexpr std::string add(const D& dest, const S& src) {
         return std::format("{} {}, {}", OpCode::ADD, dest, src);
     }
 
-    inline constexpr std::string inc(Register dest) {
+    template <DestinationOperandType D>
+    inline constexpr std::string inc(const D& dest) {
         return std::format("{} {}", OpCode::INC, dest);
     }
 
-    template <SourceOperandType T>
-    inline constexpr std::string sub(Register dest, const T& src) {
+    template <DestinationOperandType D, SourceOperandType S>
+    inline constexpr std::string sub(const D& dest, const S& src) {
         return std::format("{} {}, {}", OpCode::SUB, dest, src);
     }
 
-    inline constexpr std::string dec(Register dest) {
+    template <DestinationOperandType D>
+    inline constexpr std::string dec(const D& dest) {
         return std::format("{} {}", OpCode::DEC, dest);
     }
 

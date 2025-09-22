@@ -5,6 +5,7 @@
 namespace yoctocc {
 
 std::shared_ptr<Node> parse_expression(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
+std::shared_ptr<Node> parse_assignment(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 std::shared_ptr<Node> parse_statement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 std::shared_ptr<Node> parse_expression_statement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 std::shared_ptr<Node> parse_equality(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
@@ -34,7 +35,18 @@ public:
 };
 
 std::shared_ptr<Node> parse_expression(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-    return parse_equality(result, token);
+    return parse_assignment(result, token);
+}
+
+std::shared_ptr<Node> parse_assignment(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
+    auto node = parse_equality(token, token);
+
+    if (token->type == TokenType::PUNCTUATOR && token->originalValue == "=") {
+        node = create_binary_node(NodeType::ASSIGN, node, parse_assignment(token, token->next));
+    }
+
+    *result = *token;
+    return node;
 }
 
 std::shared_ptr<Node> parse_statement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
@@ -142,6 +154,12 @@ std::shared_ptr<Node> parse_primary(std::shared_ptr<Token>& result, std::shared_
         if (token->type != TokenType::PUNCTUATOR || token->originalValue != ")") {
             // TODO: エラーハンドリング
         }
+        *result = *token->next;
+        return node;
+    }
+
+    if (token->type == TokenType::IDENTIFIER) {
+        auto node = create_variable_node(token->originalValue);
         *result = *token->next;
         return node;
     }

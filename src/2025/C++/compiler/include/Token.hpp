@@ -7,6 +7,7 @@ namespace yoctocc {
 // https://learn.microsoft.com/ja-jp/cpp/c-language/lexical-grammar?view=msvc-170
 enum class TokenType {
     UNKNOWN,
+    IDENTIFIER,
     PUNCTUATOR,
     DIGIT,
     TERMINATOR,

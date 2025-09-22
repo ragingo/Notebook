@@ -7,6 +7,7 @@ namespace yoctocc {
 enum class OpCode {
     MOV,
     MOVZX,
+    LEA,
     ADD,
     SUB,
     MUL,
@@ -51,6 +52,7 @@ struct std::formatter<yoctocc::OpCode> {
         switch (op) {
             case MOV: name = "mov"; break;
             case MOVZX: name = "movzx"; break;
+            case LEA: name = "lea"; break;
             case ADD: name = "add"; break;
             case SUB: name = "sub"; break;
             case MUL: name = "mul"; break;
