@@ -38,7 +38,9 @@ int main(int argc, char* argv[]) {
     writer.section_text_symbol(GLOBAL, ENTRY_POINT_NAME);
 
     auto token = tokenize(ifs);
-    auto node = parse_expression(token, token);
+
+    Parser parser{};
+    auto node = parser.parse(token);
 
     Generator generator{};
 

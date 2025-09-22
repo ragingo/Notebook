@@ -5,6 +5,8 @@
 namespace yoctocc {
 
 std::shared_ptr<Node> parse_expression(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
+std::shared_ptr<Node> parse_statement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
+std::shared_ptr<Node> parse_expression_statement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 std::shared_ptr<Node> parse_equality(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 std::shared_ptr<Node> parse_relational(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 std::shared_ptr<Node> parse_additive(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
@@ -12,8 +14,40 @@ std::shared_ptr<Node> parse_multiply(std::shared_ptr<Token>& result, std::shared
 std::shared_ptr<Node> parse_unary(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 std::shared_ptr<Node> parse_primary(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token);
 
+class Parser final {
+public:
+    std::shared_ptr<Node> parse(std::shared_ptr<Token>& token) {
+        assert(token);
+        if (!token) {
+            return nullptr;
+        }
+
+        auto head = std::make_shared<Node>();
+        auto current = head;
+
+        while (token->type != TokenType::TERMINATOR) {
+            current = current->next = parse_statement(token, token);
+        }
+
+        return head->next;
+    }
+};
+
 std::shared_ptr<Node> parse_expression(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
     return parse_equality(result, token);
+}
+
+std::shared_ptr<Node> parse_statement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
+    return parse_expression_statement(result, token);
+}
+
+std::shared_ptr<Node> parse_expression_statement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
+    auto node = create_unary_node(NodeType::EXPRESSION_STATEMENT, parse_expression(token, token));
+    if (token->originalValue == ";") {
+        token = token->next;
+    }
+    *result = *token;
+    return node;
 }
 
 std::shared_ptr<Node> parse_equality(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {

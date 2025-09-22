@@ -16,6 +16,7 @@ namespace yoctocc {
         LESS_EQUAL,    // <=
         GREATER,       // >
         GREATER_EQUAL, // >=
+        EXPRESSION_STATEMENT,
         NUMBER,
     };
 
@@ -24,6 +25,7 @@ namespace yoctocc {
         int value;
         std::shared_ptr<Node> left;
         std::shared_ptr<Node> right;
+        std::shared_ptr<Node> next;
     };
 
     std::shared_ptr<Node> create_number_node(int value) {

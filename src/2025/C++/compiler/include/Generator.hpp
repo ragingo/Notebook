@@ -11,12 +11,33 @@ namespace yoctocc {
     class Generator {
     public:
         std::vector<std::string> run(const std::shared_ptr<Node>& root) {
-            generate(root);
+            assert(root);
+            if (!root) {
+                return {};
+            }
+
+            auto node = root;
+            while (node) {
+                generateStatement(node);
+                node = node->next;
+            }
+
             return lines;
         }
 
     private:
-        void generate(std::shared_ptr<Node> node) {
+        void generateStatement(const std::shared_ptr<Node>& node) {
+            assert(node);
+            if (!node) {
+                return;
+            }
+            if (node->type == NodeType::EXPRESSION_STATEMENT) {
+                generateExpression(node->left);
+                return;
+            }
+        }
+
+        void generateExpression(const std::shared_ptr<Node>& node) {
             using enum Register;
 
             assert(node);
@@ -29,17 +50,17 @@ namespace yoctocc {
                     lines.emplace_back(mov(RAX, node->value));
                     return;
                 case NodeType::NEGATE:
-                    generate(node->left);
+                    generateExpression(node->left);
                     lines.emplace_back(neg(RAX));
                     return;
                 default:
                     break;
             }
 
-            generate(node->right);
+            generateExpression(node->right);
             lines.emplace_back(push(RAX));
 
-            generate(node->left);
+            generateExpression(node->left);
             lines.emplace_back(pop(RDI));
 
             switch (node->type) {
