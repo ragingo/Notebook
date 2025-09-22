@@ -2,18 +2,16 @@
 #include <format>
 #include <string>
 #include <vector>
-#include "OpCode.hpp"
-#include "Register.hpp"
+#include "Assembly/Assembly.hpp"
 
 namespace yoctocc {
 
-    inline constexpr std::string block(const std::vector<std::string>& lines, int depth = 0) {
-        std::string result;
-        for (const auto& line : lines) {
-            result += std::string(depth * 4, ' ') + line + "\n";
-        }
-        return result;
-    }
+    template <typename T>
+    concept SourceOperandType =
+        std::is_enum_v<T> && std::is_integral_v<std::underlying_type_t<T>> ||
+        std::is_integral_v<T> ||
+        std::is_same_v<T, std::string> ||
+        std::is_same_v<T, std::string_view>;
 
     template <SourceOperandType T>
     inline constexpr std::string mov(Register dest, const T& src) {
@@ -101,6 +99,10 @@ namespace yoctocc {
 
     inline constexpr std::string pop(Register dest) {
         return std::format("{} {}", OpCode::POP, dest);
+    }
+
+    inline constexpr std::string ret() {
+        return std::format("{}", OpCode::RET);
     }
 
 } // namespace yoctocc

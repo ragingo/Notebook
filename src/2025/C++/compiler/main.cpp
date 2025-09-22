@@ -47,7 +47,6 @@ int main(int argc, char* argv[]) {
     entryPointBody.emplace_back(mov(RDI, RAX));
     entryPointBody.emplace_back(mov(RAX, std::to_underlying(EXIT)));
     entryPointBody.emplace_back(syscall());
-
     writer.func(ENTRY_POINT_NAME, entryPointBody);
 
     writer.compile();
