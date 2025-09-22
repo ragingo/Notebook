@@ -4,7 +4,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "def.hpp"
+#include "Assembly/Assembly.hpp"
+#include "Node.hpp"
 
 namespace yoctocc {
 

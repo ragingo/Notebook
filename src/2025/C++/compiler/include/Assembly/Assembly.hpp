@@ -1,6 +1,5 @@
 #pragma once
 #include <cstdint>
-#include <format>
 #include <string>
 
 namespace yoctocc {
@@ -18,8 +17,9 @@ concept SourceOperandType =
 
 #include "Instructions.hpp"
 #include "LinkerDirective.hpp"
-#include "Node.hpp"
 #include "OpCode.hpp"
 #include "Register.hpp"
 #include "Section.hpp"
 #include "SystemCall.hpp"
+
+#include "AssemblyWriter.hpp"

@@ -4,8 +4,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "def.hpp"
-#include "AssemblyWriter.hpp"
+#include "Assembly/Assembly.hpp"
 #include "Generator.hpp"
 #include "Node.hpp"
 #include "Token.hpp"

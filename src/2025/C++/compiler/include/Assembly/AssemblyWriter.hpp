@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "def.hpp"
 
 namespace yoctocc {
 
