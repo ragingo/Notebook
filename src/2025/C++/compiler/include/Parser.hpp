@@ -1,5 +1,5 @@
 #pragma once
-#include "Node.hpp"
+#include "Node/Node.hpp"
 #include "Token.hpp"
 
 namespace yoctocc {

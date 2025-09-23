@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include "Assembly/Assembly.hpp"
-#include "Node.hpp"
+#include "Node/Node.hpp"
 
 namespace yoctocc {
 

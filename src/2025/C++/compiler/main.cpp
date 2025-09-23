@@ -6,7 +6,7 @@
 #include <vector>
 #include "Assembly/Assembly.hpp"
 #include "Generator.hpp"
-#include "Node.hpp"
+#include "Node/Node.hpp"
 #include "Token.hpp"
 #include "Tokenizer.hpp"
 #include "Parser.hpp"
