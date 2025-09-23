@@ -15,6 +15,14 @@ namespace yoctocc {
         };
     }
 
+    inline std::vector<std::string> prologue(int stackSize) {
+        return {
+            push(Register::RBP),
+            mov(Register::RBP, Register::RSP),
+            sub(Register::RSP, stackSize)
+        };
+    }
+
     inline constexpr std::vector<std::string> epilogue() {
         return {
             mov(Register::RSP, Register::RBP),
