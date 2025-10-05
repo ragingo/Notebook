@@ -4,21 +4,21 @@
 
 namespace yoctocc {
 
-    std::shared_ptr<Node> create_number_node(int value) {
+    std::shared_ptr<Node> createNumberNode(int value) {
         auto node = std::make_shared<Node>();
         node->type = NodeType::NUMBER;
         node->value = value;
         return node;
     }
 
-    std::shared_ptr<Node> create_unary_node(NodeType type, const std::shared_ptr<Node>& operand) {
+    std::shared_ptr<Node> createUnaryNode(NodeType type, const std::shared_ptr<Node>& operand) {
         auto node = std::make_shared<Node>();
         node->type = type;
         node->left = operand;
         return node;
     }
 
-    std::shared_ptr<Node> create_binary_node(NodeType type, const std::shared_ptr<Node>& left, const std::shared_ptr<Node>& right) {
+    std::shared_ptr<Node> createBinaryNode(NodeType type, const std::shared_ptr<Node>& left, const std::shared_ptr<Node>& right) {
         auto node = std::make_shared<Node>();
         node->type = type;
         node->left = left;
@@ -26,10 +26,10 @@ namespace yoctocc {
         return node;
     }
 
-    std::shared_ptr<Node> create_variable_node(const std::string& name) {
+    std::shared_ptr<Node> createVariableNode(const std::shared_ptr<Object>& variable) {
         auto node = std::make_shared<Node>();
         node->type = NodeType::VARIABLE;
-        node->name = name;
+        node->variable = variable;
         return node;
     }
 

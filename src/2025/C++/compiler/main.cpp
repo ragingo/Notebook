@@ -39,12 +39,12 @@ int main(int argc, char* argv[]) {
     auto token = tokenize(ifs);
 
     Parser parser{};
-    auto node = parser.parse(token);
+    auto program = parser.parse(token);
 
     Generator generator{};
 
-    std::vector<std::string> entryPointBody = prologue<('z' - 'a' + 1) * 8>();
-    for (const auto& line : generator.run(node)) {
+    std::vector<std::string> entryPointBody = prologue(program->stackSize);
+    for (const auto& line : generator.run(program)) {
         entryPointBody.emplace_back(line);
     }
     entryPointBody.emplace_back(mov(RDI, RAX));

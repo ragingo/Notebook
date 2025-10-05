@@ -11,13 +11,15 @@ namespace yoctocc {
 
     class Generator {
     public:
-        std::vector<std::string> run(const std::shared_ptr<Node>& root) {
-            assert(root);
-            if (!root) {
+        std::vector<std::string> run(const std::shared_ptr<Function>& func) {
+            assert(func);
+            if (!func) {
                 return {};
             }
 
-            auto node = root;
+            assignLocalVariableOffsets(func);
+
+            auto node = func->body;
             while (node) {
                 generateStatement(node);
                 node = node->next;
@@ -27,13 +29,32 @@ namespace yoctocc {
         }
 
     private:
+        inline int alignTo(int n, int align) {
+            return (n + align - 1) / align * align;
+        }
+
+        void assignLocalVariableOffsets(const std::shared_ptr<Function>& func) {
+            assert(func);
+            if (!func) {
+                return;
+            }
+
+            int offset = 0;
+            for (auto obj = func->locals; obj; obj = obj->next) {
+                offset += 8;
+                obj->offset = -offset;
+            }
+
+            func->stackSize = alignTo(offset, 16);
+        }
+
         void generateAddress(const std::shared_ptr<Node>& node) {
             assert(node);
             if (!node) {
                 return;
             }
             if (node->type == NodeType::VARIABLE) {
-                int offset = (node->value - 'a' + 1) * 8;
+                int offset = node->variable->offset;
                 lines.emplace_back(lea(Register::RAX, Address<Register>{Register::RBP, -offset}));
                 return;
             }

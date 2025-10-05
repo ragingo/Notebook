@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include "Token.hpp"
+#include "String/String.hpp"
 
 namespace yoctocc {
 
@@ -36,13 +37,19 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             number.clear();
         }
 
-        if (std::isalpha(ch)) {
+        if (isIdentifierChar(ch, true)) {
+            std::string identifier;
+            identifier += ch;
+            ++it;
+            while (it != content.end() && isIdentifierChar(*it, false)) {
+                identifier += *it;
+                ++it;
+            }
             auto next = std::make_shared<Token>();
             next->type = TokenType::IDENTIFIER;
-            next->originalValue = ch;
+            next->originalValue = identifier;
             current->next = next;
             current = next;
-            ++it;
             continue;
         }
 

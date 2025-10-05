@@ -22,13 +22,25 @@ namespace yoctocc {
         NUMBER,
     };
 
+    struct Object {
+        int offset;
+        std::string name;
+        std::shared_ptr<Object> next;
+    };
+
     struct Node {
         NodeType type;
         int value;
-        std::string name;
         std::shared_ptr<Node> left;
         std::shared_ptr<Node> right;
         std::shared_ptr<Node> next;
+        std::shared_ptr<Object> variable;
+    };
+
+    struct Function {
+        std::shared_ptr<Node> body;
+        std::shared_ptr<Object> locals;
+        int stackSize;
     };
 
 } // namespace yoctocc
