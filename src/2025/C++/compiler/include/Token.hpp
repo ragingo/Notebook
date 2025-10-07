@@ -9,6 +9,7 @@ enum class TokenType {
     UNKNOWN,
     IDENTIFIER,
     PUNCTUATOR,
+    KEYWORD,
     DIGIT,
     TERMINATOR,
 };

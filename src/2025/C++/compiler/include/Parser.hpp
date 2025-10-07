@@ -56,6 +56,14 @@ private:
     }
 
     std::shared_ptr<Node> parseStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
+        if (token->type == TokenType::KEYWORD && token->originalValue == "return") {
+            auto node = createUnaryNode(NodeType::RETURN, parseExpression(token, token->next));
+            if (token->originalValue == ";") {
+                token = token->next;
+            }
+            *result = *token;
+            return node;
+        }
         return parseExpressionStatement(result, token);
     }
 

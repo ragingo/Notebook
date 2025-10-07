@@ -65,6 +65,11 @@ namespace yoctocc {
             if (!node) {
                 return;
             }
+            if (node->type == NodeType::RETURN) {
+                generateExpression(node->left);
+                lines.emplace_back(jmp(".L.return"));
+                return;
+            }
             if (node->type == NodeType::EXPRESSION_STATEMENT) {
                 generateExpression(node->left);
                 return;

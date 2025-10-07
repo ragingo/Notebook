@@ -88,6 +88,18 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
     terminator->type = TokenType::TERMINATOR;
     current->next = terminator;
 
+    for (auto token = head->next; token; token = token->next) {
+        if (token->type == TokenType::TERMINATOR) {
+            break;
+        }
+        for (const auto& [_, keywordStr] : keywords) {
+            if (token->originalValue == keywordStr) {
+                token->type = TokenType::KEYWORD;
+                break;
+            }
+        }
+    }
+
     return head->next;
 }
 

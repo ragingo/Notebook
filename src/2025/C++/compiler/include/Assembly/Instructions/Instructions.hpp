@@ -122,4 +122,8 @@ namespace yoctocc {
         return std::format("{}", OpCode::RET);
     }
 
+    inline constexpr std::string jmp(const std::string& label) {
+        return std::format("{} {}", OpCode::JMP, label);
+    }
+
 } // namespace yoctocc

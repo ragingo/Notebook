@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
     for (const auto& line : generator.run(program)) {
         entryPointBody.emplace_back(line);
     }
+    entryPointBody.emplace_back(".L.return:");
     entryPointBody.emplace_back(mov(RDI, RAX));
     entryPointBody.emplace_back(mov(RAX, std::to_underlying(EXIT)));
     entryPointBody.emplace_back(syscall());

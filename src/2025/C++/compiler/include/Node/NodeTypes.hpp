@@ -17,6 +17,7 @@ namespace yoctocc {
         GREATER,       // >
         GREATER_EQUAL, // >=
         ASSIGN,        // =
+        RETURN,        // return
         VARIABLE,
         EXPRESSION_STATEMENT,
         NUMBER,
