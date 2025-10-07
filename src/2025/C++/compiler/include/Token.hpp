@@ -1,6 +1,9 @@
 #pragma once
 #include <format>
+#include <functional>
 #include <memory>
+#include <string>
+#include <string_view>
 
 namespace yoctocc {
 
@@ -67,6 +70,17 @@ namespace token {
             return std::format("type: {}, value: {}, next: {}", token->type, token->numberValue, token->next ? "yes" : "no");
         }
         return std::format("type: {}, value: {}, next: {}", token->type, token->originalValue, token->next ? "yes" : "no");
+    }
+
+    inline std::shared_ptr<Token> skip(const std::shared_ptr<Token>& token) {
+        return token ? token->next : nullptr;
+    }
+
+    inline std::shared_ptr<Token> skip_if(const std::shared_ptr<Token>& token, std::function<bool(const std::shared_ptr<Token>&)> predicate) {
+        if (token && predicate(token)) {
+            return token->next;
+        }
+        return token;
     }
 }
 

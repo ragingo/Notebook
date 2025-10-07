@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -36,13 +37,15 @@ int main(int argc, char* argv[]) {
     writer.section(TEXT);
     writer.section_text_symbol(GLOBAL, ENTRY_POINT_NAME);
 
+    std::println("Tokenizing...");
     auto token = tokenize(ifs);
 
+    std::println("Parsing...");
     Parser parser{};
     auto program = parser.parse(token);
 
+    std::println("Generating...");
     Generator generator{};
-
     std::vector<std::string> entryPointBody = prologue(program->stackSize);
     for (const auto& line : generator.run(program)) {
         entryPointBody.emplace_back(line);

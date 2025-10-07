@@ -18,6 +18,7 @@ namespace yoctocc {
         GREATER_EQUAL, // >=
         ASSIGN,        // =
         RETURN,        // return
+        BLOCK,         // { ... }
         VARIABLE,
         EXPRESSION_STATEMENT,
         NUMBER,
@@ -35,6 +36,7 @@ namespace yoctocc {
         std::shared_ptr<Node> left;
         std::shared_ptr<Node> right;
         std::shared_ptr<Node> next;
+        std::shared_ptr<Node> body;
         std::shared_ptr<Object> variable;
     };
 

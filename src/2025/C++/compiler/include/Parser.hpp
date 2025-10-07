@@ -12,15 +12,13 @@ public:
             return nullptr;
         }
 
-        auto head = std::make_shared<Node>();
-        auto current = head;
+        token = token::skip_if(token, [](const auto& t) {
+            return t->originalValue == "{";
+        });
 
-        while (token->type != TokenType::TERMINATOR) {
-            current = current->next = parseStatement(token, token);
-        }
 
         auto func = std::make_shared<Function>();
-        func->body = head->next;
+        func->body = parseCompoundStatement(token, token);
         func->locals = _locals;
         func->stackSize = 0;
 
@@ -51,7 +49,7 @@ private:
             node = createBinaryNode(NodeType::ASSIGN, node, parseAssignment(token, token->next));
         }
 
-        *result = *token;
+        result = token;
         return node;
     }
 
@@ -61,10 +59,26 @@ private:
             if (token->originalValue == ";") {
                 token = token->next;
             }
-            *result = *token;
+            result = token;
             return node;
         }
+
+        if (token->originalValue == "{") {
+            return parseCompoundStatement(result, token->next);
+        }
+
         return parseExpressionStatement(result, token);
+    }
+
+    std::shared_ptr<Node> parseCompoundStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
+        auto head = std::make_shared<Node>();
+        auto current = head;
+        while (token->type != TokenType::TERMINATOR && token->originalValue != "}") {
+            current = current->next = parseStatement(token, token);
+        }
+        result = token->next;
+        auto node = createBlockNode(head->next);
+        return node;
     }
 
     std::shared_ptr<Node> parseExpressionStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
@@ -72,7 +86,7 @@ private:
         if (token->originalValue == ";") {
             token = token->next;
         }
-        *result = *token;
+        result = token;
         return node;
     }
 
@@ -88,7 +102,7 @@ private:
                 node = createBinaryNode(NodeType::NOT_EQUAL, node, parseRelational(token, token->next));
                 continue;
             }
-            *result = *token;
+            result = token;
             return node;
         }
     }
@@ -113,7 +127,7 @@ private:
                 node = createBinaryNode(NodeType::GREATER_EQUAL, node, parseAdditive(token, token->next));
                 continue;
             }
-            *result = *token;
+            result = token;
             return node;
         }
     }
@@ -130,7 +144,7 @@ private:
                 node = createBinaryNode(NodeType::SUB, node, parseMultiply(token, token->next));
                 continue;
             }
-            *result = *token;
+            result = token;
             return node;
         }
     }
@@ -147,7 +161,7 @@ private:
                 node = createBinaryNode(NodeType::DIV, node, parseUnary(token, token->next));
                 continue;
             }
-            *result = *token;
+            result = token;
             return node;
         }
     }
@@ -168,7 +182,7 @@ private:
             if (token->type != TokenType::PUNCTUATOR || token->originalValue != ")") {
                 // TODO: エラーハンドリング
             }
-            *result = *token->next;
+            result = token->next;
             return node;
         }
 
@@ -180,7 +194,7 @@ private:
                 var->next = _locals;
                 _locals = var;
             }
-            *result = *token->next;
+            result = token->next;
 
             auto node = createVariableNode(var);
             return node;
@@ -188,7 +202,7 @@ private:
 
         if (token->type == TokenType::DIGIT) {
             auto node = createNumberNode(token->numberValue);
-            *result = *token->next;
+            result = token->next;
             return node;
         }
 

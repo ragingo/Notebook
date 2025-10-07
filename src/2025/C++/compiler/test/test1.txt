@@ -1,1 +1,1 @@
-6 + 5 - -4 * 3 / 2 + 10 < 27; aaa = 42; bbb = aaa + 10; return aaa;
+{ 1; {2;} 6 + 5 - -4 * 3 / 2 + 10 < 27; aaa = 42; { return aaa + 1; } bbb = aaa + 10; return bbb + 2; }

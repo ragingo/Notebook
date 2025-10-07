@@ -33,4 +33,11 @@ namespace yoctocc {
         return node;
     }
 
+    std::shared_ptr<Node> createBlockNode(const std::shared_ptr<Node>& body) {
+        auto node = std::make_shared<Node>();
+        node->type = NodeType::BLOCK;
+        node->body = body;
+        return node;
+    }
+
 } // namespace yoctocc

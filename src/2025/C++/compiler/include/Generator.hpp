@@ -18,12 +18,7 @@ namespace yoctocc {
             }
 
             assignLocalVariableOffsets(func);
-
-            auto node = func->body;
-            while (node) {
-                generateStatement(node);
-                node = node->next;
-            }
+            generateStatement(func->body);
 
             return lines;
         }
@@ -63,6 +58,14 @@ namespace yoctocc {
         void generateStatement(const std::shared_ptr<Node>& node) {
             assert(node);
             if (!node) {
+                return;
+            }
+            if (node->type == NodeType::BLOCK) {
+                auto statement = node->body;
+                while (statement) {
+                    generateStatement(statement);
+                    statement = statement->next;
+                }
                 return;
             }
             if (node->type == NodeType::RETURN) {
