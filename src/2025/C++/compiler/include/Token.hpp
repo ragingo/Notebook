@@ -72,8 +72,19 @@ namespace token {
         return std::format("type: {}, value: {}, next: {}", token->type, token->originalValue, token->next ? "yes" : "no");
     }
 
+    inline bool equals(const std::shared_ptr<Token>& token, std::string_view originalValue) {
+        return token && token->originalValue == originalValue;
+    }
+
     inline std::shared_ptr<Token> skip(const std::shared_ptr<Token>& token) {
         return token ? token->next : nullptr;
+    }
+
+    inline std::shared_ptr<Token> skip_if(const std::shared_ptr<Token>& token, std::string_view originalValue) {
+        if (token && token->originalValue == originalValue) {
+            return token->next;
+        }
+        return token;
     }
 
     inline std::shared_ptr<Token> skip_if(const std::shared_ptr<Token>& token, std::function<bool(const std::shared_ptr<Token>&)> predicate) {

@@ -82,11 +82,13 @@ private:
     }
 
     std::shared_ptr<Node> parseExpressionStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-        auto node = createUnaryNode(NodeType::EXPRESSION_STATEMENT, parseExpression(token, token));
-        if (token->originalValue == ";") {
-            token = token->next;
+        if (token::equals(token, ";")) {
+            result = token->next;
+            return createBlockNode();
         }
-        result = token;
+
+        auto node = createUnaryNode(NodeType::EXPRESSION_STATEMENT, parseExpression(token, token));
+        result = token::skip_if(token, ";");
         return node;
     }
 
