@@ -72,7 +72,7 @@ namespace token {
         return std::format("type: {}, value: {}, next: {}", token->type, token->originalValue, token->next ? "yes" : "no");
     }
 
-    inline bool equals(const std::shared_ptr<Token>& token, std::string_view originalValue) {
+    inline bool is(const std::shared_ptr<Token>& token, std::string_view originalValue) {
         return token && token->originalValue == originalValue;
     }
 

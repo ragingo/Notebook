@@ -12,10 +12,7 @@ public:
             return nullptr;
         }
 
-        token = token::skip_if(token, [](const auto& t) {
-            return t->originalValue == "{";
-        });
-
+        token = token::skip_if(token, "{");
 
         auto func = std::make_shared<Function>();
         func->body = parseCompoundStatement(token, token);
@@ -45,7 +42,7 @@ private:
     std::shared_ptr<Node> parseAssignment(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
         auto node = parseEquality(token, token);
 
-        if (token->type == TokenType::PUNCTUATOR && token->originalValue == "=") {
+        if (token->type == TokenType::PUNCTUATOR && token::is(token, "=")) {
             node = createBinaryNode(NodeType::ASSIGN, node, parseAssignment(token, token->next));
         }
 
@@ -54,7 +51,7 @@ private:
     }
 
     std::shared_ptr<Node> parseStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-        if (token->type == TokenType::KEYWORD && token->originalValue == "return") {
+        if (token::is(token, "return")) {
             auto node = createUnaryNode(NodeType::RETURN, parseExpression(token, token->next));
             if (token->originalValue == ";") {
                 token = token->next;
@@ -63,7 +60,7 @@ private:
             return node;
         }
 
-        if (token->originalValue == "{") {
+        if (token::is(token, "{")) {
             return parseCompoundStatement(result, token->next);
         }
 
@@ -73,7 +70,7 @@ private:
     std::shared_ptr<Node> parseCompoundStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
         auto head = std::make_shared<Node>();
         auto current = head;
-        while (token->type != TokenType::TERMINATOR && token->originalValue != "}") {
+        while (token->type != TokenType::TERMINATOR && !token::is(token, "}")) {
             current = current->next = parseStatement(token, token);
         }
         result = token->next;
@@ -82,7 +79,7 @@ private:
     }
 
     std::shared_ptr<Node> parseExpressionStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-        if (token::equals(token, ";")) {
+        if (token::is(token, ";")) {
             result = token->next;
             return createBlockNode();
         }
@@ -96,11 +93,11 @@ private:
         auto node = parseRelational(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "==") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "==")) {
                 node = createBinaryNode(NodeType::EQUAL, node, parseRelational(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "!=") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "!=")) {
                 node = createBinaryNode(NodeType::NOT_EQUAL, node, parseRelational(token, token->next));
                 continue;
             }
@@ -113,19 +110,19 @@ private:
         auto node = parseAdditive(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "<") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "<")) {
                 node = createBinaryNode(NodeType::LESS, node, parseAdditive(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "<=") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "<=")) {
                 node = createBinaryNode(NodeType::LESS_EQUAL, node, parseAdditive(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == ">") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, ">")) {
                 node = createBinaryNode(NodeType::GREATER, node, parseAdditive(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == ">=") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, ">=")) {
                 node = createBinaryNode(NodeType::GREATER_EQUAL, node, parseAdditive(token, token->next));
                 continue;
             }
@@ -138,11 +135,11 @@ private:
         auto node = parseMultiply(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "+") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "+")) {
                 node = createBinaryNode(NodeType::ADD, node, parseMultiply(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "-") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "-")) {
                 node = createBinaryNode(NodeType::SUB, node, parseMultiply(token, token->next));
                 continue;
             }
@@ -155,11 +152,11 @@ private:
         auto node = parseUnary(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "*") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "*")) {
                 node = createBinaryNode(NodeType::MUL, node, parseUnary(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token->originalValue == "/") {
+            if (token->type == TokenType::PUNCTUATOR && token::is(token, "/")) {
                 node = createBinaryNode(NodeType::DIV, node, parseUnary(token, token->next));
                 continue;
             }
@@ -169,19 +166,19 @@ private:
     }
 
     std::shared_ptr<Node> parseUnary(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-        if (token->type == TokenType::PUNCTUATOR && token->originalValue == "+") {
+        if (token->type == TokenType::PUNCTUATOR && token::is(token, "+")) {
             return parsePrimary(result, token->next);
         }
-        if (token->type == TokenType::PUNCTUATOR && token->originalValue == "-") {
+        if (token->type == TokenType::PUNCTUATOR && token::is(token, "-")) {
             return createUnaryNode(NodeType::NEGATE, parseUnary(result, token->next));
         }
         return parsePrimary(result, token);
     }
 
     std::shared_ptr<Node> parsePrimary(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-        if (token->type == TokenType::PUNCTUATOR && token->originalValue == "(") {
+        if (token->type == TokenType::PUNCTUATOR && token::is(token, "(")) {
             auto node = parseExpression(token, token->next);
-            if (token->type != TokenType::PUNCTUATOR || token->originalValue != ")") {
+            if (token->type != TokenType::PUNCTUATOR || !token::is(token, ")")) {
                 // TODO: エラーハンドリング
             }
             result = token->next;
