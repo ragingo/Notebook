@@ -190,12 +190,9 @@ private:
     }
 
     std::shared_ptr<Node> parsePrimary(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-        if (token->type == TokenType::PUNCTUATOR && token::is(token, "(")) {
+        if (token::is(token, "(")) {
             auto node = parseExpression(token, token->next);
-            if (token->type != TokenType::PUNCTUATOR || !token::is(token, ")")) {
-                // TODO: エラーハンドリング
-            }
-            result = token->next;
+            result = token::skip_if(token, ")");
             return node;
         }
 
