@@ -14,7 +14,7 @@ NASM := nasm
 NASM_FMT := elf64
 LD := ld
 
-.PHONY: all clean run compile help
+.PHONY: all clean run compile test help
 
 all: $(BIN)
 
@@ -46,3 +46,8 @@ run: $(BIN)
 	./$(BIN)
 
 compile: $(ASM)
+
+test:
+	@echo "Running test suite..."
+	@bash test/run_tests.sh
+
