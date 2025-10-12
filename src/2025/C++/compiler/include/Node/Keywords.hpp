@@ -6,10 +6,14 @@ namespace yoctocc {
 
     enum class Keyword {
         RETURN,
+        IF,
+        ELSE,
     };
 
     inline constexpr std::tuple<Keyword, std::string_view> keywords[] = {
         { Keyword::RETURN, "return" },
+        { Keyword::IF, "if" },
+        { Keyword::ELSE, "else" },
     };
 
 } // namespace yoctocc

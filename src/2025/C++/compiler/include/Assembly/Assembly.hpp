@@ -9,6 +9,7 @@ constexpr std::string ENTRY_POINT_NAME = "_start";
 } // namespace yoctocc
 
 #include "Address.hpp"
+#include "Label.hpp"
 #include "LinkerDirective.hpp"
 #include "OpCode.hpp"
 #include "Register.hpp"

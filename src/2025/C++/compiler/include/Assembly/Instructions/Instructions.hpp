@@ -78,7 +78,8 @@ namespace yoctocc {
         return std::format("{} {}", OpCode::NEG, dest);
     }
 
-    inline constexpr std::string cmp(Register lhs, Register rhs) {
+    template <SourceOperandType T>
+    inline constexpr std::string cmp(Register lhs, const T& rhs) {
         return std::format("{} {}, {}", OpCode::CMP, lhs, rhs);
     }
 
@@ -124,6 +125,10 @@ namespace yoctocc {
 
     inline constexpr std::string jmp(const std::string& label) {
         return std::format("{} {}", OpCode::JMP, label);
+    }
+
+    inline constexpr std::string je(const std::string& label) {
+        return std::format("{} {}", OpCode::JE, label);
     }
 
 } // namespace yoctocc

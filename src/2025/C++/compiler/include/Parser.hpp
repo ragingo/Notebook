@@ -60,6 +60,20 @@ private:
             return node;
         }
 
+        if (token::is(token, "if")) {
+            auto node = std::make_shared<Node>();
+            node->type = NodeType::IF;
+            token = token::skip_if(token->next, "(");
+            node->condition = parseExpression(token, token);
+            token = token::skip_if(token, ")");
+            node->then = parseStatement(token, token);
+            if (token::is(token, "else")) {
+                node->els = parseStatement(token, token->next);
+            }
+            result = token;
+            return node;
+        }
+
         if (token::is(token, "{")) {
             return parseCompoundStatement(result, token->next);
         }

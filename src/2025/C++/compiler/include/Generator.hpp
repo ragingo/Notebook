@@ -60,6 +60,26 @@ namespace yoctocc {
             if (!node) {
                 return;
             }
+            if (node->type == NodeType::IF) {
+                uint64_t count = labelCount++;
+                auto elseLabel = makeElseLabel(count);
+                auto endLabel = makeEndLabel(count);
+
+                generateExpression(node->condition);
+                // if
+                lines.emplace_back(cmp(Register::RAX, 0));
+                lines.emplace_back(je(elseLabel.ref()));
+                // then
+                generateStatement(node->then);
+                lines.emplace_back(jmp(endLabel.ref()));
+                // else
+                lines.emplace_back(elseLabel.def());
+                if (node->els) {
+                    generateStatement(node->els);
+                }
+                lines.emplace_back(endLabel.def());
+                return;
+            }
             if (node->type == NodeType::BLOCK) {
                 auto statement = node->body;
                 while (statement) {
@@ -166,6 +186,7 @@ namespace yoctocc {
         }
 
         std::vector<std::string> lines{};
+        uint64_t labelCount = 0UL;
     };
 
 }  // namespace yoctocc

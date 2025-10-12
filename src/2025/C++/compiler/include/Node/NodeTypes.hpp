@@ -18,6 +18,7 @@ namespace yoctocc {
         GREATER_EQUAL, // >=
         ASSIGN,        // =
         RETURN,        // return
+        IF,            // if
         BLOCK,         // { ... }
         VARIABLE,
         EXPRESSION_STATEMENT,
@@ -36,6 +37,11 @@ namespace yoctocc {
         std::shared_ptr<Node> left;
         std::shared_ptr<Node> right;
         std::shared_ptr<Node> next;
+        // if
+        std::shared_ptr<Node> condition;
+        std::shared_ptr<Node> then;
+        std::shared_ptr<Node> els;
+        // block
         std::shared_ptr<Node> body;
         std::shared_ptr<Object> variable;
     };
