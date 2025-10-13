@@ -93,6 +93,15 @@ private:
             return node;
         }
 
+        if (token::is(token, "while")) {
+            auto node = std::make_shared<Node>(NodeType::FOR);
+            token = token::skip_if(token->next, "(");
+            node->condition = parseExpression(token, token);
+            token = token::skip_if(token, ")");
+            node->then = parseStatement(result, token);
+            return node;
+        }
+
         if (token::is(token, "{")) {
             return parseCompoundStatement(result, token->next);
         }

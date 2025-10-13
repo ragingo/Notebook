@@ -85,7 +85,9 @@ namespace yoctocc {
                 auto beginLabel = makeBeginLabel(count);
                 auto endLabel = makeEndLabel(count);
 
-                generateStatement(node->init);
+                if (node->init) {
+                    generateStatement(node->init);
+                }
                 lines.emplace_back(beginLabel.def());
                 if (node->condition) {
                     generateExpression(node->condition);

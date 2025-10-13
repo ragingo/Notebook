@@ -19,7 +19,7 @@ namespace yoctocc {
         ASSIGN,        // =
         RETURN,        // return
         IF,            // if
-        FOR,           // for
+        FOR,           // for or while
         BLOCK,         // { ... }
         VARIABLE,
         EXPRESSION_STATEMENT,

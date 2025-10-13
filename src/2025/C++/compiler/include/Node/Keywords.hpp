@@ -9,6 +9,7 @@ namespace yoctocc {
         IF,
         ELSE,
         FOR,
+        WHILE,
     };
 
     inline constexpr std::tuple<Keyword, std::string_view> keywords[] = {
@@ -16,6 +17,7 @@ namespace yoctocc {
         { Keyword::IF, "if" },
         { Keyword::ELSE, "else" },
         { Keyword::FOR, "for" },
+        { Keyword::WHILE, "while" },
     };
 
 } // namespace yoctocc
