@@ -80,6 +80,26 @@ namespace yoctocc {
                 lines.emplace_back(endLabel.def());
                 return;
             }
+            if (node->type == NodeType::FOR) {
+                uint64_t count = labelCount++;
+                auto beginLabel = makeBeginLabel(count);
+                auto endLabel = makeEndLabel(count);
+
+                generateStatement(node->init);
+                lines.emplace_back(beginLabel.def());
+                if (node->condition) {
+                    generateExpression(node->condition);
+                    lines.emplace_back(cmp(Register::RAX, 0));
+                    lines.emplace_back(je(endLabel.ref()));
+                }
+                generateStatement(node->then);
+                if (node->inc) {
+                    generateExpression(node->inc);
+                }
+                lines.emplace_back(jmp(beginLabel.ref()));
+                lines.emplace_back(endLabel.def());
+                return;
+            }
             if (node->type == NodeType::BLOCK) {
                 auto statement = node->body;
                 while (statement) {

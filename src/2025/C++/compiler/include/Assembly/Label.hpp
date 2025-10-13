@@ -24,6 +24,10 @@ namespace yoctocc {
         return Label(".L." + prefix + "." + std::to_string(id));
     }
 
+    inline Label makeBeginLabel(uint64_t id) {
+        return makeLabel("begin", id);
+    }
+
     inline Label makeElseLabel(uint64_t id) {
         return makeLabel("else", id);
     }

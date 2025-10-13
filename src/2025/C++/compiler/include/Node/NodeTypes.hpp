@@ -19,6 +19,7 @@ namespace yoctocc {
         ASSIGN,        // =
         RETURN,        // return
         IF,            // if
+        FOR,           // for
         BLOCK,         // { ... }
         VARIABLE,
         EXPRESSION_STATEMENT,
@@ -37,13 +38,17 @@ namespace yoctocc {
         std::shared_ptr<Node> left;
         std::shared_ptr<Node> right;
         std::shared_ptr<Node> next;
-        // if
+        // if or for
         std::shared_ptr<Node> condition;
         std::shared_ptr<Node> then;
         std::shared_ptr<Node> els;
+        std::shared_ptr<Node> init;
+        std::shared_ptr<Node> inc;
         // block
         std::shared_ptr<Node> body;
         std::shared_ptr<Object> variable;
+
+        Node(NodeType type = NodeType::UNKNOWN): type(type), value(0) {}
     };
 
     struct Function {
