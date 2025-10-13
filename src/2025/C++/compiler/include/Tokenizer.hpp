@@ -28,8 +28,7 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
         }
 
         if (!number.empty()) {
-            auto next = std::make_shared<Token>();
-            next->type = TokenType::DIGIT;
+            auto next = std::make_shared<Token>(TokenType::DIGIT);
             next->originalValue = number;
             next->numberValue = std::stoi(number);
             current->next = next;
@@ -45,8 +44,7 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
                 identifier += *it;
                 ++it;
             }
-            auto next = std::make_shared<Token>();
-            next->type = TokenType::IDENTIFIER;
+            auto next = std::make_shared<Token>(TokenType::IDENTIFIER);
             next->originalValue = identifier;
             current->next = next;
             current = next;
@@ -54,14 +52,12 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
         }
 
         if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
-            auto next = std::make_shared<Token>();
-            next->type = TokenType::PUNCTUATOR;
+            auto next = std::make_shared<Token>(TokenType::PUNCTUATOR);
             next->originalValue = ch;
             current->next = next;
             current = next;
         } else if (ch == '=' || ch == '!' || ch == '<' || ch == '>') {
-            auto next = std::make_shared<Token>();
-            next->type = TokenType::PUNCTUATOR;
+            auto next = std::make_shared<Token>(TokenType::PUNCTUATOR);
             next->originalValue = ch;
             if (std::next(it) != content.end() && *std::next(it) == '=') {
                 next->originalValue += '=';
@@ -75,7 +71,6 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             continue;
         } else {
             auto next = std::make_shared<Token>();
-            next->type = TokenType::UNKNOWN;
             next->originalValue = ch;
             current->next = next;
             current = next;
@@ -84,8 +79,7 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
         ++it;
     }
 
-    auto terminator = std::make_shared<Token>();
-    terminator->type = TokenType::TERMINATOR;
+    auto terminator = std::make_shared<Token>(TokenType::TERMINATOR);
     current->next = terminator;
 
     for (auto token = head->next; token; token = token->next) {

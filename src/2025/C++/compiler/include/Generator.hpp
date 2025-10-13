@@ -9,7 +9,7 @@
 
 namespace yoctocc {
 
-    class Generator {
+    class Generator final {
     public:
         std::vector<std::string> run(const std::shared_ptr<Function>& func) {
             assert(func);

@@ -46,48 +46,23 @@ struct Token {
     std::string originalValue;
     int numberValue;
     std::shared_ptr<Token> next;
+
+    Token(TokenType type = TokenType::UNKNOWN) : type(type), numberValue(0) {}
 };
 
 namespace token {
-    inline bool has_next(const std::shared_ptr<Token>& token) {
-        return token && token->next;
-    }
-
-    inline bool is_punctuator(const std::shared_ptr<Token>& token) {
-        return token && token->type == TokenType::PUNCTUATOR;
-    }
-
-    inline bool is_digit(const std::shared_ptr<Token>& token) {
-        return token && token->type == TokenType::DIGIT;
-    }
-
-    inline bool is_arithmetic_operator(const std::shared_ptr<Token>& token) {
-        return is_punctuator(token) && (token->originalValue == "+" || token->originalValue == "-" || token->originalValue == "*" || token->originalValue == "/");
-    }
-
-    inline std::string to_string(const std::shared_ptr<Token>& token) {
-        if (is_digit(token)) {
-            return std::format("type: {}, value: {}, next: {}", token->type, token->numberValue, token->next ? "yes" : "no");
-        }
-        return std::format("type: {}, value: {}, next: {}", token->type, token->originalValue, token->next ? "yes" : "no");
-    }
-
     inline bool is(const std::shared_ptr<Token>& token, std::string_view originalValue) {
         return token && token->originalValue == originalValue;
     }
 
-    inline std::shared_ptr<Token> skip(const std::shared_ptr<Token>& token) {
-        return token ? token->next : nullptr;
-    }
-
-    inline std::shared_ptr<Token> skip_if(const std::shared_ptr<Token>& token, std::string_view originalValue) {
+    inline std::shared_ptr<Token> skipIf(const std::shared_ptr<Token>& token, std::string_view originalValue) {
         if (token && token->originalValue == originalValue) {
             return token->next;
         }
         return token;
     }
 
-    inline std::shared_ptr<Token> skip_if(const std::shared_ptr<Token>& token, std::function<bool(const std::shared_ptr<Token>&)> predicate) {
+    inline std::shared_ptr<Token> skipIf(const std::shared_ptr<Token>& token, std::function<bool(const std::shared_ptr<Token>&)> predicate) {
         if (token && predicate(token)) {
             return token->next;
         }

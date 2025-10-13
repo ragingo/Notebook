@@ -12,7 +12,7 @@ public:
             return nullptr;
         }
 
-        token = token::skip_if(token, "{");
+        token = token::skipIf(token, "{");
 
         auto func = std::make_shared<Function>();
         func->body = parseCompoundStatement(token, token);
@@ -61,11 +61,10 @@ private:
         }
 
         if (token::is(token, "if")) {
-            auto node = std::make_shared<Node>();
-            node->type = NodeType::IF;
-            token = token::skip_if(token->next, "(");
+            auto node = std::make_shared<Node>(NodeType::IF);
+            token = token::skipIf(token->next, "(");
             node->condition = parseExpression(token, token);
-            token = token::skip_if(token, ")");
+            token = token::skipIf(token, ")");
             node->then = parseStatement(token, token);
             if (token::is(token, "else")) {
                 node->els = parseStatement(token, token->next);
@@ -76,18 +75,18 @@ private:
 
         if (token::is(token, "for")) {
             auto node = std::make_shared<Node>(NodeType::FOR);
-            token = token::skip_if(token->next, "(");
+            token = token::skipIf(token->next, "(");
             node->init = parseExpressionStatement(token, token);
 
             if (!token::is(token, ";")) {
                 node->condition = parseExpression(token, token);
             }
-            token = token::skip_if(token, ";");
+            token = token::skipIf(token, ";");
 
             if (!token::is(token, ")")) {
                 node->inc = parseExpression(token, token);
             }
-            token = token::skip_if(token, ")");
+            token = token::skipIf(token, ")");
 
             node->then = parseStatement(result, token);
             return node;
@@ -95,9 +94,9 @@ private:
 
         if (token::is(token, "while")) {
             auto node = std::make_shared<Node>(NodeType::FOR);
-            token = token::skip_if(token->next, "(");
+            token = token::skipIf(token->next, "(");
             node->condition = parseExpression(token, token);
-            token = token::skip_if(token, ")");
+            token = token::skipIf(token, ")");
             node->then = parseStatement(result, token);
             return node;
         }
@@ -127,7 +126,7 @@ private:
         }
 
         auto node = createUnaryNode(NodeType::EXPRESSION_STATEMENT, parseExpression(token, token));
-        result = token::skip_if(token, ";");
+        result = token::skipIf(token, ";");
         return node;
     }
 
@@ -220,7 +219,7 @@ private:
     std::shared_ptr<Node> parsePrimary(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
         if (token::is(token, "(")) {
             auto node = parseExpression(token, token->next);
-            result = token::skip_if(token, ")");
+            result = token::skipIf(token, ")");
             return node;
         }
 
