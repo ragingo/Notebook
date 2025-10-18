@@ -6,7 +6,7 @@ namespace yoctocc {
 
     struct Token;
 
-    std::shared_ptr<Node> createNumberNode(const std::shared_ptr<Token>& token, int value) {
+    inline std::shared_ptr<Node> createNumberNode(const std::shared_ptr<Token>& token, int value) {
         auto node = std::make_shared<Node>();
         node->type = NodeType::NUMBER;
         node->value = value;
@@ -14,7 +14,7 @@ namespace yoctocc {
         return node;
     }
 
-    std::shared_ptr<Node> createUnaryNode(NodeType type, const std::shared_ptr<Token>& token, const std::shared_ptr<Node>& operand) {
+    inline std::shared_ptr<Node> createUnaryNode(NodeType type, const std::shared_ptr<Token>& token, const std::shared_ptr<Node>& operand) {
         auto node = std::make_shared<Node>();
         node->type = type;
         node->left = operand;
@@ -22,7 +22,7 @@ namespace yoctocc {
         return node;
     }
 
-    std::shared_ptr<Node> createBinaryNode(NodeType type, const std::shared_ptr<Token>& token, const std::shared_ptr<Node>& left, const std::shared_ptr<Node>& right) {
+    inline std::shared_ptr<Node> createBinaryNode(NodeType type, const std::shared_ptr<Token>& token, const std::shared_ptr<Node>& left, const std::shared_ptr<Node>& right) {
         auto node = std::make_shared<Node>();
         node->type = type;
         node->left = left;
@@ -31,7 +31,7 @@ namespace yoctocc {
         return node;
     }
 
-    std::shared_ptr<Node> createVariableNode(const std::shared_ptr<Token>& token, const std::shared_ptr<Object>& variable) {
+    inline std::shared_ptr<Node> createVariableNode(const std::shared_ptr<Token>& token, const std::shared_ptr<Object>& variable) {
         auto node = std::make_shared<Node>();
         node->type = NodeType::VARIABLE;
         node->variable = variable;
@@ -39,7 +39,7 @@ namespace yoctocc {
         return node;
     }
 
-    std::shared_ptr<Node> createBlockNode(const std::shared_ptr<Token>& token, const std::shared_ptr<Node>& body = nullptr) {
+    inline std::shared_ptr<Node> createBlockNode(const std::shared_ptr<Token>& token, const std::shared_ptr<Node>& body = nullptr) {
         auto node = std::make_shared<Node>();
         node->type = NodeType::BLOCK;
         node->body = body;
