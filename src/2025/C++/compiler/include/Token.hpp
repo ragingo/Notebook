@@ -45,9 +45,10 @@ struct Token {
     TokenType type;
     std::string originalValue;
     int numberValue;
+    size_t location;
     std::shared_ptr<Token> next;
 
-    Token(TokenType type = TokenType::UNKNOWN) : type(type), numberValue(0) {}
+    Token(TokenType type = TokenType::UNKNOWN) : type(type), numberValue(0), location(0) {}
 };
 
 namespace token {

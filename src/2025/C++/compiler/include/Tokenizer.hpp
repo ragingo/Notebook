@@ -1,6 +1,8 @@
 #pragma once
+#include <format>
 #include <fstream>
 #include <string>
+#include "Logger.hpp"
 #include "Token.hpp"
 #include "String/String.hpp"
 
@@ -13,10 +15,16 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
     std::string number;
 
     std::string content{std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()};
+    Log::sourceCode = content;
     auto it = content.begin();
 
     while (it != content.end()) {
         char ch = *it;
+
+        if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') {
+            ++it;
+            continue;
+        }
 
         if (std::isdigit(ch)) {
             number += ch;
@@ -31,6 +39,7 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             auto next = std::make_shared<Token>(TokenType::DIGIT);
             next->originalValue = number;
             next->numberValue = std::stoi(number);
+            next->location = std::distance(content.begin(), it) - number.size();
             current->next = next;
             current = next;
             number.clear();
@@ -46,37 +55,37 @@ std::shared_ptr<Token> tokenize(std::ifstream& ifs) {
             }
             auto next = std::make_shared<Token>(TokenType::IDENTIFIER);
             next->originalValue = identifier;
+            next->location = std::distance(content.begin(), it) - identifier.size();
             current->next = next;
             current = next;
             continue;
         }
 
-        if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
-            auto next = std::make_shared<Token>(TokenType::PUNCTUATOR);
-            next->originalValue = ch;
-            current->next = next;
-            current = next;
-        } else if (ch == '=' || ch == '!' || ch == '<' || ch == '>') {
-            auto next = std::make_shared<Token>(TokenType::PUNCTUATOR);
-            next->originalValue = ch;
-            if (std::next(it) != content.end() && *std::next(it) == '=') {
-                next->originalValue += '=';
-                ++it;
+        if (std::ispunct(ch)) {
+            auto nextCh = std::next(it) != content.end() ? *std::next(it) : '\0';
+            std::array<char, 2> chars = { ch, nextCh };
+            if (chars == std::array{ '=', '=' } || chars == std::array{ '!', '=' } ||
+                chars == std::array{ '<', '=' } || chars == std::array{ '>', '=' }) {
+                auto next = std::make_shared<Token>(TokenType::PUNCTUATOR);
+                next->originalValue = std::string{ ch, nextCh };
+                next->location = std::distance(content.begin(), it);
+                current->next = next;
+                current = next;
+                it += 2;
+                continue;
             }
+
+            auto next = std::make_shared<Token>(TokenType::PUNCTUATOR);
+            next->originalValue = ch;
+            next->location = std::distance(content.begin(), it);
             current->next = next;
             current = next;
-        } else if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
-            // skip
             ++it;
             continue;
-        } else {
-            auto next = std::make_shared<Token>();
-            next->originalValue = ch;
-            current->next = next;
-            current = next;
         }
 
-        ++it;
+        Log::error(std::distance(content.begin(), it), std::format("Unexpected character '{}'", ch));
+        return nullptr;
     }
 
     auto terminator = std::make_shared<Token>(TokenType::TERMINATOR);
