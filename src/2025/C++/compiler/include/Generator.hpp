@@ -52,7 +52,11 @@ namespace yoctocc {
             }
             if (node->type == NodeType::VARIABLE) {
                 int offset = node->variable->offset;
-                lines.emplace_back(lea(Register::RAX, Address<Register>{Register::RBP, -offset}));
+                lines.emplace_back(lea(Register::RAX, Address<Register>{Register::RBP, offset}));
+                return;
+            }
+            if (node->type == NodeType::DEREFERENCE) {
+                generateExpression(node->left);
                 return;
             }
             using namespace std::literals;
@@ -146,6 +150,13 @@ namespace yoctocc {
                     return;
                 case NodeType::VARIABLE:
                     generateAddress(node);
+                    lines.emplace_back(mov(RAX, Address<Register>{RAX}));
+                    return;
+                case NodeType::ADDRESS:
+                    generateAddress(node->left);
+                    return;
+                case NodeType::DEREFERENCE:
+                    generateExpression(node->left);
                     lines.emplace_back(mov(RAX, Address<Register>{RAX}));
                     return;
                 case NodeType::ASSIGN:

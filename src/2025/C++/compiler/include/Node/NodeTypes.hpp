@@ -19,6 +19,8 @@ namespace yoctocc {
         GREATER,       // >
         GREATER_EQUAL, // >=
         ASSIGN,        // =
+        ADDRESS,       // unary &
+        DEREFERENCE,   // unary *
         RETURN,        // return
         IF,            // if
         FOR,           // for or while

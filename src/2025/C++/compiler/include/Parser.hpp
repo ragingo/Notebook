@@ -43,7 +43,7 @@ private:
     std::shared_ptr<Node> parseAssignment(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
         auto node = parseEquality(token, token);
 
-        if (token->type == TokenType::PUNCTUATOR && token::is(token, "=")) {
+        if (token::is(token, "=")) {
             node = createBinaryNode(NodeType::ASSIGN, token, node, parseAssignment(token, token->next));
         }
 
@@ -135,11 +135,11 @@ private:
         auto node = parseRelational(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "==")) {
+            if (token::is(token, "==")) {
                 node = createBinaryNode(NodeType::EQUAL, token, node, parseRelational(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "!=")) {
+            if (token::is(token, "!=")) {
                 node = createBinaryNode(NodeType::NOT_EQUAL, token, node, parseRelational(token, token->next));
                 continue;
             }
@@ -152,19 +152,19 @@ private:
         auto node = parseAdditive(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "<")) {
+            if (token::is(token, "<")) {
                 node = createBinaryNode(NodeType::LESS, token, node, parseAdditive(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "<=")) {
+            if (token::is(token, "<=")) {
                 node = createBinaryNode(NodeType::LESS_EQUAL, token, node, parseAdditive(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, ">")) {
+            if (token::is(token, ">")) {
                 node = createBinaryNode(NodeType::GREATER, token, node, parseAdditive(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, ">=")) {
+            if (token::is(token, ">=")) {
                 node = createBinaryNode(NodeType::GREATER_EQUAL, token, node, parseAdditive(token, token->next));
                 continue;
             }
@@ -177,11 +177,11 @@ private:
         auto node = parseMultiply(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "+")) {
+            if (token::is(token, "+")) {
                 node = createBinaryNode(NodeType::ADD, token, node, parseMultiply(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "-")) {
+            if (token::is(token, "-")) {
                 node = createBinaryNode(NodeType::SUB, token, node, parseMultiply(token, token->next));
                 continue;
             }
@@ -194,11 +194,11 @@ private:
         auto node = parseUnary(token, token);
 
         while (true) {
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "*")) {
+            if (token::is(token, "*")) {
                 node = createBinaryNode(NodeType::MUL, token, node, parseUnary(token, token->next));
                 continue;
             }
-            if (token->type == TokenType::PUNCTUATOR && token::is(token, "/")) {
+            if (token::is(token, "/")) {
                 node = createBinaryNode(NodeType::DIV, token, node, parseUnary(token, token->next));
                 continue;
             }
@@ -208,11 +208,17 @@ private:
     }
 
     std::shared_ptr<Node> parseUnary(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
-        if (token->type == TokenType::PUNCTUATOR && token::is(token, "+")) {
+        if (token::is(token, "+")) {
             return parsePrimary(result, token->next);
         }
-        if (token->type == TokenType::PUNCTUATOR && token::is(token, "-")) {
+        if (token::is(token, "-")) {
             return createUnaryNode(NodeType::NEGATE, token, parseUnary(result, token->next));
+        }
+        if (token::is(token, "&")) {
+            return createUnaryNode(NodeType::ADDRESS, token, parseUnary(result, token->next));
+        }
+        if (token::is(token, "*")) {
+            return createUnaryNode(NodeType::DEREFERENCE, token, parseUnary(result, token->next));
         }
         return parsePrimary(result, token);
     }
