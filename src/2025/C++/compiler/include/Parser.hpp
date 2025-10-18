@@ -1,4 +1,5 @@
 #pragma once
+#include "Logger.hpp"
 #include "Node/Node.hpp"
 #include "Token.hpp"
 
@@ -43,7 +44,7 @@ private:
         auto node = parseEquality(token, token);
 
         if (token->type == TokenType::PUNCTUATOR && token::is(token, "=")) {
-            node = createBinaryNode(NodeType::ASSIGN, node, parseAssignment(token, token->next));
+            node = createBinaryNode(NodeType::ASSIGN, token, node, parseAssignment(token, token->next));
         }
 
         result = token;
@@ -52,7 +53,7 @@ private:
 
     std::shared_ptr<Node> parseStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
         if (token::is(token, "return")) {
-            auto node = createUnaryNode(NodeType::RETURN, parseExpression(token, token->next));
+            auto node = createUnaryNode(NodeType::RETURN, token, parseExpression(token, token->next));
             if (token->originalValue == ";") {
                 token = token->next;
             }
@@ -115,17 +116,17 @@ private:
             current = current->next = parseStatement(token, token);
         }
         result = token->next;
-        auto node = createBlockNode(head->next);
+        auto node = createBlockNode(token, head->next);
         return node;
     }
 
     std::shared_ptr<Node> parseExpressionStatement(std::shared_ptr<Token>& result, std::shared_ptr<Token>& token) {
         if (token::is(token, ";")) {
             result = token->next;
-            return createBlockNode();
+            return createBlockNode(token);
         }
 
-        auto node = createUnaryNode(NodeType::EXPRESSION_STATEMENT, parseExpression(token, token));
+        auto node = createUnaryNode(NodeType::EXPRESSION_STATEMENT, token, parseExpression(token, token));
         result = token::skipIf(token, ";");
         return node;
     }
@@ -135,11 +136,11 @@ private:
 
         while (true) {
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "==")) {
-                node = createBinaryNode(NodeType::EQUAL, node, parseRelational(token, token->next));
+                node = createBinaryNode(NodeType::EQUAL, token, node, parseRelational(token, token->next));
                 continue;
             }
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "!=")) {
-                node = createBinaryNode(NodeType::NOT_EQUAL, node, parseRelational(token, token->next));
+                node = createBinaryNode(NodeType::NOT_EQUAL, token, node, parseRelational(token, token->next));
                 continue;
             }
             result = token;
@@ -152,19 +153,19 @@ private:
 
         while (true) {
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "<")) {
-                node = createBinaryNode(NodeType::LESS, node, parseAdditive(token, token->next));
+                node = createBinaryNode(NodeType::LESS, token, node, parseAdditive(token, token->next));
                 continue;
             }
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "<=")) {
-                node = createBinaryNode(NodeType::LESS_EQUAL, node, parseAdditive(token, token->next));
+                node = createBinaryNode(NodeType::LESS_EQUAL, token, node, parseAdditive(token, token->next));
                 continue;
             }
             if (token->type == TokenType::PUNCTUATOR && token::is(token, ">")) {
-                node = createBinaryNode(NodeType::GREATER, node, parseAdditive(token, token->next));
+                node = createBinaryNode(NodeType::GREATER, token, node, parseAdditive(token, token->next));
                 continue;
             }
             if (token->type == TokenType::PUNCTUATOR && token::is(token, ">=")) {
-                node = createBinaryNode(NodeType::GREATER_EQUAL, node, parseAdditive(token, token->next));
+                node = createBinaryNode(NodeType::GREATER_EQUAL, token, node, parseAdditive(token, token->next));
                 continue;
             }
             result = token;
@@ -177,11 +178,11 @@ private:
 
         while (true) {
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "+")) {
-                node = createBinaryNode(NodeType::ADD, node, parseMultiply(token, token->next));
+                node = createBinaryNode(NodeType::ADD, token, node, parseMultiply(token, token->next));
                 continue;
             }
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "-")) {
-                node = createBinaryNode(NodeType::SUB, node, parseMultiply(token, token->next));
+                node = createBinaryNode(NodeType::SUB, token, node, parseMultiply(token, token->next));
                 continue;
             }
             result = token;
@@ -194,11 +195,11 @@ private:
 
         while (true) {
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "*")) {
-                node = createBinaryNode(NodeType::MUL, node, parseUnary(token, token->next));
+                node = createBinaryNode(NodeType::MUL, token, node, parseUnary(token, token->next));
                 continue;
             }
             if (token->type == TokenType::PUNCTUATOR && token::is(token, "/")) {
-                node = createBinaryNode(NodeType::DIV, node, parseUnary(token, token->next));
+                node = createBinaryNode(NodeType::DIV, token, node, parseUnary(token, token->next));
                 continue;
             }
             result = token;
@@ -211,7 +212,7 @@ private:
             return parsePrimary(result, token->next);
         }
         if (token->type == TokenType::PUNCTUATOR && token::is(token, "-")) {
-            return createUnaryNode(NodeType::NEGATE, parseUnary(result, token->next));
+            return createUnaryNode(NodeType::NEGATE, token, parseUnary(result, token->next));
         }
         return parsePrimary(result, token);
     }
@@ -233,15 +234,18 @@ private:
             }
             result = token->next;
 
-            auto node = createVariableNode(var);
+            auto node = createVariableNode(token, var);
             return node;
         }
 
         if (token->type == TokenType::DIGIT) {
-            auto node = createNumberNode(token->numberValue);
+            auto node = createNumberNode(token, token->numberValue);
             result = token->next;
             return node;
         }
+
+        using namespace std::literals;
+        Log::error(token->location, "Expected an expression"sv);
 
         return nullptr;
     }

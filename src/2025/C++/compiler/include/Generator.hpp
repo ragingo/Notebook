@@ -5,7 +5,9 @@
 #include <string>
 #include <vector>
 #include "Assembly/Assembly.hpp"
+#include "Logger.hpp"
 #include "Node/Node.hpp"
+#include "Token.hpp"
 
 namespace yoctocc {
 
@@ -53,6 +55,8 @@ namespace yoctocc {
                 lines.emplace_back(lea(Register::RAX, Address<Register>{Register::RBP, -offset}));
                 return;
             }
+            using namespace std::literals;
+            Log::error(node->token->location, "Not an lvalue"sv);
         }
 
         void generateStatement(const std::shared_ptr<Node>& node) {
@@ -119,6 +123,9 @@ namespace yoctocc {
                 generateExpression(node->left);
                 return;
             }
+
+            using namespace std::literals;
+            Log::error(node->token->location, "Invalid statement"sv);
         }
 
         void generateExpression(const std::shared_ptr<Node>& node) {
@@ -161,50 +168,53 @@ namespace yoctocc {
             switch (node->type) {
                 case NodeType::ADD:
                     lines.emplace_back(add(RAX, RDI));
-                    break;
+                    return;
                 case NodeType::SUB:
                     lines.emplace_back(sub(RAX, RDI));
-                    break;
+                    return;
                 case NodeType::MUL:
                     lines.emplace_back(imul(RAX, RDI));
-                    break;
+                    return;
                 case NodeType::DIV:
                     lines.emplace_back(cqo());
                     lines.emplace_back(idiv(RDI));
-                    break;
+                    return;
                 case NodeType::EQUAL:
                     lines.emplace_back(cmp(RAX, RDI));
                     lines.emplace_back(sete(AL));
                     lines.emplace_back(movzx(RAX, AL));
-                    break;
+                    return;
                 case NodeType::NOT_EQUAL:
                     lines.emplace_back(cmp(RAX, RDI));
                     lines.emplace_back(setne(AL));
                     lines.emplace_back(movzx(RAX, AL));
-                    break;
+                    return;
                 case NodeType::LESS:
                     lines.emplace_back(cmp(RAX, RDI));
                     lines.emplace_back(setl(AL));
                     lines.emplace_back(movzx(RAX, AL));
-                    break;
+                    return;
                 case NodeType::LESS_EQUAL:
                     lines.emplace_back(cmp(RAX, RDI));
                     lines.emplace_back(setle(AL));
                     lines.emplace_back(movzx(RAX, AL));
-                    break;
+                    return;
                 case NodeType::GREATER:
                     lines.emplace_back(cmp(RAX, RDI));
                     lines.emplace_back(setg(AL));
                     lines.emplace_back(movzx(RAX, AL));
-                    break;
+                    return;
                 case NodeType::GREATER_EQUAL:
                     lines.emplace_back(cmp(RAX, RDI));
                     lines.emplace_back(setge(AL));
                     lines.emplace_back(movzx(RAX, AL));
-                    break;
+                    return;
                 default:
                     break;
             }
+
+            using namespace std::literals;
+            Log::error(node->token->location, "Invalid expression"sv);
         }
 
         std::vector<std::string> lines{};
