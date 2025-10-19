@@ -41,12 +41,12 @@ void Generator::generateAddress(const std::shared_ptr<Node>& node) {
     if (!node) {
         return;
     }
-    if (node->type == NodeType::VARIABLE) {
+    if (node->nodeType == NodeType::VARIABLE) {
         int offset = node->variable->offset;
         lines.emplace_back(lea(Register::RAX, Address<Register>{Register::RBP, offset}));
         return;
     }
-    if (node->type == NodeType::DEREFERENCE) {
+    if (node->nodeType == NodeType::DEREFERENCE) {
         generateExpression(node->left);
         return;
     }
@@ -59,7 +59,7 @@ void Generator::generateStatement(const std::shared_ptr<Node>& node) {
     if (!node) {
         return;
     }
-    if (node->type == NodeType::IF) {
+    if (node->nodeType == NodeType::IF) {
         uint64_t count = labelCount++;
         auto elseLabel = makeElseLabel(count);
         auto endLabel = makeEndLabel(count);
@@ -79,7 +79,7 @@ void Generator::generateStatement(const std::shared_ptr<Node>& node) {
         lines.emplace_back(endLabel.def());
         return;
     }
-    if (node->type == NodeType::FOR) {
+    if (node->nodeType == NodeType::FOR) {
         uint64_t count = labelCount++;
         auto beginLabel = makeBeginLabel(count);
         auto endLabel = makeEndLabel(count);
@@ -101,7 +101,7 @@ void Generator::generateStatement(const std::shared_ptr<Node>& node) {
         lines.emplace_back(endLabel.def());
         return;
     }
-    if (node->type == NodeType::BLOCK) {
+    if (node->nodeType == NodeType::BLOCK) {
         auto statement = node->body;
         while (statement) {
             generateStatement(statement);
@@ -109,12 +109,12 @@ void Generator::generateStatement(const std::shared_ptr<Node>& node) {
         }
         return;
     }
-    if (node->type == NodeType::RETURN) {
+    if (node->nodeType == NodeType::RETURN) {
         generateExpression(node->left);
         lines.emplace_back(jmp(".L.return"));
         return;
     }
-    if (node->type == NodeType::EXPRESSION_STATEMENT) {
+    if (node->nodeType == NodeType::EXPRESSION_STATEMENT) {
         generateExpression(node->left);
         return;
     }
@@ -131,7 +131,7 @@ void Generator::generateExpression(const std::shared_ptr<Node>& node) {
         return;
     }
 
-    switch (node->type) {
+    switch (node->nodeType) {
         case NodeType::NUMBER:
             lines.emplace_back(mov(RAX, node->value));
             return;
@@ -167,7 +167,7 @@ void Generator::generateExpression(const std::shared_ptr<Node>& node) {
     generateExpression(node->left);
     lines.emplace_back(pop(RDI));
 
-    switch (node->type) {
+    switch (node->nodeType) {
         case NodeType::ADD:
             lines.emplace_back(add(RAX, RDI));
             return;

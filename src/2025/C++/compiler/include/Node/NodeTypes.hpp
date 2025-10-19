@@ -37,7 +37,7 @@ namespace yoctocc {
     };
 
     struct Node {
-        NodeType type;
+        NodeType nodeType;
         int value;
         std::shared_ptr<Token> token;
         std::shared_ptr<Node> left;
@@ -53,7 +53,7 @@ namespace yoctocc {
         std::shared_ptr<Node> body;
         std::shared_ptr<Object> variable;
 
-        Node(NodeType type = NodeType::UNKNOWN): type(type), value(0) {}
+        Node(NodeType type = NodeType::UNKNOWN): nodeType(type), value(0) {}
     };
 
     struct Function {
