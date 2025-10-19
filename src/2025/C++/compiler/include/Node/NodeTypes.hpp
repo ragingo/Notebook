@@ -4,6 +4,7 @@
 namespace yoctocc {
 
     struct Token;
+    struct Type;
 
     enum class NodeType {
         UNKNOWN,
@@ -39,6 +40,7 @@ namespace yoctocc {
     struct Node {
         NodeType nodeType;
         int value;
+        std::shared_ptr<Type> type;
         std::shared_ptr<Token> token;
         std::shared_ptr<Node> left;
         std::shared_ptr<Node> right;

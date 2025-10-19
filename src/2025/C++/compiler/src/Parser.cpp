@@ -4,6 +4,7 @@
 #include "Logger.hpp"
 #include "Node/Node.hpp"
 #include "Token.hpp"
+#include "Type.hpp"
 
 namespace yoctocc {
 
@@ -110,6 +111,7 @@ std::shared_ptr<Node> Parser::parseCompoundStatement(std::shared_ptr<Token>& res
     auto current = head;
     while (token->type != TokenType::TERMINATOR && !token::is(token, "}")) {
         current = current->next = parseStatement(token, token);
+        type::addType(current);
     }
     result = token->next;
     auto node = createBlockNode(token, head->next);
@@ -174,11 +176,11 @@ std::shared_ptr<Node> Parser::parseAdditive(std::shared_ptr<Token>& result, std:
 
     while (true) {
         if (token::is(token, "+")) {
-            node = createBinaryNode(NodeType::ADD, token, node, parseMultiply(token, token->next));
+            node = createAddNode(token, node, parseMultiply(token, token->next));
             continue;
         }
         if (token::is(token, "-")) {
-            node = createBinaryNode(NodeType::SUB, token, node, parseMultiply(token, token->next));
+            node = createSubNode(token, node, parseMultiply(token, token->next));
             continue;
         }
         result = token;
